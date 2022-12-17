@@ -75,8 +75,8 @@ protected:
   size_t size_;
   size_t dim_;
 
-  static bool is_shape_valid(const TensorShape &shape);
-  bool is_index_valid(const TensorIndex &index);
+  bool is_shape_valid(const TensorShape &shape) const;
+  bool is_index_valid(const TensorIndex &index) const;
 
   // helper functions
   TensorIterator<dType> get_iterator(const TensorIndex &index);

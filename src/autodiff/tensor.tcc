@@ -145,7 +145,7 @@ TensorIterator<dType> Tensor<dType>::get_iterator(const TensorIndex &index) {
 }
 
 template <typename dType>
-bool Tensor<dType>::is_shape_valid(const TensorShape &shape) {
+bool Tensor<dType>::is_shape_valid(const TensorShape &shape) const {
   if (shape == EMPTY_SHAPE) {
     return false;
   }
@@ -164,7 +164,7 @@ bool Tensor<dType>::is_shape_valid(const TensorShape &shape) {
 }
 
 template <typename dType>
-bool Tensor<dType>::is_index_valid(const TensorIndex &index) {
+bool Tensor<dType>::is_index_valid(const TensorIndex &index) const {
   if (index.size() == 0) {
     return false;
   }
@@ -270,7 +270,7 @@ Tensor<dType> Tensor<dType>::multiply(const Tensor<dType> &bt) {
 template <typename dType>
 Tensor<dType> Tensor<dType>::multiply(const double &multiplier) {
 
-  Tensor<dType> result = Tensor(shape_);
+  Tensor<dType> result = Tensor(shape_, static_cast<dType>(multiplier));
   utils::math::elementwise_multiply(size_, get_tensor_const_ptr(),
                                     result.get_tensor_ptr(),
                                     result.get_tensor_ptr());
@@ -292,15 +292,15 @@ Tensor<dType> Tensor<dType>::add(const Tensor<dType> &bt) {
 
 template <typename dType>
 Tensor<dType> Tensor<dType>::add(const double &number) {
-  Tensor<dType> result = Tensor(shape_, number);
+  Tensor<dType> result = Tensor(shape_, static_cast<dType>(number));
   utils::math::elementwise_add(size_, get_tensor_const_ptr(),
-                               result.get_tensor_const_ptr(),
+                               result.get_tensor_ptr(),
                                result.get_tensor_ptr());
   return result;
 }
 
-template <>
-void Tensor<double>::normal_init(double loc, double scale, size_t seed) {
+template <typename dType>
+void Tensor<dType>::normal_init(double loc, double scale, size_t seed) {
   size_t r_seed = seed;
   if (r_seed == SIZE_MAX) {
     r_seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -310,37 +310,7 @@ void Tensor<double>::normal_init(double loc, double scale, size_t seed) {
 
   for (auto it = tensor_->begin(); it != tensor_->end(); it++) {
     double number = distribution(eng);
-    *it = number;
-  }
-}
-
-template <>
-void Tensor<float>::normal_init(double loc, double scale, size_t seed) {
-  size_t r_seed = seed;
-  if (r_seed == SIZE_MAX) {
-    r_seed = std::chrono::system_clock::now().time_since_epoch().count();
-  }
-  std::default_random_engine eng(r_seed);
-  std::normal_distribution<double> distribution(loc, scale);
-
-  for (auto it = tensor_->begin(); it != tensor_->end(); it++) {
-    double number = distribution(eng);
-    *it = static_cast<float>(number);
-  }
-}
-
-template <>
-void Tensor<int32_t>::normal_init(double loc, double scale, size_t seed) {
-  size_t r_seed = seed;
-  if (r_seed == SIZE_MAX) {
-    r_seed = std::chrono::system_clock::now().time_since_epoch().count();
-  }
-  std::default_random_engine eng(r_seed);
-  std::normal_distribution<double> distribution(loc, scale);
-
-  for (auto it = tensor_->begin(); it != tensor_->end(); it++) {
-    double number = distribution(eng);
-    *it = static_cast<int32_t>(number);
+    *it = static_cast<dType>(number);
   }
 }
 
@@ -406,31 +376,42 @@ size_t Tensor<dType>::get_index_after_transpose(
   }
 
   int64_t new_index = signed_index + offset;
-  // if (new_index >= 24 || new_index < 0) {
-  //   throw std::runtime_error(
-  //       "Invalid index: " + std::to_string(new_index) + " from ind: " +
-  //       std::to_string(ind) + " axis: " + std::to_string(axis_a) + " " +
-  //       std::to_string(axis_b) + "\nStrides: " +
-  //       utils::array_to_str(1, ori_strides.size(), &*ori_strides.begin()) +
-  //       "\nNew Strides: " +
-  //       utils::array_to_str(1, new_strides.size(), &*new_strides.begin()));
-  // }
   return static_cast<size_t>(new_index);
+}
+
+template <typename dType>
+void Tensor<dType>::do_transpose(const size_t &axis_a, const size_t &axis_b,
+                                 Tensor<dType> &dest_tensor) {
+  TensorIterator<dType> src_iter = tensor_->begin();
+  TensorIterator<dType> dest_iter = dest_tensor.tensor_->begin();
+  size_t src_index = 0;
+  size_t dest_index;
+
+  auto get_new_index = [&](const size_t &index) {
+    return get_index_after_transpose(index, axis_a, axis_b, this->strides_,
+                                     dest_tensor.strides_);
+  };
+
+  while (src_iter != tensor_->end()) {
+    dest_index = get_new_index(src_index);
+    *(dest_iter + dest_index) = *(src_iter++);
+    src_index++;
+  }
 }
 
 // transpose will switch the dimension of two axes
 template <typename dType>
 Tensor<dType> Tensor<dType>::transpose(const size_t &axis_ai,
                                        const size_t &axis_bi) {
+  if (axis_ai == axis_bi) {
+    throw std::invalid_argument("Repeated axis in transpose");
+  }
+
   size_t axis_a = std::min(axis_ai, axis_bi);
   size_t axis_b = std::max(axis_ai, axis_bi);
 
   if (axis_b >= dim_) {
     throw adg_exception::AxisOutOfRangeError();
-  }
-
-  if (axis_a == axis_b) {
-    throw std::invalid_argument("Repeated axis in transpose");
   }
 
   // deep copy
@@ -458,26 +439,6 @@ template <typename dType> Tensor<dType> Tensor<dType>::transpose() {
   }
 
   return transpose(dim_ - 2, dim_ - 1);
-}
-
-template <typename dType>
-void Tensor<dType>::do_transpose(const size_t &axis_a, const size_t &axis_b,
-                                 Tensor<dType> &dest_tensor) {
-  TensorIterator<dType> src_iter = tensor_->begin();
-  TensorIterator<dType> dest_iter = dest_tensor.tensor_->begin();
-  size_t src_index = 0;
-  size_t dest_index;
-
-  auto get_new_index = [&](const size_t &index) {
-    return get_index_after_transpose(index, axis_a, axis_b, this->strides_,
-                                     dest_tensor.strides_);
-  };
-
-  while (src_iter != tensor_->end()) {
-    dest_index = get_new_index(src_index);
-    *(dest_iter + dest_index) = *(src_iter++);
-    src_index++;
-  }
 }
 
 // instantiation

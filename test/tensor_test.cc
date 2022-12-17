@@ -258,6 +258,32 @@ TEST(AdgcTensorTest, TensorAddTest) {
   EXPECT_THROW(test(), adg_exception::MismatchTensorShapeError);
 }
 
+TEST(AdgcTensorTest, TensorMultiplyNumberTest) {
+  std::vector<float> fa = {1, 2, 3, 4};
+  tensor::Tensor<float> ta({2, 2}, fa);
+
+  auto tc = ta.multiply(3.);
+  ASSERT_THAT(tc.test_get_tensor(), ElementsAre(3., 6., 9., 12.));
+}
+
+TEST(AdgcTensorTest, TensorAddNumberTest) {
+  std::vector<float> fa = {1, 2, 3, 4};
+  tensor::Tensor<float> ta({2, 2}, fa);
+
+  auto tc = ta.add(3.);
+  ASSERT_THAT(tc.test_get_tensor(), ElementsAre(4., 5., 6., 7.));
+}
+
+TEST(AdgcTensorTest, TensorInitTest) {
+  tensor::Tensor<float> ta({2, 2});
+
+  // ta.normal_init();
+
+  ta.normal_init(1, 10);
+
+  // FAIL() << ta.to_string();
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
