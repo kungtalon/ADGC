@@ -78,7 +78,7 @@ protected:
   TensorShape get_dot_shape(const Tensor<dType> &bt) const;
   static size_t get_coordinate_at_axis(const size_t &ind, const size_t &axis,
                                        const TensorShape &strides);
-  static size_t get_index_after_transpose(const size_t arr_ind,
+  static size_t get_index_after_transpose(const size_t& arr_ind,
                                           const size_t &axis_a,
                                           const size_t &axis_b,
                                           const TensorShape &ori_strides,

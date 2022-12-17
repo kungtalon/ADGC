@@ -373,7 +373,7 @@ size_t Tensor<dType>::get_coordinate_at_axis(const size_t &ind,
 */
 template <typename dType>
 size_t Tensor<dType>::get_index_after_transpose(
-    const size_t ind, const size_t &axis_a, const size_t &axis_b,
+    const size_t &ind, const size_t &axis_a, const size_t &axis_b,
     const TensorShape &ori_strides, const TensorShape &new_strides) {
   int64_t signed_index = ind;
   int64_t offset = 0;
