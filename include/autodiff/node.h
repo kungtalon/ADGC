@@ -1,47 +1,64 @@
 #ifndef ADGC_AUTODIFF_NODE_H_
-#define AGDC_AUTODIFF_NODE_H_
+#define ADGC_AUTODIFF_NODE_H_
 
 #include <string>
 #include <vector>
 
-#include "graph.h"
 #include "tensor.h"
+#include "utils/utils.h"
 
 namespace graph_component {
 
-typedef std::vector<Node *> NodePtrList;
+class Graph; // forward
+
+typedef tensor::Tensor<double> DTensor;
 
 class Node {
+public:
+  Node();
+  Node(const std::string &type, const std::string &name = "",
+       Graph *graph = nullptr);
+  Node(const std::string &type, const std::vector<Node *> &parents,
+       const std::string &name = "", Graph *graph = nullptr);
+  void clear_value(bool recursive = true);
+  void assign_value(const DTensor &value);
+
+  virtual void forward();
+  virtual DTensor backward(Node *result);
+  virtual void compute() = 0;
+  virtual DTensor get_jacobi(Node *parent) = 0;
+
+  inline std::string get_type() const { return type_; }
+  inline std::string get_name() const { return name_; }
+  inline std::string get_full_name() const { return type_ + "_" + name_; }
+  inline Graph *get_graph() { return graph_; }
+  inline std::vector<Node *> get_children() const { return children_; }
+  inline std::vector<Node *> get_parents() const { return parents_; }
+  inline DTensor get_value() const { return value_; }
+  inline size_t get_value_size() const { return value_.get_size(); }
+  inline tensor::TensorShape get_value_shape() const {
+    return value_.get_shape();
+  }
+
+  // inline void set_graph(Graph *graph) { graph_ = graph; }
+  inline void clear_jacobi() { jacobi_ = tensor::EMPTY; }
+  inline void add_children(Node *child) { children_.push_back(child); }
+
+  friend void graph_reset_node_name(Node *node, const std::string &name,
+                                    Graph *graph);
+
 protected:
   std::string type_;
   std::string name_;
-  NodePtrList parents_;
-  NodePtrList children_;
-  tensor::Tensor<double> value_;
-  tensor::Tensor<double> jacobi_;
+  std::vector<Node *> parents_;
+  std::vector<Node *> children_;
+  DTensor value_;
+  DTensor jacobi_;
   Graph *graph_;
-  static size_t node_idx;
-
-public:
-  Node(NodePtrList parents);
-  Node(NodePtrList parents, std::string name);
-  void clear_jacobi();
-  void clear_value(bool recursive);
-  void add_children(Node *child);
-
-  virtual void forward();
-  virtual void backward();
-  virtual void compute();
-  virtual void get_jacobi();
-
-  inline void set_value(tensor::Tensor<double> *value) { value_ = value; };
-  inline tensor::Tensor<double> *get_value() { return value_; };
-  inline void clear_jacobi() { jacobi_ = 0; };
-  inline void set_graph(Graph *graph) { graph_ = graph; }
-  inline Graph *get_graph() { return graph_; };
-  inline NodePtrList &get_children() { return children_; };
-  inline NodePtrList &get_parents() { return parents_; };
 };
+
 } // namespace graph_component
+
+#include "graph.h"
 
 #endif

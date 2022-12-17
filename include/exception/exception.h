@@ -32,6 +32,10 @@ class NonImplementedException : public AutoDiffGraphException {};
 
 class TestingDebugException : public AutoDiffGraphException {};
 
+class DuplicateNodeNameError : public AutoDiffGraphException {};
+
+class MismatchRegisterdGraphError : public AutoDiffGraphException {};
+
 } // namespace adg_exception
 
 #endif

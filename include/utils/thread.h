@@ -53,9 +53,77 @@ private:
   mutable std::shared_mutex mutex_; // Prevents data races to the job queue
 };
 
+template <typename K> ConcurrentCounter<K>::~ConcurrentCounter() {
+  destroy_all();
+}
+
+template <typename K> size_t ConcurrentCounter<K>::get(K *key) {
+  std::shared_lock lock(mutex_);
+  auto result_it = data_.find(key);
+  if (result_it == data_.end()) {
+    return 0;
+  } else {
+    return result_it->second;
+  }
+}
+
+template <typename K> size_t ConcurrentCounter<K>::increment(K *key) {
+  std::unique_lock lock(mutex_);
+  auto result_it = data_.find(key);
+  if (result_it == data_.end()) {
+    data_[key] = 1;
+    return 1;
+  } else {
+    return ++data_[key];
+  }
+}
+
+template <typename K> size_t ConcurrentCounter<K>::decrement(K *key) {
+  std::unique_lock lock(mutex_);
+  auto result_it = data_.find(key);
+  if (result_it == data_.end()) {
+    std::cerr << "Decrementing count of an non-existent pointer!!" << std::endl;
+    return 0;
+  } else {
+    size_t cur_count = --data_[key];
+    if (cur_count == 0) {
+      destroy(key);
+    }
+    return cur_count;
+  }
+}
+
+template <typename K> void ConcurrentCounter<K>::destroy(K *key) {
+  // called by decrement, do not acquire lock here
+  auto result_it = data_.find(key);
+  if (result_it == data_.end()) {
+    std::cerr << "ConcurrentCounter : Attempting to destroy an "
+                 "non-existent pointer!!"
+              << std::endl;
+  } else {
+    if (data_[key] != 0) {
+      std::cerr << "ConcurrentCounter : Attempting to destroy a "
+                   "referenced pointer!!"
+                << std::endl;
+      return;
+    }
+    delete[] key;
+  }
+  data_.erase(result_it);
+  key = nullptr;
+}
+
+template <typename K> void ConcurrentCounter<K>::destroy_all() {
+  if (!data_.empty()) {
+    std::unique_lock lock(mutex_);
+    for (auto it = data_.begin(); it != data_.end(); it++) {
+      delete[] it->first;
+    }
+    data_.clear();
+  }
+}
+
 } // namespace threads
 } // namespace utils
-
-#include "utils/thread.cc"
 
 #endif

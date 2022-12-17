@@ -2,29 +2,8 @@
 
 namespace tensor {
 
-// template <> Tensor<float>::Tensor() {
-//   shape_ = {1};
-//   dim_ = 1;
-//   size_ = 1;
-//   strides_ = {1};
-//   tensor_ = std::make_shared<std::vector<float>>(1, 0);
-// }
-
-// template <> Tensor<double>::Tensor() {
-//   shape_ = {1};
-//   dim_ = 1;
-//   size_ = 1;
-//   strides_ = {1};
-//   tensor_ = std::make_shared<std::vector<double>>(1, 0.);
-// }
-
-// template <> Tensor<int32_t>::Tensor() {
-//   shape_ = {1};
-//   dim_ = 1;
-//   size_ = 1;
-//   strides_ = {1};
-//   tensor_ = std::make_shared<std::vector<int32_t>>(1, 0);
-// }
+template <typename dType>
+Tensor<dType>::Tensor() : Tensor<dType>::Tensor({1}) {}
 
 template <typename dType> Tensor<dType>::Tensor(const TensorShape &shape) {
   if (!is_shape_valid(shape)) {
@@ -473,13 +452,13 @@ template <typename dType> Tensor<dType> Tensor<dType>::transpose() const {
   return transpose(dim_ - 2, dim_ - 1);
 }
 
-// instantiation
-template class Tensor<double>;
-template class Tensor<int32_t>;
-template class Tensor<float>;
+// // instantiation
+// template class Tensor<double>;
+// template class Tensor<int32_t>;
+// template class Tensor<float>;
 
-TensorIterator<double> inst_tensor_iter_double;
-TensorIterator<int32_t> inst_tensor_iter_int;
-TensorIterator<float> inst_tensor_iter_float;
+// TensorIterator<double> inst_tensor_iter_double;
+// TensorIterator<int32_t> inst_tensor_iter_int;
+// TensorIterator<float> inst_tensor_iter_float;
 
 } // namespace tensor

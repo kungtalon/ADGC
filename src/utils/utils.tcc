@@ -1,3 +1,6 @@
+#ifndef ADGC_UTILS_UTILS_TCC_
+#define ADGC_UTILS_UTILS_TCC_
+
 #include "utils/utils.h"
 
 namespace utils {
@@ -121,3 +124,5 @@ template void multi_array_to_str_helper<double>(
 //     const std::vector<size_t> &axis_inc, bool *p, std::stringstream &out);
 
 } // namespace utils
+
+#endif

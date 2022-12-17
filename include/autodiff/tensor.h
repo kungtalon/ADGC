@@ -30,7 +30,7 @@ static const size_t MAX_THREAD_NUM = 4;
 
 template <typename dType> class Tensor {
 public:
-  // Tensor();
+  Tensor();
   Tensor(const TensorShape &shape);
   Tensor(const TensorShape &shape, const dType &single_value);
   Tensor(const TensorShape &shape, const dType *values);
@@ -100,20 +100,28 @@ protected:
 };
 
 class Zeros : public Tensor<double> {
+public:
   Zeros(const TensorShape &shape) : Tensor<double>(shape, 0.){};
 };
 
 class Ones : public Tensor<double> {
+public:
   Ones(const TensorShape &shape) : Tensor<double>(shape, 1.){};
 };
 
 class Eye : public Tensor<double> {
+public:
   Eye(const size_t &len) : Tensor<double>({len, len}, 0.) {
     for (size_t ix = 0; ix < len; ix++) {
       set_value({ix, ix}, 1.);
     }
   }
 };
+
+static const Tensor<int32_t> EMPTY_INT = {{1}};
+static const Tensor<float> EMPTY_FLOAT = {{1}};
+static const Tensor<double> EMPTY_DOUBLE = {{1}};
+static const Tensor<double> EMPTY = {{1}};
 
 } // namespace tensor
 

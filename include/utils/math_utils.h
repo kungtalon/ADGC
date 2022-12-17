@@ -18,14 +18,22 @@ void tensor_gemm(const size_t &size_a, const size_t &size_b,
                  const size_t &K, const dType *mat_a, const dType *mat_b,
                  dType *mat_c);
 
-void gemm(const size_t M, const size_t N, const size_t K, const double *mat_a,
-          const double *mat_b, double *mat_c);
+inline void gemm(const size_t M, const size_t N, const size_t K,
+                 const float *mat_a, const float *mat_b, float *mat_c) {
+  cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, M, N, K, 1., mat_a, K,
+              mat_b, N, 0., mat_c, N);
+}
 
-void gemm(const size_t M, const size_t N, const size_t K, const float *mat_a,
-          const float *mat_b, float *mat_c);
+inline void gemm(const size_t M, const size_t N, const size_t K,
+                 const double *mat_a, const double *mat_b, double *mat_c) {
+  cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, M, N, K, 1., mat_a, K,
+              mat_b, N, 0., mat_c, N);
+}
 
-void gemm(const size_t M, const size_t N, const size_t K, const int32_t *mat_a,
-          const int32_t *mat_b, int32_t *mat_c);
+inline void gemm(const size_t M, const size_t N, const size_t K,
+                 const int32_t *mat_a, const int32_t *mat_b, int32_t *mat_c) {
+  throw adg_exception::NonImplementedException();
+}
 
 template <typename dType>
 void elementwise_multiply(const size_t &size, const dType *mat_a,
