@@ -52,6 +52,24 @@ TEST(AdgcTensorTest, DeepCopyTest) {
   ASSERT_EQ(tb.get_value({0, 1}), 2);
 }
 
+TEST(AdgcTensorTest, EqualityTest) {
+  std::vector<int32_t> fa = {1, 2, 3, 4};
+  tensor::Tensor<int32_t> ta({2, 2}, fa);
+  tensor::Tensor<int32_t> tb(ta);
+  tensor::Tensor<int32_t> tc = tb;
+  tensor::Tensor<int32_t> td = ta.copy();
+  tensor::Tensor<int32_t> te({2, 2}, fa);
+  tensor::Tensor<int32_t> tf({1, 4}, fa);
+
+  ASSERT_TRUE(ta == tb);
+  ASSERT_TRUE(!(ta != tb));
+  ASSERT_TRUE(ta == tc);
+  ASSERT_TRUE(ta != td);
+  ASSERT_TRUE(!(ta == td));
+  ASSERT_TRUE(ta != te);
+  ASSERT_TRUE(ta != tf);
+}
+
 TEST(AdgcTensorTest, ReshapeTest) {
   std::vector<int32_t> fa = {1, 2, 3, 4};
   tensor::Tensor<int32_t> ta({2, 2}, fa);

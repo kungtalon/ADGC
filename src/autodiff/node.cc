@@ -29,7 +29,7 @@ void Node::backward() {
   }
 }
 
-void Node::clear_jacobi() { jacobi_ = nullptr; }
+void Node::clear_jacobi() { jacobi_ = tensor::Zeros(); }
 void Node::clear_value(bool recursive) {}
 void Node::add_children(Node *child) { children_.push_back(child); }
 } // namespace graph_component

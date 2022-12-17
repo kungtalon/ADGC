@@ -17,8 +17,8 @@ protected:
   std::string name_;
   NodePtrList parents_;
   NodePtrList children_;
-  tensor::Tensor<double> *value_;
-  tensor::Tensor<double> *jacobi_;
+  tensor::Tensor<double> value_;
+  tensor::Tensor<double> jacobi_;
   Graph *graph_;
   static size_t node_idx;
 

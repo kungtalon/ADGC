@@ -136,6 +136,19 @@ Tensor<dType> &Tensor<dType>::operator=(const Tensor<dType> &bt) {
 }
 
 template <typename dType>
+bool Tensor<dType>::operator==(const Tensor<dType> &bt) {
+  if (size_ != bt.size_ || shape_ != bt.shape_) {
+    return false;
+  }
+  return tensor_ == bt.tensor_;
+}
+
+template <typename dType>
+bool Tensor<dType>::operator!=(const Tensor<dType> &bt) {
+  return !(*this == bt);
+}
+
+template <typename dType>
 TensorIterator<dType> Tensor<dType>::get_iterator(const TensorIndex &index) {
   size_t address = 0;
   size_t address_gap = 1; // the address distance between adjacent index
