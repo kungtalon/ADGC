@@ -359,39 +359,57 @@ size_t Tensor<dType>::get_coordinate_at_axis(const size_t &ind,
   return (ind % strides[axis - 1]) / strides[axis];
 }
 
-// helper function for transpose, computes the new index after transpose
+/*
+  This is helper function for transpose, computes the new index after transpose.
+  Suppose c is the vector of coordinates and s is the vector of strides.
+  The conversion equation for multi-array coordinate and the flattened index is
+    ` ind = sum_i {c[i] * s[i]} `
+  After transpose, we should have the new strides ns and only switch the
+  coordinate of axis a and b, then
+    ` new_ind = sum_{i != a, b} {c[i] * ns[i]} + c[a] * ns[b] + c[b] * ns[a] `
+  The `offset` computed in this function is new_ind - ind
+*/
 template <typename dType>
 size_t Tensor<dType>::get_index_after_transpose(
     const size_t ind, const size_t &axis_a, const size_t &axis_b,
     const TensorShape &ori_strides, const TensorShape &new_strides) {
   int64_t signed_index = ind;
-  int64_t offset = 0, new_coord;
-  int64_t coord_a = get_coordinate_at_axis(ind, axis_a, ori_strides);
-  int64_t coord_b = get_coordinate_at_axis(ind, axis_b, ori_strides);
-  offset += coord_a * (new_strides[axis_b] - ori_strides[axis_a]) +
-            coord_b * (new_strides[axis_a] - ori_strides[axis_b]);
-  for (size_t ax = axis_a + 1; ax < axis_b; ++ax) {
-    int64_t coord = get_coordinate_at_axis(ind, ax, ori_strides);
-    offset += coord * (new_strides[ax] - ori_strides[ax]);
+  int64_t offset = 0;
+  {
+    int64_t coord_a = get_coordinate_at_axis(ind, axis_a, ori_strides);
+    int64_t coord_b = get_coordinate_at_axis(ind, axis_b, ori_strides);
+    offset += coord_a * (new_strides[axis_b] - ori_strides[axis_a]) +
+              coord_b * (new_strides[axis_a] - ori_strides[axis_b]);
+  }
+
+  {
+    int64_t cur_coord;
+    for (size_t ax = axis_a + 1; ax < axis_b; ++ax) {
+      cur_coord = get_coordinate_at_axis(ind, ax, ori_strides);
+      offset += cur_coord * (new_strides[ax] - ori_strides[ax]);
+    }
   }
 
   int64_t new_index = signed_index + offset;
   return static_cast<size_t>(new_index);
 }
 
+// do_transpose impl of transpose
+// maps the index of original tensor to the index of the new tensor
 template <typename dType>
 void Tensor<dType>::do_transpose(const size_t &axis_a, const size_t &axis_b,
                                  Tensor<dType> &dest_tensor) {
-  TensorIterator<dType> src_iter = tensor_->begin();
-  TensorIterator<dType> dest_iter = dest_tensor.tensor_->begin();
-  size_t src_index = 0;
-  size_t dest_index;
 
   auto get_new_index = [&](const size_t &index) {
     return get_index_after_transpose(index, axis_a, axis_b, this->strides_,
                                      dest_tensor.strides_);
   };
 
+  TensorIterator<dType> src_iter = tensor_->begin();
+  TensorIterator<dType> dest_iter = dest_tensor.tensor_->begin();
+  size_t src_index = 0;
+  size_t dest_index;
+  // iterate all elements in tensor
   while (src_iter != tensor_->end()) {
     dest_index = get_new_index(src_index);
     *(dest_iter + dest_index) = *(src_iter++);
