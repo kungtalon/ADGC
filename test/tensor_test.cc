@@ -11,8 +11,10 @@ TEST(AdgcTensorTest, ConstructorTest) {
   std::vector<float> fa = {1., 2., 3., 4.};
   tensor::Tensor<float> ta({2, 2}, fa);
   tensor::Tensor<float> tb(ta);
+  tensor::Tensor<float> tc(std::move(ta));
 
-  ASSERT_THAT(tb.test_get_tensor(), ElementsAre(1, 2, 3, 4));
+  ASSERT_THAT(tb.to_vector(), ElementsAre(1, 2, 3, 4));
+  ASSERT_THAT(tc.to_vector(), ElementsAre(1, 2, 3, 4));
 }
 
 TEST(AdgcTensorTest, SetterGetterTest) {
@@ -85,7 +87,7 @@ TEST(AdgcTensorTest, Transpose4DTest1) {
     tensor::Tensor<double> ta({3, 1, 2, 4}, fa);
     tensor::Tensor<double> tb = ta.transpose(0, 3);
 
-    ASSERT_THAT(tb.test_get_tensor(),
+    ASSERT_THAT(tb.to_vector(),
                 ElementsAre(4., 9., 0., 7., 9., 3., 2., 3., 6., 8., 5., 2., 9.,
                             2., 8., 7., 8., 3., 4., 1., 4., 1., 4., 9.));
     ASSERT_FLOAT_EQ(tb.get_value({0, 0, 1, 1}), 9);
@@ -103,7 +105,7 @@ TEST(AdgcTensorTest, Transpose4DTest2) {
     tensor::Tensor<double> ta({3, 1, 2, 4}, fa);
     tensor::Tensor<double> tc = ta.transpose(1, 2);
 
-    ASSERT_THAT(tc.test_get_tensor(),
+    ASSERT_THAT(tc.to_vector(),
                 ElementsAre(4., 2, 9, 4, 7, 8, 7, 1, 9, 3, 2, 1, 9, 5, 8, 4, 0,
                             6, 8, 4, 3, 2, 3, 9));
     ASSERT_FLOAT_EQ(tc.get_value({0, 1, 0, 1}), 8);
@@ -139,7 +141,7 @@ TEST(AdgcTensorTest, TransposeAfterReshapeTest) {
     tensor::Tensor<double> tc = ta.transpose(1, 2);
 
     ASSERT_THAT(
-        tc.test_get_tensor(),
+        tc.to_vector(),
         ElementsAre(9.18560879, 6.12390408, 3.17782584, 2.72261349, 3.57568576,
                     3.76135061, 7.92799201, 9.98124661, 1.27645199, 5.70451287,
                     7.5644529, 8.74826167, 2.02890156, 2.9316532, 1.24171595,
@@ -195,7 +197,7 @@ TEST(AdgcTensorTest, TensorMultiplyTest) {
   auto tc = ta.multiply(tb);
   ASSERT_THAT(tc.get_shape(), ElementsAre(3, 2, 2, 3));
 
-  auto tc_tensor = tc.test_get_tensor();
+  auto tc_tensor = tc.to_vector();
   ASSERT_EQ(tc_tensor.size(), true_res.size());
 
   for (int i = 0; i < tc_tensor.size(); ++i) {
@@ -230,7 +232,7 @@ TEST(AdgcTensorTest, TensorDotTest) {
   auto tc = ta.dot(tb);
   ASSERT_THAT(tc.get_shape(), ElementsAre(3, 4, 2));
 
-  auto tc_tensor = tc.test_get_tensor();
+  auto tc_tensor = tc.to_vector();
   ASSERT_EQ(tc_tensor.size(), true_res.size());
 
   for (int i = 0; i < tc_tensor.size(); ++i) {
@@ -248,7 +250,7 @@ TEST(AdgcTensorTest, TensorAddTest) {
   tensor::Tensor<float> tb({2, 2}, fb);
 
   auto tc = ta.add(tb);
-  ASSERT_THAT(tc.test_get_tensor(), ElementsAre(7, 3, 12, 4));
+  ASSERT_THAT(tc.to_vector(), ElementsAre(7, 3, 12, 4));
 
   auto test = [&]() {
     tc.reshape({1, 4});
@@ -263,7 +265,7 @@ TEST(AdgcTensorTest, TensorMultiplyNumberTest) {
   tensor::Tensor<float> ta({2, 2}, fa);
 
   auto tc = ta.multiply(3.);
-  ASSERT_THAT(tc.test_get_tensor(), ElementsAre(3., 6., 9., 12.));
+  ASSERT_THAT(tc.to_vector(), ElementsAre(3., 6., 9., 12.));
 }
 
 TEST(AdgcTensorTest, TensorAddNumberTest) {
@@ -271,7 +273,7 @@ TEST(AdgcTensorTest, TensorAddNumberTest) {
   tensor::Tensor<float> ta({2, 2}, fa);
 
   auto tc = ta.add(3.);
-  ASSERT_THAT(tc.test_get_tensor(), ElementsAre(4., 5., 6., 7.));
+  ASSERT_THAT(tc.to_vector(), ElementsAre(4., 5., 6., 7.));
 }
 
 TEST(AdgcTensorTest, TensorInitTest) {

@@ -33,7 +33,7 @@ public:
   // Tensor();
   Tensor(const TensorShape &shape);
   Tensor(const TensorShape &shape, const dType &single_value);
-  Tensor(const TensorShape &shape, dType *values);
+  Tensor(const TensorShape &shape, const dType *values);
   Tensor(const TensorShape &shape, const std::vector<dType> &values);
   Tensor(const Tensor<dType> &another);
   Tensor(const Tensor<dType> &&another);
@@ -43,29 +43,24 @@ public:
   void set_value(const TensorIndex &index, const dType &value);
   dType get_value(const TensorIndex &index);
   void reshape(const TensorShape &new_shape);
-  Tensor<dType> dot(const Tensor<dType> &bt);
-  Tensor<dType> multiply(const double &multiplier);
-  Tensor<dType> multiply(const Tensor<dType> &bt);
-  Tensor<dType> add(const Tensor<dType> &bt);
-  Tensor<dType> add(const double &number);
-  Tensor<dType> transpose();
-  Tensor<dType> transpose(const size_t &axis_a, const size_t &axis_b);
-  Tensor<dType> copy();
+  Tensor<dType> dot(const Tensor<dType> &bt) const;
+  Tensor<dType> multiply(const double &multiplier) const;
+  Tensor<dType> multiply(const Tensor<dType> &bt) const;
+  Tensor<dType> add(const Tensor<dType> &bt) const;
+  Tensor<dType> add(const double &number) const;
+  Tensor<dType> transpose() const;
+  Tensor<dType> transpose(const size_t &axis_a, const size_t &axis_b) const;
+  Tensor<dType> copy() const;
   void normal_init(double loc = 0., double scale = 1., size_t seed = SIZE_MAX);
-
-#if TENSOR_TESTING
-
-  inline std::vector<dType> test_get_tensor() {
-    return *static_cast<std::vector<dType> *>(tensor_.get());
-  };
-
-#endif
 
   inline TensorShape get_shape() const { return shape_; };
   inline size_t get_size() const { return size_; };
   inline size_t get_dim() const { return dim_; };
   inline TensorShape get_strides() const { return strides_; };
   inline std::string to_string() const { return do_to_string(); };
+  inline std::vector<dType> to_vector() const {
+    return *static_cast<std::vector<dType> *>(tensor_.get());
+  };
 
 protected:
   // store tensor as a vector, wrapped in shared_ptr for easy copy
@@ -95,7 +90,7 @@ protected:
 
   // impl functions
   void do_transpose(const size_t &axis_a, const size_t &axis_b,
-                    Tensor<dType> &dest_tensor);
+                    Tensor<dType> &dest_tensor) const;
   inline std::string do_to_string() const {
     dType *raw_tensor_ptr = &*tensor_->begin();
     return utils::multi_array_to_str(shape_, raw_tensor_ptr);

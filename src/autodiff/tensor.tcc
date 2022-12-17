@@ -60,7 +60,9 @@ Tensor<dType>::Tensor(const TensorShape &shape, const dType &single_value) {
 }
 
 template <typename dType>
-Tensor<dType>::Tensor(const TensorShape &shape, dType *values) {
+Tensor<dType>::Tensor(const TensorShape &shape, const dType *values) {
+  // dangerous: this constructor does not check whether values has a valid
+  // size compatible with the argument shape
   if (!is_shape_valid(shape)) {
     throw adg_exception::InvalidTensorShapeException();
   }
@@ -238,7 +240,7 @@ TensorShape Tensor<dType>::get_dot_shape(const Tensor<dType> &bt) const {
 
 // dot implements the matrix multiplication
 template <typename dType>
-Tensor<dType> Tensor<dType>::dot(const Tensor<dType> &bt) {
+Tensor<dType> Tensor<dType>::dot(const Tensor<dType> &bt) const {
   TensorShape result_shape = get_dot_shape(bt);
   Tensor<dType> result(result_shape);
 
@@ -254,7 +256,7 @@ Tensor<dType> Tensor<dType>::dot(const Tensor<dType> &bt) {
 
 // multiply implements the element-wise multiplication
 template <typename dType>
-Tensor<dType> Tensor<dType>::multiply(const Tensor<dType> &bt) {
+Tensor<dType> Tensor<dType>::multiply(const Tensor<dType> &bt) const {
   if (bt.shape_ != shape_) {
     throw adg_exception::MismatchTensorShapeError();
   }
@@ -268,7 +270,7 @@ Tensor<dType> Tensor<dType>::multiply(const Tensor<dType> &bt) {
 
 // multiply implements the element-wise multiplication
 template <typename dType>
-Tensor<dType> Tensor<dType>::multiply(const double &multiplier) {
+Tensor<dType> Tensor<dType>::multiply(const double &multiplier) const {
 
   Tensor<dType> result = Tensor(shape_, static_cast<dType>(multiplier));
   utils::math::elementwise_multiply(size_, get_tensor_const_ptr(),
@@ -278,7 +280,7 @@ Tensor<dType> Tensor<dType>::multiply(const double &multiplier) {
 }
 
 template <typename dType>
-Tensor<dType> Tensor<dType>::add(const Tensor<dType> &bt) {
+Tensor<dType> Tensor<dType>::add(const Tensor<dType> &bt) const {
   if (bt.shape_ != shape_) {
     throw adg_exception::MismatchTensorShapeError();
   }
@@ -291,7 +293,7 @@ Tensor<dType> Tensor<dType>::add(const Tensor<dType> &bt) {
 }
 
 template <typename dType>
-Tensor<dType> Tensor<dType>::add(const double &number) {
+Tensor<dType> Tensor<dType>::add(const double &number) const {
   Tensor<dType> result = Tensor(shape_, static_cast<dType>(number));
   utils::math::elementwise_add(size_, get_tensor_const_ptr(),
                                result.get_tensor_ptr(),
@@ -315,8 +317,8 @@ void Tensor<dType>::normal_init(double loc, double scale, size_t seed) {
 }
 
 // copy returns a deep copy of current tensor
-template <typename dType> Tensor<dType> Tensor<dType>::copy() {
-  return Tensor<dType>(shape_, get_tensor_ptr());
+template <typename dType> Tensor<dType> Tensor<dType>::copy() const {
+  return Tensor<dType>(shape_, get_tensor_const_ptr());
 }
 
 // reshape changes the shape_, dim_, strides_ of the tensor
@@ -398,7 +400,7 @@ size_t Tensor<dType>::get_index_after_transpose(
 // maps the index of original tensor to the index of the new tensor
 template <typename dType>
 void Tensor<dType>::do_transpose(const size_t &axis_a, const size_t &axis_b,
-                                 Tensor<dType> &dest_tensor) {
+                                 Tensor<dType> &dest_tensor) const {
 
   auto get_new_index = [&](const size_t &index) {
     return get_index_after_transpose(index, axis_a, axis_b, this->strides_,
@@ -411,16 +413,15 @@ void Tensor<dType>::do_transpose(const size_t &axis_a, const size_t &axis_b,
   size_t dest_index;
   // iterate all elements in tensor
   while (src_iter != tensor_->end()) {
-    dest_index = get_new_index(src_index);
+    dest_index = get_new_index(src_index++);
     *(dest_iter + dest_index) = *(src_iter++);
-    src_index++;
   }
 }
 
 // transpose will switch the dimension of two axes
 template <typename dType>
 Tensor<dType> Tensor<dType>::transpose(const size_t &axis_ai,
-                                       const size_t &axis_bi) {
+                                       const size_t &axis_bi) const {
   if (axis_ai == axis_bi) {
     throw std::invalid_argument("Repeated axis in transpose");
   }
@@ -451,7 +452,7 @@ Tensor<dType> Tensor<dType>::transpose(const size_t &axis_ai,
 }
 
 // by default, we transpose the last two axes for convenient matrix operation
-template <typename dType> Tensor<dType> Tensor<dType>::transpose() {
+template <typename dType> Tensor<dType> Tensor<dType>::transpose() const {
   if (dim_ <= 1) {
     throw adg_exception::AxisOutOfRangeError();
   }
