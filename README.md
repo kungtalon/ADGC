@@ -1,5 +1,5 @@
-# auto-diff-graph-framework
-This repo aims to help everyone grasp a deeper understanding of tensor operations and automatic differentiation mechanisms in Numpy, PyTorch etc.
+# Auto-Diff-Graph-CPP
+This repo aims to help everyone grasp a deeper understanding of tensor operations and automatic differentiation mechanisms in TensorFlow, PyTorch etc.
 
 ## Tensor Module
 This part implements a standalone module for creating and manipulating multidimentional array like Numpy. The operations are based on CPU with BLAS.
@@ -16,7 +16,7 @@ Some of the methods implemented:
 We are trying to learn BLAS and use it for as many as we can. Any advice would be very appreciated! :)
 
 ## Graph Module
-This part contains all elements with regard to building an automatic differential graph. There are different types of nodes in the graph:
+This part contains all elements with regard to building an automatic differential graph. There are different types of nodes on the graph:
 - Node: base class for all nodes; it is abstract and no backward or forward is defined
 - Variable: leaf nodes controlling the user's input
 - Ops: operations between different nodes
