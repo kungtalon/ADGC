@@ -21,7 +21,7 @@ public:
   Variable(const tensor::TensorShape &shape, const std::vector<Node *> &parents,
            const std::string &name = "", const bool &random_init = true,
            const bool &trainable = true, Graph *graph = nullptr)
-      : Node("variable", parents, name, graph) {
+      : Node(NodeType::ADG_VARIABLE_TYPE, parents, name, graph) {
     value_ = DTensor(shape);
     if (random_init) {
       value_.normal_init(0., 0.001);

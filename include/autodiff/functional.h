@@ -8,7 +8,7 @@ namespace functional {
 
 class Sigmoid : public Node {
 public:
-  Sigmoid() : Node("sigmoid"){};
+  Sigmoid() : Node(NodeType::ADG_SIGMOID_TYPE){};
   Sigmoid(const std::vector<Node *> &parents);
   void do_forward() override;
   DTensor do_backward(Node *parent_ptr) override;
@@ -16,7 +16,7 @@ public:
 
 class ReLU : public Node {
 public:
-  ReLU() : Node("relu"){};
+  ReLU() : Node(NodeType::ADG_RELU_TYPE){};
   ReLU(const std::vector<Node *> &parents);
   void do_forward() override;
   DTensor do_backward(Node *parent_ptr) override;
@@ -24,7 +24,7 @@ public:
 
 class CrossEntropyWithSoftMax : public Node {
 public:
-  CrossEntropyWithSoftMax() : Node("cross_entropy_softmax"){};
+  CrossEntropyWithSoftMax() : Node(NodeType::ADG_CROSS_ENTROPY_SOFTMAX_TYPE){};
   CrossEntropyWithSoftMax(const std::vector<Node *> &parents);
   DTensor softmax(const DTensor &input);
   void do_forward() override;

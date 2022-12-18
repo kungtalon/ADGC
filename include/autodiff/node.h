@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "consts.h"
 #include "tensor/tensor.h"
 #include "utils/utils.h"
 

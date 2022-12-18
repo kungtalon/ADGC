@@ -3,7 +3,8 @@
 namespace graph_component {
 namespace ops {
 
-Add::Add(const std::vector<Node *> &parents) : Node("add", parents) {
+Add::Add(const std::vector<Node *> &parents)
+    : Node(NodeType::ADG_ADD_TYPE, parents) {
   // accept two matrices with same size
   if (parents_.size() != 2) {
     throw adg_exception::OpsParentsNumException("Add ==> Add");
@@ -30,7 +31,8 @@ DTensor Add::do_backward(Node *parent_ptr) {
   return tensor::Eye(get_value_size());
 }
 
-VecDot::VecDot(const std::vector<Node *> &parents) : Node("vecdot", parents) {
+VecDot::VecDot(const std::vector<Node *> &parents)
+    : Node(NodeType::ADG_VECDOT_TYPE, parents) {
   // accept two [n × 1] matrix parents
   if (parents_.size() != 2) {
     throw adg_exception::OpsParentsNumException("VecDot ==> VecDot");
@@ -65,7 +67,8 @@ DTensor VecDot::do_backward(Node *parent_ptr) {
   }
 }
 
-MatMul::MatMul(const std::vector<Node *> &parents) : Node("matmul", parents) {
+MatMul::MatMul(const std::vector<Node *> &parents)
+    : Node(NodeType::ADG_MATMUL_TYPE, parents) {
   if (parents_.size() != 2) {
     throw adg_exception::OpsParentsNumException("Matmul ==> MatMul");
   }

@@ -2,7 +2,7 @@
 
 namespace graph_component {
 
-Node::Node() : Node("unknown") {}
+Node::Node() : Node(NodeType::ADG_UNKNOWN_TYPE) {}
 
 Node::Node(const std::string &type, const std::string &name, Graph *graph)
     : type_(type), value_(tensor::EMPTY), jacobi_(tensor::EMPTY) {
