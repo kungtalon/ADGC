@@ -25,8 +25,6 @@ public:
 
   virtual void forward();
   virtual DTensor backward(Node *result);
-  virtual void compute() = 0;
-  virtual DTensor get_jacobi(Node *parent) = 0;
 
   inline std::string get_type() const { return type_; }
   inline std::string get_name() const { return name_; }
@@ -55,6 +53,9 @@ protected:
   DTensor value_;
   DTensor jacobi_;
   Graph *graph_;
+
+  virtual void do_forward() = 0;
+  virtual DTensor do_backward(Node *parent) = 0;
 };
 
 } // namespace graph_component

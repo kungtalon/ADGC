@@ -43,7 +43,7 @@ void Node::forward() {
       // let them do it first!
       parent_ptr->forward();
     }
-    this->compute(); // compute is an abstract function
+    this->do_forward(); // compute is an abstract function
   }
 }
 
@@ -58,7 +58,7 @@ DTensor Node::backward(Node *result) {
         if (child_ptr->get_value() != tensor::EMPTY) {
           DTensor childs_backward = child_ptr->backward(result);
           DTensor childs_contrib =
-              childs_backward.multiply(child_ptr->get_jacobi(this));
+              childs_backward.multiply(child_ptr->do_backward(this));
           jacobi_ = jacobi_.add(childs_contrib);
         }
       }

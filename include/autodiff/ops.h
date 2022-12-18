@@ -8,26 +8,28 @@ namespace ops {
 
 class Add : public Node {
 public:
-    Add(): Node("add") {};
-    void compute() override;
-    DTensor get_jacobi(Node *parent) override;
+  Add() : Node("add"){};
+  Add(const std::vector<Node *> &parents);
+  void do_forward() override;
+  DTensor do_backward(Node *parent_ptr) override;
 };
 
-
 class VecDot : public Node {
-    VecDot(): Node("vecdot") {};
-    void compute() override;
-    DTensor get_jacobi(Node *parent) override;
-} ;
+  VecDot() : Node("vecdot"){};
+  VecDot(const std::vector<Node *> &parents);
+  void do_forward() override;
+  DTensor do_backward(Node *parent_ptr) override;
+};
 
 class MatMul : public Node {
-    MatMul(): Node("matmul") {};
-    void compute() override;
-    DTensor get_jacobi(Node *parent) override;
-} ;
+  MatMul() : Node("matmul"){};
+  MatMul(const std::vector<Node *> &parents);
+  void do_forward() override;
+  DTensor do_backward(Node *parent_ptr) override;
+};
 
-}
+} // namespace ops
 
-}
+} // namespace graph_component
 
 #endif

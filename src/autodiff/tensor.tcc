@@ -266,7 +266,7 @@ Tensor<dType> Tensor<dType>::multiply(const double &multiplier) const {
 
   Tensor<dType> result = Tensor(shape_, static_cast<dType>(multiplier));
   utils::math::elementwise_multiply(size_, get_tensor_const_ptr(),
-                                    result.get_tensor_ptr(),
+                                    result.get_tensor_const_ptr(),
                                     result.get_tensor_ptr());
   return result;
 }
@@ -288,7 +288,7 @@ template <typename dType>
 Tensor<dType> Tensor<dType>::add(const double &number) const {
   Tensor<dType> result = Tensor(shape_, static_cast<dType>(number));
   utils::math::elementwise_add(size_, get_tensor_const_ptr(),
-                               result.get_tensor_ptr(),
+                               result.get_tensor_const_ptr(),
                                result.get_tensor_ptr());
   return result;
 }
@@ -450,6 +450,28 @@ template <typename dType> Tensor<dType> Tensor<dType>::transpose() const {
   }
 
   return transpose(dim_ - 2, dim_ - 1);
+}
+
+template <typename dType>
+void Tensor<dType>::fill_diag(const std::vector<dType> &diag_values) {
+  if (dim_ != 2) {
+    throw adg_exception::InvalidTensorShapeException();
+  }
+  size_t diag_len = diag_values.size();
+  size_t tensor_min_dim_len = std::min(shape_[0], shape_[1]);
+
+  if (diag_len > tensor_min_dim_len) {
+    throw adg_exception::MismatchTensorShapeError();
+  } else if (diag_len < tensor_min_dim_len) {
+    dType *valid_diag_val_ptr = new dType[diag_len];
+    memcpy(valid_diag_val_ptr, &*diag_values.begin(), sizeof(dType) * diag_len);
+    utils::math::fill_diagonal(shape_[0], shape_[1], valid_diag_val_ptr,
+                               get_tensor_ptr());
+    delete valid_diag_val_ptr;
+  } else {
+    utils::math::fill_diagonal(shape_[0], shape_[1], &*diag_values.begin(),
+                               get_tensor_ptr());
+  }
 }
 
 // // instantiation

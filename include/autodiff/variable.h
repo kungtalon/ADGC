@@ -30,11 +30,11 @@ public:
 
   void reset_value();
 
-  void compute() override{};
-  DTensor get_jacobi(Node *parent) override { return tensor::EMPTY; };
-
-private:
+protected:
   bool trainable_;
+
+  void do_forward() override{};
+  DTensor do_backward(Node *parent) override { return tensor::EMPTY; };
 };
 
 } // namespace graph_component

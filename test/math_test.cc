@@ -159,6 +159,89 @@ TEST(AdgcMathUtilsTest, FloatGemmTest) {
   delete[] out_c;
 }
 
+TEST(AdgcMathUtilsTest, FloatElementAddTest) {
+  float a[3] = {1, 2, 3};
+  float b[3] = {6, 7, 2};
+  float *c = new float[3];
+  memset(c, 0, sizeof(float) * 3);
+
+  utils::math::elementwise_add(3, a, b, c);
+  float expect[3] = {7, 9, 5};
+
+  for (int ix = 0; ix < 3; ++ix) {
+    EXPECT_FLOAT_EQ(expect[ix], c[ix]);
+  }
+
+  delete c;
+}
+
+TEST(AdgcMathUtilsTest, FloatElementSubTest) {
+  float a[3] = {1, 2, 3};
+  float b[3] = {6, 8, 2};
+  float *c = new float[3];
+  memset(c, 0, sizeof(float) * 3);
+
+  utils::math::elementwise_add(3, a, b, c, true);
+  float expect[3] = {-5, -6, 1};
+
+  for (int ix = 0; ix < 3; ++ix) {
+    EXPECT_FLOAT_EQ(expect[ix], c[ix]);
+  }
+
+  delete c;
+}
+
+TEST(AdgcMathUtilsTest, FloatElementMultplyTest) {
+  float a[3] = {1, 2, 3};
+  float b[3] = {6, 4, -2};
+  float *c = new float[3];
+  memset(c, 0, sizeof(float) * 3);
+
+  utils::math::elementwise_multiply(3, a, b, c);
+  float expect[3] = {6, 8, -6};
+
+  for (int ix = 0; ix < 3; ++ix) {
+    EXPECT_FLOAT_EQ(expect[ix], c[ix]);
+  }
+
+  delete c;
+}
+
+TEST(AdgcMathUtilsTest, DoubleElementMultplyTest) {
+  double a[5] = {0.5651718, 0.67220126, 0.92264734, 0.53891886, 0.39417962};
+  double b[5] = {0.06695532, 0.66330092, 0.86758923, 0.90448946, 0.13699479};
+  double *c = new double[5];
+  memset(c, 0, sizeof(float) * 5);
+
+  utils::math::elementwise_multiply(5, a, b, c);
+  float expect[5] = {0.03784126, 0.44587171, 0.8004789, 0.48744643, 0.05400055};
+
+  for (int ix = 0; ix < 5; ++ix) {
+    EXPECT_FLOAT_EQ(expect[ix], c[ix]);
+  }
+
+  delete c;
+}
+
+TEST(AdgcMathUtilsTest, DoubleFillDiagonalTest) {
+  double diags[3] = {1, 2, 3};
+  /*
+        [1, 0, 0, 0]
+        [0, 2, 0, 0]
+        [0, 0, 3, 0]
+  */
+  double *zeros = new double[12];
+  memset(zeros, 0, sizeof(double) * 12);
+  utils::math::fill_diagonal(3, 4, diags, zeros);
+
+  double expected[12] = {1., 0., 0, 0, 0, 2, 0, 0, 0, 0, 3, 0};
+  for (int ix = 0; ix < 12; ++ix) {
+    EXPECT_FLOAT_EQ(expected[ix], zeros[ix]);
+  }
+
+  delete zeros;
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

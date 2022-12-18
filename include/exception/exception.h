@@ -5,7 +5,15 @@
 
 namespace adg_exception {
 
-class AutoDiffGraphException : public std::exception {};
+class AutoDiffGraphException : public std::exception {
+public:
+  AutoDiffGraphException(){};
+  AutoDiffGraphException(const std::string &msg) : message_(msg){};
+  const char *what() { return message_.c_str(); };
+
+protected:
+  std::string message_;
+};
 
 // errors for tensor class
 class TensorException : public AutoDiffGraphException {};
@@ -34,7 +42,40 @@ class TestingDebugException : public AutoDiffGraphException {};
 
 class DuplicateNodeNameError : public AutoDiffGraphException {};
 
-class MismatchRegisterdGraphError : public AutoDiffGraphException {};
+class MismatchRegisterdGraphError : public AutoDiffGraphException {
+public:
+  MismatchRegisterdGraphError(){};
+  MismatchRegisterdGraphError(const std::string &msg)
+      : AutoDiffGraphException(msg){};
+};
+
+class MismatchNodeValueShapeError : public AutoDiffGraphException {
+public:
+  MismatchNodeValueShapeError(){};
+  MismatchNodeValueShapeError(const std::string &msg)
+      : AutoDiffGraphException(msg){};
+};
+
+class IncompatibleNodeValueShapeError : public AutoDiffGraphException {
+public:
+  IncompatibleNodeValueShapeError(){};
+  IncompatibleNodeValueShapeError(const std::string &msg)
+      : AutoDiffGraphException(msg){};
+};
+
+class OpsParentsNumException : public AutoDiffGraphException {
+public:
+  OpsParentsNumException(){};
+  OpsParentsNumException(const std::string &msg)
+      : AutoDiffGraphException(msg){};
+};
+
+class OpsParentsUnsetException : public AutoDiffGraphException {
+public:
+  OpsParentsUnsetException(){};
+  OpsParentsUnsetException(const std::string &msg)
+      : AutoDiffGraphException(msg){};
+};
 
 } // namespace adg_exception
 

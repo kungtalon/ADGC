@@ -58,31 +58,6 @@ void tensor_gemm(const size_t &size_a, const size_t &size_b,
 #endif
 }
 
-template <typename dType>
-void elementwise_multiply(const size_t &size, const dType *mat_a,
-                          const dType *mat_b, dType *mat_c) {
-  // TODO: replace with MLK vsMul
-  // big precision problem!
-  for (size_t ix = 0; ix < size; ix++) {
-    mat_c[ix] = mat_a[ix] * mat_b[ix];
-  }
-}
-
-template <typename dType>
-void elementwise_add(const size_t &size, const dType *mat_a, const dType *mat_b,
-                     dType *mat_c, bool subtract) {
-  // TODO: replace with ..?
-  if (subtract) {
-    for (size_t ix = 0; ix < size; ix++) {
-      mat_c[ix] = mat_a[ix] - mat_b[ix];
-    }
-  } else {
-    for (size_t ix = 0; ix < size; ix++) {
-      mat_c[ix] = mat_a[ix] + mat_b[ix];
-    }
-  }
-}
-
 // explicit instantiation of template function;
 // template void tensor_gemm<double>(const size_t &size_a, const size_t &size_b,
 //                                   const size_t &size_c, const size_t &M,

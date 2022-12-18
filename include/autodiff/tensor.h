@@ -45,6 +45,7 @@ public:
   void set_value(const TensorIndex &index, const dType &value);
   dType get_value(const TensorIndex &index);
   void reshape(const TensorShape &new_shape);
+  void fill_diag(const std::vector<dType> &diag_values);
   Tensor<dType> dot(const Tensor<dType> &bt) const;
   Tensor<dType> multiply(const double &multiplier) const;
   Tensor<dType> multiply(const Tensor<dType> &bt) const;
@@ -63,6 +64,19 @@ public:
   inline std::vector<dType> to_vector() const {
     return *static_cast<std::vector<dType> *>(tensor_.get());
   };
+
+  static inline Tensor<dType> dot(const Tensor<dType> &lt,
+                                  const Tensor<dType> &rt) {
+    return lt.dot(rt);
+  }
+  static inline Tensor<dType> multiply(const Tensor<dType> &lt,
+                                       const Tensor<dType> &rt) {
+    return lt.multiply(rt);
+  }
+  static inline Tensor<dType> add(const Tensor<dType> &lt,
+                                  const Tensor<dType> &rt) {
+    return lt.add(rt);
+  }
 
 protected:
   // store tensor as a vector, wrapped in shared_ptr for easy copy
@@ -115,6 +129,15 @@ public:
     for (size_t ix = 0; ix < len; ix++) {
       set_value({ix, ix}, 1.);
     }
+  }
+};
+
+template <typename dType> class Diagonal : public Tensor<dType> {
+public:
+  Diagonal(){};
+  Diagonal(const std::vector<dType> &values)
+      : Tensor<dType>({values.size(), values.size()}) {
+    Tensor<dType>::fill_diag(values);
   }
 };
 

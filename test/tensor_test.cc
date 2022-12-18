@@ -304,6 +304,11 @@ TEST(AdgcTensorTest, TensorInitTest) {
   // FAIL() << ta.to_string();
 }
 
+TEST(AdgcTensorTest, DiagonalTensorTest) {
+  tensor::Diagonal<float> ta({0.3, 0.5, 0.7});
+  ASSERT_THAT(ta.to_vector(), ElementsAre(0.3, 0, 0, 0, 0.5, 0, 0, 0, 0.7));
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
