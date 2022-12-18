@@ -1,5 +1,5 @@
 # auto-diff-graph-framework
-This repo aims to help everyone grasp a deeper understanding of tensor operations and automatic differentiation mechanisms in Numpy, PyTorch etc.
+This repo aims to help everyone grasp a deeper understanding of tensor operations and automatic differentiation mechanisms in TensorFlow, PyTorch etc.
 
 ## Tensor Module
 This part implements a standalone module for creating and manipulating multidimentional array like Numpy. The operations are based on CPU with BLAS.
