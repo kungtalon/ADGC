@@ -31,6 +31,9 @@ Use `-DUSE_GRAPHVIZ=OFF` in cmake command line to turn off using graphviz.
 Here are some software and packages used in this project:
 
 > cblas
+
 > graphviz
+
 > cgraph
+
 > googletest
