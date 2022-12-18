@@ -1,4 +1,4 @@
-# auto-diff-graph-framework
+# Auto-Diff-Graph-CPP
 This repo aims to help everyone grasp a deeper understanding of tensor operations and automatic differentiation mechanisms in TensorFlow, PyTorch etc.
 
 ## Tensor Module
