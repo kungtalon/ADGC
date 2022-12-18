@@ -92,12 +92,12 @@ inline void elementwise_add(const size_t &size, const int32_t *mat_a,
 
 inline void fill_diagonal(const size_t &M, const size_t &N,
                           const double *values, double *mat) {
-  cblas_daxpy(std::min(M, N), 1., values, 1, mat, N + 1);
+  cblas_dcopy(std::min(M, N), values, 1, mat, N + 1);
 }
 
 inline void fill_diagonal(const size_t &M, const size_t &N, const float *values,
                           float *mat) {
-  cblas_saxpy(std::min(M, N), 1., values, 1, mat, N + 1);
+  cblas_scopy(std::min(M, N), values, 1, mat, N + 1);
 }
 
 inline void fill_diagonal(const size_t &M, const int32_t &N,

@@ -49,8 +49,8 @@ void VecDot::do_forward() {
     throw adg_exception::OpsParentsUnsetException("VecDot ==> do_forward");
   }
 
-  DTensor l_mat = parents_[0]->get_value().transpose();
-  value_ = l_mat.dot(parents_[1]->get_value());
+  DTensor l_mat = parents_[0]->get_value().t();
+  value_ = DTensor::dot(l_mat, parents_[1]->get_value());
 }
 
 DTensor VecDot::do_backward(Node *parent_ptr) {
@@ -59,9 +59,9 @@ DTensor VecDot::do_backward(Node *parent_ptr) {
   }
 
   if (parent_ptr == parents_[0]) {
-    return parents_[1]->get_value().transpose();
+    return parents_[1]->get_value().t();
   } else {
-    return parents_[0]->get_value().transpose();
+    return parents_[0]->get_value().t();
   }
 }
 
@@ -87,7 +87,7 @@ void MatMul::do_forward() {
     throw adg_exception::OpsParentsUnsetException("MatMul ==> do_forward");
   }
 
-  value_ = parents_[0]->get_value().dot(parents_[1]->get_value());
+  value_ = DTensor::dot(parents_[0]->get_value(), parents_[1]->get_value());
 }
 
 DTensor MatMul::do_backward(Node *parent_ptr) {
@@ -97,6 +97,10 @@ DTensor MatMul::do_backward(Node *parent_ptr) {
 
   DTensor zeros = tensor::Zeros({get_value_size(), get_value_size()});
   if (parent_ptr == parents_[0]) {
+    zeros.fill_diag(parents_[1]->get_value().t().to_vector());
+  } else {
+    zeros.fill_diag(parents_[0]->get_value().to_vector());
+    auto rows_inds =
   }
 }
 

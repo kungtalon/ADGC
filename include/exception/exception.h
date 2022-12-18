@@ -38,7 +38,11 @@ class InvalidTensorIndexException : public TensorException {};
 
 class NonImplementedException : public AutoDiffGraphException {};
 
-class TestingDebugException : public AutoDiffGraphException {};
+class TestingDebugException : public AutoDiffGraphException {
+public:
+  TestingDebugException(){};
+  TestingDebugException(const std::string &msg) : AutoDiffGraphException(msg){};
+};
 
 class DuplicateNodeNameError : public AutoDiffGraphException {};
 

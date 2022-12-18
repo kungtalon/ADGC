@@ -307,6 +307,46 @@ TEST(AdgcTensorTest, TensorInitTest) {
 TEST(AdgcTensorTest, DiagonalTensorTest) {
   tensor::Diagonal<float> ta({0.3, 0.5, 0.7});
   ASSERT_THAT(ta.to_vector(), ElementsAre(0.3, 0, 0, 0, 0.5, 0, 0, 0, 0.7));
+
+  tensor::Tensor<float> tb({3, 4}, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12});
+  tb.fill_diag({2, 2});
+
+  ASSERT_THAT(tb.to_vector(),
+              ElementsAre(2, 2, 3, 4, 5, 2, 7, 8, 9, 10, 11, 12));
+}
+
+TEST(AdgcTensorTest, RangesTensorTest) {
+  tensor::Ranges<double> ta({3, 4}, 1);
+  ASSERT_THAT(ta.to_vector(),
+              ElementsAre(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12));
+}
+
+TEST(AdgcTensorTest, AxisAlongSliceTest) {
+  float fa[24] = {29, 28, 62, 55, 56, 51, 0,  82, 76, 85, 14, 26,
+                  62, 8,  64, 94, 18, 75, 58, 47, 61, 65, 47, 14};
+
+  tensor::Tensor<float> ta({2, 4, 3}, fa);
+
+  auto res1 = ta.take(0, {1});
+  ASSERT_THAT(res1.to_vector(),
+              ElementsAre(62, 8, 64, 94, 18, 75, 58, 47, 61, 65, 47, 14));
+
+  auto res2 = ta.take(1, {2, 3});
+  ASSERT_THAT(res2.to_vector(),
+              ElementsAre(0, 82, 76, 85, 14, 26, 58, 47, 61, 65, 47, 14));
+
+  auto res4 = ta.take(1, {3});
+  ASSERT_THAT(res4.to_vector(), ElementsAre(85, 14, 26, 65, 47, 14));
+
+  ASSERT_THAT(ta[0].to_vector(),
+              ElementsAre(29, 28, 62, 55, 56, 51, 0, 82, 76, 85, 14, 26));
+
+  ASSERT_THAT(ta[0][3].to_vector(), ElementsAre(85, 14, 26));
+
+  ASSERT_THAT(ta[0][3][1].to_vector(), ElementsAre(14));
+
+  ASSERT_THAT(ta.transpose(0, 1)[tensor::TensorShape({0, 2})].to_vector(),
+              ElementsAre(29, 28, 62, 62, 8, 64, 0, 82, 76, 58, 47, 61));
 }
 
 int main(int argc, char **argv) {

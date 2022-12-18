@@ -10,14 +10,16 @@ template <typename dType> Tensor<dType>::Tensor(const TensorShape &shape) {
     throw adg_exception::InvalidTensorShapeException();
   }
 
-  shape_ = shape;
-  dim_ = shape.size();
-  size_ = 1;
-  strides_ = TensorShape(dim_, 1);
-  for (int ix = dim_ - 1; ix >= 0; --ix) {
-    strides_[ix] = size_;
-    size_ *= shape_[ix];
+  do_shape_update(shape);
+  tensor_ = std::make_shared<std::vector<dType>>(size_);
+}
+
+template <typename dType> Tensor<dType>::Tensor(const TensorShape &&shape) {
+  if (!is_shape_valid(shape)) {
+    throw adg_exception::InvalidTensorShapeException();
   }
+
+  do_shape_update(shape);
   tensor_ = std::make_shared<std::vector<dType>>(size_);
 }
 
@@ -27,14 +29,7 @@ Tensor<dType>::Tensor(const TensorShape &shape, const dType &single_value) {
     throw adg_exception::InvalidTensorShapeException();
   }
 
-  shape_ = shape;
-  dim_ = shape.size();
-  size_ = 1;
-  strides_ = TensorShape(dim_, 1);
-  for (int ix = dim_ - 1; ix >= 0; --ix) {
-    strides_[ix] = size_;
-    size_ *= shape_[ix];
-  }
+  do_shape_update(shape);
   tensor_ = std::make_shared<std::vector<dType>>(size_, single_value);
 }
 
@@ -46,14 +41,7 @@ Tensor<dType>::Tensor(const TensorShape &shape, const dType *values) {
     throw adg_exception::InvalidTensorShapeException();
   }
 
-  shape_ = shape;
-  dim_ = shape.size();
-  size_ = 1;
-  strides_ = TensorShape(dim_, 1);
-  for (int ix = dim_ - 1; ix >= 0; ix--) {
-    strides_[ix] = size_;
-    size_ *= shape_[ix];
-  }
+  do_shape_update(shape);
   tensor_ = std::make_shared<std::vector<dType>>(size_);
   memcpy(&(*tensor_->begin()), values, sizeof(dType) * size_);
 }
@@ -65,24 +53,19 @@ Tensor<dType>::Tensor(const TensorShape &shape,
     throw adg_exception::InvalidTensorShapeException();
   }
 
-  size_t tmp_size = 1;
-  size_t tmp_dim = shape.size();
-  TensorShape tmp_strides = TensorShape(tmp_dim, 1);
+  do_shape_update(shape, values.size());
+  tensor_ = std::make_shared<std::vector<dType>>(std::move(values));
+}
 
-  for (int ix = tmp_dim - 1; ix >= 0; --ix) {
-    tmp_strides[ix] = tmp_size;
-    tmp_size *= shape[ix];
-  }
-
-  if (tmp_size != values.size()) {
+template <typename dType>
+Tensor<dType>::Tensor(const TensorShape &shape,
+                      const std::vector<dType> &&values) {
+  if (!is_shape_valid(shape)) {
     throw adg_exception::InvalidTensorShapeException();
   }
 
-  size_ = tmp_size;
-  shape_ = shape;
-  strides_ = tmp_strides;
-  dim_ = tmp_dim;
-  tensor_ = std::make_shared<std::vector<dType>>(std::move(values));
+  do_shape_update(shape, values.size());
+  tensor_ = std::make_shared<std::vector<dType>>(values);
 }
 
 template <typename dType>
@@ -125,6 +108,38 @@ bool Tensor<dType>::operator==(const Tensor<dType> &bt) {
 template <typename dType>
 bool Tensor<dType>::operator!=(const Tensor<dType> &bt) {
   return !(*this == bt);
+}
+
+template <typename dType>
+Tensor<dType> Tensor<dType>::operator[](const size_t &id) {
+  if (id >= shape_[0]) {
+    throw adg_exception::IndexOutOfRangeError();
+  }
+
+  if (shape_[0] == 1) {
+    return this->copy();
+  }
+
+  TensorShape result_shape;
+  if (dim_ == 1) {
+    result_shape = {1};
+  } else {
+    result_shape = TensorShape(shape_.begin() + 1, shape_.end());
+  }
+  Tensor<dType> result(std::move(result_shape));
+
+  {
+    dType *dest_ptr = result.get_tensor_ptr();
+    const dType *src_ptr = get_tensor_const_ptr();
+    memcpy(dest_ptr, src_ptr + id * strides_[0], sizeof(dType) * strides_[0]);
+  }
+
+  return result;
+}
+
+template <typename dType>
+Tensor<dType> Tensor<dType>::operator[](const TensorSlice &slice) {
+  return take(0, slice);
 }
 
 template <typename dType>
@@ -193,6 +208,58 @@ dType Tensor<dType>::get_value(const TensorIndex &index) {
   }
 
   return *get_iterator(index);
+}
+
+/*
+take slices the tensor along a specific axis
+A simpler version :
+  for (int i =0; i < size / strides[axis-1]; ++i) {
+    start = i * strides[axis-1]
+    for (int j : slice) {
+        s = start + j * strides[axis]
+        memcpy(dest, s, s + strides[axis])
+    }
+  }
+*/
+template <typename dType>
+Tensor<dType> Tensor<dType>::take(const size_t &axis,
+                                  const TensorSlice &slice) {
+  if (axis >= dim_) {
+    throw adg_exception::AxisOutOfRangeError();
+  }
+
+  for (size_t i : slice) {
+    if (i >= shape_[axis]) {
+      throw adg_exception::IndexOutOfRangeError();
+    }
+  }
+
+  size_t slice_len = slice.size();
+  TensorShape result_shape = shape_;
+  result_shape[axis] = slice_len;
+  Tensor<dType> result(std::move(result_shape));
+
+  std::vector<size_t> indices = slice;
+  for (size_t &index : indices) {
+    index *= strides_[axis];
+  }
+
+  dType *dest_ptr = result.get_tensor_ptr();
+  const dType *src_ptr = get_tensor_const_ptr();
+  size_t max_iter = (axis == 0) ? 1 : size_ / strides_[axis - 1];
+  for (int ix = 0; ix < max_iter; ++ix) {
+    for (size_t &index : indices) {
+      if (axis != dim_ - 1) {
+        memcpy(dest_ptr, src_ptr + index, sizeof(dType) * strides_[axis]);
+      } else {
+        *dest_ptr = *(src_ptr + index);
+      }
+      dest_ptr += strides_[axis];
+      index += strides_[axis - 1];
+    }
+  }
+
+  return result;
 }
 
 // get_dot_shape returns the shape of result matrix for dot_mul
@@ -311,6 +378,30 @@ void Tensor<dType>::normal_init(double loc, double scale, size_t seed) {
 // copy returns a deep copy of current tensor
 template <typename dType> Tensor<dType> Tensor<dType>::copy() const {
   return Tensor<dType>(shape_, get_tensor_const_ptr());
+}
+
+template <typename dType>
+void Tensor<dType>::do_shape_update(const TensorShape &shape,
+                                    const size_t &keep_size) {
+  size_t tmp_size = 1;
+  size_t tmp_dim = shape.size();
+  TensorShape tmp_strides = TensorShape(tmp_dim, 1);
+
+  for (int ix = tmp_dim - 1; ix >= 0; --ix) {
+    tmp_strides[ix] = tmp_size;
+    tmp_size *= shape[ix];
+  }
+
+  if (keep_size) {
+    if (tmp_size != keep_size) {
+      throw adg_exception::InvalidTensorShapeException();
+    }
+  }
+
+  size_ = tmp_size;
+  strides_ = tmp_strides;
+  shape_ = shape;
+  dim_ = shape.size();
 }
 
 // reshape changes the shape_, dim_, strides_ of the tensor
@@ -452,6 +543,15 @@ template <typename dType> Tensor<dType> Tensor<dType>::transpose() const {
   return transpose(dim_ - 2, dim_ - 1);
 }
 
+// short for transpose
+template <typename dType> Tensor<dType> Tensor<dType>::t() const {
+  if (dim_ <= 1) {
+    throw adg_exception::AxisOutOfRangeError();
+  }
+
+  return transpose(dim_ - 2, dim_ - 1);
+}
+
 template <typename dType>
 void Tensor<dType>::fill_diag(const std::vector<dType> &diag_values) {
   if (dim_ != 2) {
@@ -462,16 +562,10 @@ void Tensor<dType>::fill_diag(const std::vector<dType> &diag_values) {
 
   if (diag_len > tensor_min_dim_len) {
     throw adg_exception::MismatchTensorShapeError();
-  } else if (diag_len < tensor_min_dim_len) {
-    dType *valid_diag_val_ptr = new dType[diag_len];
-    memcpy(valid_diag_val_ptr, &*diag_values.begin(), sizeof(dType) * diag_len);
-    utils::math::fill_diagonal(shape_[0], shape_[1], valid_diag_val_ptr,
-                               get_tensor_ptr());
-    delete valid_diag_val_ptr;
-  } else {
-    utils::math::fill_diagonal(shape_[0], shape_[1], &*diag_values.begin(),
-                               get_tensor_ptr());
   }
+
+  utils::math::fill_diagonal(std::min(shape_[0], diag_len), shape_[1],
+                             &*diag_values.begin(), get_tensor_ptr());
 }
 
 // // instantiation

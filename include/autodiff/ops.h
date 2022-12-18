@@ -1,8 +1,9 @@
 #ifndef ADGC_AUTODIFF_OPS_H_
 #define ADGC_AUTODIFF_OPS_H_
 
-#include "node.h"
+#include <algorithm>
 
+#include "node.h"
 namespace graph_component {
 namespace ops {
 

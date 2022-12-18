@@ -20,6 +20,7 @@ namespace tensor {
 
 typedef std::vector<size_t> TensorShape;
 typedef std::vector<size_t> TensorIndex;
+typedef std::vector<size_t> TensorSlice;
 template <typename dType> using TensorIterator = std::vector<dType>::iterator;
 
 const TensorShape EMPTY_SHAPE = {0};
@@ -32,16 +33,21 @@ template <typename dType> class Tensor {
 public:
   Tensor();
   Tensor(const TensorShape &shape);
+  Tensor(const TensorShape &&shape);
   Tensor(const TensorShape &shape, const dType &single_value);
   Tensor(const TensorShape &shape, const dType *values);
   Tensor(const TensorShape &shape, const std::vector<dType> &values);
+  Tensor(const TensorShape &shape, const std::vector<dType> &&values);
   Tensor(const Tensor<dType> &another);
   Tensor(const Tensor<dType> &&another);
 
   Tensor<dType> &operator=(const Tensor<dType> &bt);
   bool operator==(const Tensor<dType> &bt);
   bool operator!=(const Tensor<dType> &bt);
+  Tensor<dType> operator[](const size_t &id);
+  Tensor<dType> operator[](const TensorSlice &slice);
 
+  Tensor<dType> take(const size_t &axis, const TensorSlice &slice);
   void set_value(const TensorIndex &index, const dType &value);
   dType get_value(const TensorIndex &index);
   void reshape(const TensorShape &new_shape);
@@ -51,6 +57,7 @@ public:
   Tensor<dType> multiply(const Tensor<dType> &bt) const;
   Tensor<dType> add(const Tensor<dType> &bt) const;
   Tensor<dType> add(const double &number) const;
+  Tensor<dType> t() const;
   Tensor<dType> transpose() const;
   Tensor<dType> transpose(const size_t &axis_a, const size_t &axis_b) const;
   Tensor<dType> copy() const;
@@ -105,6 +112,7 @@ protected:
   };
 
   // impl functions
+  void do_shape_update(const TensorShape &shape, const size_t &keep_size = 0);
   void do_transpose(const size_t &axis_a, const size_t &axis_b,
                     Tensor<dType> &dest_tensor) const;
   inline std::string do_to_string() const {
@@ -138,6 +146,18 @@ public:
   Diagonal(const std::vector<dType> &values)
       : Tensor<dType>({values.size(), values.size()}) {
     Tensor<dType>::fill_diag(values);
+  }
+};
+
+template <typename dType> class Ranges : public Tensor<dType> {
+public:
+  Ranges(){};
+  Ranges(const TensorShape &shape, const dType &init)
+      : Tensor<dType>(std::move(shape)) {
+    size_t size = Tensor<dType>::get_size();
+    dType *val = new dType[size];
+    std::iota(val, val + size, init);
+    memcpy(Tensor<dType>::get_tensor_ptr(), val, sizeof(dType) * size);
   }
 };
 
