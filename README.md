@@ -13,7 +13,7 @@ Some of the methods implemented:
 - fill_diag: fill the diagonal entries with a vector
 - map: accept a lambda function and transforms the value of each entry
 
-We are trying to learn BLAS and use it for as many as we can. Any advice would be very appreciated! :)
+We are trying to learn BLAS and make full use of its extreme performance. Any advice would be very appreciated! :)
 
 ## Graph Module
 This part contains all elements with regard to building an automatic differential graph. There are different types of nodes on the graph:
