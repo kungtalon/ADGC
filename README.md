@@ -16,7 +16,7 @@ Some of the methods implemented:
 We are trying to learn BLAS and use it for as many as we can. Any advice would be very appreciated! :)
 
 ## Graph Module
-This part contains all elements with regard to building an automatic differential graph. There are different types of nodes in the graph:
+This part contains all elements with regard to building an automatic differential graph. There are different types of nodes on the graph:
 - Node: base class for all nodes; it is abstract and no backward or forward is defined
 - Variable: leaf nodes controlling the user's input
 - Ops: operations between different nodes
