@@ -40,7 +40,7 @@ TEST(GraphTest, GraphVizTest) {
     v *node_ptr5 =
         new v({2}, {node_ptr1, node_ptr4}, "", true, true, graph_ptr);
 
-    graph_ptr->visualize("out.svg");
+    graph_ptr->visualize("../graphviz/out.svg");
   }
   delete graph_ptr;
   SUCCEED();
