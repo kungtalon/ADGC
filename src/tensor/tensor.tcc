@@ -368,7 +368,7 @@ Tensor<dType> Tensor<dType>::add(const Tensor<dType> &bt) const {
     throw adg_exception::MismatchTensorShapeError();
   }
 
-  Tensor<dType> result = Tensor(shape_);
+  Tensor<dType> result = Tensor(std::move(shape_));
   utils::math::elementwise_add(size_, get_tensor_const_ptr(),
                                bt.get_tensor_const_ptr(),
                                result.get_tensor_ptr());
@@ -381,6 +381,19 @@ Tensor<dType> Tensor<dType>::add(const double &number) const {
   utils::math::elementwise_add(size_, get_tensor_const_ptr(),
                                result.get_tensor_const_ptr(),
                                result.get_tensor_ptr());
+  return result;
+}
+
+template <typename dType>
+Tensor<dType> Tensor<dType>::sub(const Tensor<dType> &bt) const {
+  if (bt.shape_ != shape_) {
+    throw adg_exception::MismatchTensorShapeError();
+  }
+
+  Tensor<dType> result = Tensor(std::move(shape_));
+  utils::math::elementwise_add(size_, get_tensor_const_ptr(),
+                               bt.get_tensor_const_ptr(),
+                               result.get_tensor_ptr(), true);
   return result;
 }
 

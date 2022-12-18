@@ -62,6 +62,7 @@ public:
   Tensor<dType> multiply(const Tensor<dType> &bt) const;
   Tensor<dType> add(const Tensor<dType> &bt) const;
   Tensor<dType> add(const double &number) const;
+  Tensor<dType> sub(const Tensor<dType> &bt) const;
   Tensor<dType> t() const;
   Tensor<dType> transpose() const;
   Tensor<dType> transpose(const size_t &axis_a, const size_t &axis_b) const;
@@ -93,6 +94,10 @@ public:
   static inline Tensor<dType> add(const Tensor<dType> &lt,
                                   const Tensor<dType> &rt) {
     return lt.add(rt);
+  }
+  static inline Tensor<dType> sub(const Tensor<dType> &lt,
+                                  const Tensor<dType> &rt) {
+    return lt.sub(rt);
   }
 
 protected:

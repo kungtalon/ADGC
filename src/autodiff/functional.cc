@@ -4,20 +4,26 @@ namespace graph_component {
 
 namespace functional {
 
-Logistic::Logistic(const std::vector<Node *> &parents) : Node("add", parents) {
+Sigmoid::Sigmoid(const std::vector<Node *> &parents) : Node("add", parents) {
   if (parents.size() != 1) {
     throw adg_exception::FunctionalParentsNumException("Logistic ==> Logistic");
   }
 }
 
-void Logistic::do_forward() {
+void Sigmoid::do_forward() {
   if (parents_.empty()) {
     throw adg_exception::FunctionalParentsUnsetException(
         "Logistic ==> do_forward");
   }
-  DTensor x = parents_[0]->get_value();
-  value_ = (1 / 1 + power(e, np.where(-x > 1e2, 1e2, -x)))
+  value_ = parents_[0]->get_value();
+  value_.map([](double &val) { val = utils::math::sigmoid(val); });
 };
+
+DTensor Sigmoid::do_backward(Node *parent_ptr) {
+  DTensor ones = tensor::Ones(get_value_shape());
+  DTensor sigmoid_jacob = DTensor::multiply(value_, DTensor::sub(ones, value_));
+  return tensor::Diagonal<double>(sigmoid_jacob.to_vector());
+}
 
 } // namespace functional
 

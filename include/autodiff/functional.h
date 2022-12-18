@@ -6,10 +6,10 @@
 namespace graph_component {
 namespace functional {
 
-class Logistic : public Node {
+class Sigmoid : public Node {
 public:
-  Logistic() : Node("logistic"){};
-  Logistic(const std::vector<Node *> &parents);
+  Sigmoid() : Node("sigmoid"){};
+  Sigmoid(const std::vector<Node *> &parents);
   void do_forward() override;
   DTensor do_backward(Node *parent_ptr) override;
 };
@@ -26,6 +26,7 @@ class CrossEntropyWithSoftMax : public Node {
 public:
   CrossEntropyWithSoftMax() : Node("cross_entropy_softmax"){};
   CrossEntropyWithSoftMax(const std::vector<Node *> &parents);
+  DTensor softmax(const DTensor &input);
   void do_forward() override;
   DTensor do_backward(Node *parent_ptr) override;
 };
