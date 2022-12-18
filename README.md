@@ -5,13 +5,13 @@ This repo aims to help everyone grasp a deeper understanding of tensor operation
 This part implements a standalone module for creating and manipulating multidimentional array like Numpy. The operations are based on CPU with BLAS.
 
 Some of the methods implemented:
-- dot, multiply, add: some basic algorithm functions for matrices/tensors
+- dot, multiply, add: do some basic algorithm functions for matrices/tensors
 - reshape: change the shape of the tensor
 - transpose: switch two axes of the tensor
 - take: slice tensor along an axis
 - sum: sum the values along an axis
 - fill_diag: fill the diagonal entries with a vector
-- map: accepts a lambda function and transforms the value of each entry
+- map: accept a lambda function and transforms the value of each entry
 
 We are trying to learn BLAS and use it for as many as we can. Any advice would be very appreciated! :)
 
