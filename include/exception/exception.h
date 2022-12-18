@@ -81,6 +81,20 @@ public:
       : AutoDiffGraphException(msg){};
 };
 
+class FunctionalParentsNumException : public AutoDiffGraphException {
+public:
+  FunctionalParentsNumException(){};
+  FunctionalParentsNumException(const std::string &msg)
+      : AutoDiffGraphException(msg){};
+};
+
+class FunctionalParentsUnsetException : public AutoDiffGraphException {
+public:
+  FunctionalParentsUnsetException(){};
+  FunctionalParentsUnsetException(const std::string &msg)
+      : AutoDiffGraphException(msg){};
+};
+
 } // namespace adg_exception
 
 #endif

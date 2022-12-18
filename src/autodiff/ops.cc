@@ -100,7 +100,23 @@ DTensor MatMul::do_backward(Node *parent_ptr) {
     zeros.fill_diag(parents_[1]->get_value().t().to_vector());
   } else {
     zeros.fill_diag(parents_[0]->get_value().to_vector());
-    auto rows_inds =
+    tensor::TensorShape row_shape(get_value_shape());
+    tensor::TensorShape col_shape(parent_ptr->get_value_shape());
+
+    std::reverse(row_shape.begin(), row_shape.end());
+    std::reverse(col_shape.begin(), col_shape.end());
+
+    std::vector<int32_t> rows_inds_int32 =
+        tensor::Ranges<int32_t>(row_shape, 0).t().to_vector();
+    tensor::TensorSlice rows_inds(rows_inds_int32.begin(),
+                                  rows_inds_int32.end());
+
+    std::vector<int32_t> cols_inds_int32 =
+        tensor::Ranges<int32_t>(row_shape, 0).t().to_vector();
+    tensor::TensorSlice cols_inds(cols_inds_int32.begin(),
+                                  cols_inds_int32.end());
+
+    return zeros.take(0, rows_inds).take(1, cols_inds);
   }
 }
 

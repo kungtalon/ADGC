@@ -2,8 +2,9 @@
 #define ADGC_UTILS_MATH_UTILS_H_
 
 #include <cblas.h>
+#include <cmath>
+#include <cstdlib>
 #include <iostream>
-#include <stdlib.h>
 
 #include "exception/exception.h"
 #include "thread.h"
@@ -64,10 +65,10 @@ inline void elementwise_add(const size_t &size, const double *mat_a,
                             const double *mat_b, double *mat_c,
                             bool subtract = false) {
   if (subtract) {
-    memcpy(mat_c, mat_a, sizeof(double) * size);
+    cblas_dcopy(size, mat_a, 1, mat_c, 1);
     cblas_daxpy(size, -1., mat_b, 1, mat_c, 1);
   } else {
-    memcpy(mat_c, mat_b, sizeof(double) * size);
+    cblas_dcopy(size, mat_b, 1, mat_c, 1);
     cblas_daxpy(size, 1., mat_a, 1, mat_c, 1);
   }
 }
@@ -76,10 +77,10 @@ inline void elementwise_add(const size_t &size, const float *mat_a,
                             const float *mat_b, float *mat_c,
                             bool subtract = false) {
   if (subtract) {
-    memcpy(mat_c, mat_a, sizeof(float) * size);
+    cblas_scopy(size, mat_a, 1, mat_c, 1);
     cblas_saxpy(size, -1., mat_b, 1, mat_c, 1);
   } else {
-    memcpy(mat_c, mat_b, sizeof(float) * size);
+    cblas_scopy(size, mat_b, 1, mat_c, 1);
     cblas_saxpy(size, 1., mat_a, 1, mat_c, 1);
   }
 }
@@ -87,6 +88,21 @@ inline void elementwise_add(const size_t &size, const float *mat_a,
 inline void elementwise_add(const size_t &size, const int32_t *mat_a,
                             const int32_t *mat_b, int32_t *mat_c,
                             bool subtract = false) {
+  throw adg_exception::NonImplementedException();
+}
+
+inline float sum(const size_t &size, const float *mat_a, const size_t &inc) {
+  float constant = 1;
+  return cblas_sdot(size, mat_a, inc, &constant, 0);
+}
+
+inline double sum(const size_t &size, const double *mat_a, const size_t &inc) {
+  double constant = 1;
+  return cblas_ddot(size, mat_a, inc, &constant, 0);
+}
+
+inline int32_t sum(const size_t &size, const int32_t *mat_a,
+                   const size_t &inc) {
   throw adg_exception::NonImplementedException();
 }
 
@@ -104,6 +120,21 @@ inline void fill_diagonal(const size_t &M, const int32_t &N,
                           const int32_t *values, int32_t *mat) {
   throw adg_exception::NonImplementedException();
 }
+
+// math functions for loss functions
+
+inline double sigmoid(double x) {
+  return 1 / (1 + std::exp(std::min(-x, 100.)));
+}
+
+inline float sigmoid(float x) {
+  return 1 / (1 + std::exp(std::min(-x, (float)100)));
+}
+
+inline double relu(double x) { return std::max(x, 0.); }
+
+inline float relu(float x) { return std::max(x, (float)0); }
+
 } // namespace math
 } // namespace utils
 

@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "tensor.h"
+#include "tensor/tensor.h"
 #include "utils/utils.h"
 
 namespace graph_component {

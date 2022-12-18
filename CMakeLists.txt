@@ -9,6 +9,7 @@ option(USE_GRAPHVIZ "USE_GRAPHVIZ" ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS -pthread)
 
+add_definitions(-DADGC_MULTI_THREADS_NUM_=3)
 
 if (USE_GRAPHVIZ)
   add_definitions(-DADGC_ENABLE_GRAPHVIZ_)
@@ -53,8 +54,10 @@ if(BLAS_FOUND)
 endif(BLAS_FOUND)
 
 add_library(tensor_lib
-  "include/autodiff/tensor.h"
-  "src/autodiff/tensor.tcc"
+  "include/tensor/tensor.h"
+  "src/tensor/tensor.tcc"
+  "include/tensor/mapper.h"
+  "src/tensor/mapper.tcc"
 )
 set_target_properties(tensor_lib PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(tensor_lib  

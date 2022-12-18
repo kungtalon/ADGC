@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "exception/exception.h"
+#include "mapper.h"
 #include "utils/math_utils.h"
 #include "utils/thread.h"
 #include "utils/utils.h"
@@ -25,7 +26,7 @@ template <typename dType> using TensorIterator = std::vector<dType>::iterator;
 
 const TensorShape EMPTY_SHAPE = {0};
 
-#if ENABLE_TENSOR_MULTI_THREAD
+#if ADGC_MULTI_THREADS_NUM_
 static const size_t MAX_THREAD_NUM = 4;
 #endif
 
@@ -49,9 +50,13 @@ public:
 
   Tensor<dType> take(const size_t &axis, const TensorSlice &slice);
   void set_value(const TensorIndex &index, const dType &value);
+  dType get_value() const;
   dType get_value(const TensorIndex &index);
   void reshape(const TensorShape &new_shape);
   void fill_diag(const std::vector<dType> &diag_values);
+  void map(Mapper<dType> &mapper);
+  void map(Mapper<dType> &&mapper);
+  void map(const std::function<void(dType &)> &func);
   Tensor<dType> dot(const Tensor<dType> &bt) const;
   Tensor<dType> multiply(const double &multiplier) const;
   Tensor<dType> multiply(const Tensor<dType> &bt) const;
@@ -61,7 +66,12 @@ public:
   Tensor<dType> transpose() const;
   Tensor<dType> transpose(const size_t &axis_a, const size_t &axis_b) const;
   Tensor<dType> copy() const;
+  Tensor<dType> sum(const size_t &axis = SIZE_MAX) const;
   void normal_init(double loc = 0., double scale = 1., size_t seed = SIZE_MAX);
+
+  Tensor<int32_t> to_int() const;
+  Tensor<float> to_float() const;
+  Tensor<double> to_double() const;
 
   inline TensorShape get_shape() const { return shape_; };
   inline size_t get_size() const { return size_; };
@@ -168,6 +178,6 @@ static const Tensor<double> EMPTY = {{1}};
 
 } // namespace tensor
 
-#include "autodiff/tensor.tcc"
+#include "tensor/tensor.tcc"
 
 #endif

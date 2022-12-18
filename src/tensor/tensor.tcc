@@ -1,4 +1,4 @@
-#include "autodiff/tensor.h"
+#include "tensor/tensor.h"
 
 namespace tensor {
 
@@ -201,6 +201,15 @@ void Tensor<dType>::set_value(const TensorIndex &index, const dType &value) {
   *iter = value;
 }
 
+// when tensor has only one element
+template <typename dType> dType Tensor<dType>::get_value() const {
+  if (size_ != 1) {
+    throw adg_exception::InvalidTensorIndexException();
+  }
+
+  return *tensor_->begin();
+}
+
 template <typename dType>
 dType Tensor<dType>::get_value(const TensorIndex &index) {
   if (!is_index_valid(index)) {
@@ -208,6 +217,21 @@ dType Tensor<dType>::get_value(const TensorIndex &index) {
   }
 
   return *get_iterator(index);
+}
+
+template <typename dType> Tensor<int32_t> Tensor<dType>::to_int() const {
+  std::vector<int32_t> values(tensor_->begin(), tensor_->end());
+  return Tensor<int32_t>(shape_, std::move(values));
+}
+
+template <typename dType> Tensor<float> Tensor<dType>::to_float() const {
+  std::vector<float> values(tensor_->begin(), tensor_->end());
+  return Tensor<float>(shape_, std::move(values));
+}
+
+template <typename dType> Tensor<double> Tensor<dType>::to_double() const {
+  std::vector<double> values(tensor_->begin(), tensor_->end());
+  return Tensor<double>(shape_, std::move(values));
 }
 
 /*
@@ -381,6 +405,35 @@ template <typename dType> Tensor<dType> Tensor<dType>::copy() const {
 }
 
 template <typename dType>
+Tensor<dType> Tensor<dType>::sum(const size_t &axis) const {
+  if (axis == SIZE_MAX) {
+    dType res = utils::math::sum(size_, get_tensor_const_ptr(), 1);
+    return Tensor<dType>({1}, res);
+  }
+
+  if (axis >= dim_) {
+    throw adg_exception::AxisOutOfRangeError();
+  }
+
+  // only sum along the given axis
+  TensorShape result_shape = shape_;
+  result_shape.erase(result_shape.begin() + axis);
+  Tensor<dType> result(std::move(result_shape));
+
+  auto dest_ptr = result.get_tensor_ptr();
+  auto src_ptr = get_tensor_const_ptr();
+  size_t src_index = 0;
+  while (src_index < size_) {
+    if (get_coordinate_at_axis(src_index, axis, strides_) == 0) {
+      *(dest_ptr++) =
+          utils::math::sum(shape_[axis], src_ptr + src_index, strides_[axis]);
+    }
+    ++src_index;
+  }
+  return result;
+}
+
+template <typename dType>
 void Tensor<dType>::do_shape_update(const TensorShape &shape,
                                     const size_t &keep_size) {
   size_t tmp_size = 1;
@@ -412,22 +465,7 @@ void Tensor<dType>::reshape(const TensorShape &new_shape) {
   }
 
   // keep same size
-  size_t new_dim = new_shape.size();
-  size_t new_size = 1;
-  TensorShape new_strides = TensorShape(new_dim, 1);
-  for (int ix = new_dim - 1; ix >= 0; ix--) {
-    new_strides[ix] = new_size;
-    new_size *= new_shape[ix];
-  }
-
-  if (new_size != size_) {
-    throw adg_exception::InvalidTensorShapeException();
-  }
-
-  // assign new dim
-  dim_ = new_dim;
-  strides_ = new_strides;
-  shape_ = new_shape;
+  do_shape_update(new_shape, size_);
 }
 
 // helper function for transpose, computes the coordinate of an element on a
@@ -566,6 +604,42 @@ void Tensor<dType>::fill_diag(const std::vector<dType> &diag_values) {
 
   utils::math::fill_diagonal(std::min(shape_[0], diag_len), shape_[1],
                              &*diag_values.begin(), get_tensor_ptr());
+}
+
+template <typename dType> void Tensor<dType>::map(Mapper<dType> &mapper) {
+#if ADGC_MULTI_THREADS_NUM_
+  utils::threads::ThreadPool pool;
+  pool.start(ADGC_MULTI_THREADS_NUM_);
+  mapper.run(get_tensor_ptr(), size_, &pool);
+#else
+  throw adg_exception::TestingDebugException("Not here");
+  mapper.run(get_tensor_ptr(), size_);
+#endif
+}
+
+template <typename dType> void Tensor<dType>::map(Mapper<dType> &&mapper) {
+#if ADGC_MULTI_THREADS_NUM_
+  utils::threads::ThreadPool pool;
+  pool.start(ADGC_MULTI_THREADS_NUM_);
+  mapper.run(get_tensor_ptr(), size_, &pool);
+#else
+  throw adg_exception::TestingDebugException("Not here");
+  mapper.run(get_tensor_ptr(), size_);
+#endif
+}
+
+template <typename dType>
+void Tensor<dType>::map(const std::function<void(dType &)> &func) {
+  Mapper<dType> mapper(func);
+
+#if ADGC_MULTI_THREADS_NUM_
+  utils::threads::ThreadPool pool;
+  pool.start(ADGC_MULTI_THREADS_NUM_);
+  mapper.run(get_tensor_ptr(), size_, &pool);
+#else
+  throw adg_exception::TestingDebugException("Not here");
+  mapper.run(get_tensor_ptr(), size_);
+#endif
 }
 
 // // instantiation

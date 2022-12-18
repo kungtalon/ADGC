@@ -1,7 +1,8 @@
 #define TENSOR_TESTING true
 #define ENABLE_TENSOR_MULTI_THREAD true
 
-#include "autodiff/tensor.h"
+#include "tensor/mapper.h"
+#include "tensor/tensor.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
@@ -347,6 +348,50 @@ TEST(AdgcTensorTest, AxisAlongSliceTest) {
 
   ASSERT_THAT(ta.transpose(0, 1)[tensor::TensorShape({0, 2})].to_vector(),
               ElementsAre(29, 28, 62, 62, 8, 64, 0, 82, 76, 58, 47, 61));
+}
+
+TEST(AdgcTensorTest, AxisAlongSumTest) {
+  float fa[24] = {2, 18, 13, 17, 2,  3, 7,  14, 17, 3, 15, 0,
+                  5, 17, 5,  10, 10, 2, 11, 12, 15, 6, 9,  9};
+
+  tensor::Tensor<float> ta({3, 2, 4}, fa);
+
+  auto res1 = ta.sum(0);
+  ASSERT_THAT(res1.to_vector(), ElementsAre(29, 23, 39, 29, 22, 26, 21, 33));
+
+  auto res2 = ta.sum(1);
+  ASSERT_THAT(res2.to_vector(),
+              ElementsAre(4, 21, 20, 31, 22, 20, 20, 10, 25, 8, 20, 21));
+
+  auto res3 = ta.sum(2);
+  ASSERT_THAT(res3.to_vector(), ElementsAre(50, 26, 35, 37, 35, 39));
+
+  auto res4 = ta.sum();
+  ASSERT_FLOAT_EQ(res4.get_value(), 222.);
+}
+
+TEST(AdgcTensorTest, MapperTest) {
+  float fa[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+
+  tensor::Tensor<float> ta({2, 5}, fa);
+
+  ta.map(tensor::Mapper<float>([](float &entry) { entry = 1 / entry; }));
+
+  ASSERT_THAT(ta.to_vector(),
+              ElementsAre(1., 0.5, 0.33333333, 0.25, 0.2, 0.16666667,
+                          FloatEq(0.14285714), 0.125, 0.11111111, 0.1));
+
+  double fb[6] = {-3.03330917, 4.83902975,  3.85291251,
+                  6.97748878,  -0.31900769, 2.37669315};
+
+  tensor::Tensor<double> tb({3, 2}, fb);
+
+  tb.map([](double &entry) { entry = entry * entry * entry; });
+
+  ASSERT_THAT(tb.to_float().to_vector(),
+              ElementsAre(FloatEq(-2.79093700e1), FloatEq(1.13311732e2),
+                          FloatEq(5.71962350e1), FloatEq(3.39701482e2),
+                          FloatEq(-3.24641058e-2), FloatEq(1.34251560e1)));
 }
 
 int main(int argc, char **argv) {
