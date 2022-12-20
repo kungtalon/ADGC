@@ -2,6 +2,7 @@
 #define ADGC_AUTODIFF_FUNCTIONAL_H_
 
 #include "node.h"
+#include "variable.h"
 
 namespace graph_component {
 namespace functional {
@@ -9,7 +10,7 @@ namespace functional {
 class Sigmoid : public Node {
 public:
   Sigmoid() : Node(NodeType::ADG_SIGMOID_TYPE){};
-  Sigmoid(const std::vector<Node *> &parents);
+  Sigmoid(Node *parent_ptr, Graph *g = nullptr, const std::string &name = "");
   void do_forward() override;
   DTensor do_backward(Node *parent_ptr) override;
 };
@@ -17,7 +18,7 @@ public:
 class ReLU : public Node {
 public:
   ReLU() : Node(NodeType::ADG_RELU_TYPE){};
-  ReLU(const std::vector<Node *> &parents);
+  ReLU(Node *parent_ptr, Graph *g = nullptr, const std::string &name = "");
   void do_forward() override;
   DTensor do_backward(Node *parent_ptr) override;
 };
@@ -25,8 +26,22 @@ public:
 class CrossEntropyWithSoftMax : public Node {
 public:
   CrossEntropyWithSoftMax() : Node(NodeType::ADG_CROSS_ENTROPY_SOFTMAX_TYPE){};
-  CrossEntropyWithSoftMax(const std::vector<Node *> &parents);
-  DTensor softmax(const DTensor &input);
+  CrossEntropyWithSoftMax(Node *parent_ptr, Variable *labels_ptr,
+                          Graph *g = nullptr, const std::string &name = "");
+  static DTensor softmax(const DTensor &input);
+  void do_forward() override;
+  DTensor do_backward(Node *parent_ptr) override;
+
+private:
+  static inline double epsilon_ = 1e-9;
+  DTensor probs_;
+  DTensor neg_log_probs_;
+};
+
+class ReduceSum : public Node {
+public:
+  ReduceSum() : Node(NodeType::ADG_REDUCE_SUM_TYPE){};
+  ReduceSum(Node *parent_ptr, Graph *g = nullptr, const std::string &name = "");
   void do_forward() override;
   DTensor do_backward(Node *parent_ptr) override;
 };

@@ -7,7 +7,8 @@ Tensor<dType>::Tensor() : Tensor<dType>::Tensor({1}) {}
 
 template <typename dType> Tensor<dType>::Tensor(const TensorShape &shape) {
   if (!is_shape_valid(shape)) {
-    throw adg_exception::InvalidTensorShapeException();
+    throw adg_exception::InvalidTensorShapeException(
+        "InvalidTensorShapeException; Failed when constructing");
   }
 
   do_shape_update(shape);
@@ -16,7 +17,8 @@ template <typename dType> Tensor<dType>::Tensor(const TensorShape &shape) {
 
 template <typename dType> Tensor<dType>::Tensor(const TensorShape &&shape) {
   if (!is_shape_valid(shape)) {
-    throw adg_exception::InvalidTensorShapeException();
+    throw adg_exception::InvalidTensorShapeException(
+        "InvalidTensorShapeException; Failed when constructing");
   }
 
   do_shape_update(shape);
@@ -26,7 +28,8 @@ template <typename dType> Tensor<dType>::Tensor(const TensorShape &&shape) {
 template <typename dType>
 Tensor<dType>::Tensor(const TensorShape &shape, const dType &single_value) {
   if (!is_shape_valid(shape)) {
-    throw adg_exception::InvalidTensorShapeException();
+    throw adg_exception::InvalidTensorShapeException(
+        "InvalidTensorShapeException; Failed when constructing");
   }
 
   do_shape_update(shape);
@@ -38,7 +41,8 @@ Tensor<dType>::Tensor(const TensorShape &shape, const dType *values) {
   // dangerous: this constructor does not check whether values has a valid
   // size compatible with the argument shape
   if (!is_shape_valid(shape)) {
-    throw adg_exception::InvalidTensorShapeException();
+    throw adg_exception::InvalidTensorShapeException(
+        "InvalidTensorShapeException; Failed when constructing");
   }
 
   do_shape_update(shape);
@@ -50,7 +54,8 @@ template <typename dType>
 Tensor<dType>::Tensor(const TensorShape &shape,
                       const std::vector<dType> &values) {
   if (!is_shape_valid(shape)) {
-    throw adg_exception::InvalidTensorShapeException();
+    throw adg_exception::InvalidTensorShapeException(
+        "InvalidTensorShapeException; Failed when constructing");
   }
 
   do_shape_update(shape, values.size());
@@ -61,7 +66,8 @@ template <typename dType>
 Tensor<dType>::Tensor(const TensorShape &shape,
                       const std::vector<dType> &&values) {
   if (!is_shape_valid(shape)) {
-    throw adg_exception::InvalidTensorShapeException();
+    throw adg_exception::InvalidTensorShapeException(
+        "InvalidTensorShapeException; Failed when constructing");
   }
 
   do_shape_update(shape, values.size());
@@ -249,7 +255,8 @@ template <typename dType>
 Tensor<dType> Tensor<dType>::take(const size_t &axis,
                                   const TensorSlice &slice) {
   if (axis >= dim_) {
-    throw adg_exception::AxisOutOfRangeError();
+    throw adg_exception::AxisOutOfRangeError(
+        "Tensor >> take: axis out of range");
   }
 
   for (size_t i : slice) {
@@ -312,7 +319,10 @@ TensorShape Tensor<dType>::get_dot_shape(const Tensor<dType> &bt) const {
   // [a, b], [b, c] -> [a, c]
   // check whether left.shape[-1] == right.shape[-2]
   if (shape_left[cur_dim - 1] != shape_right[cur_dim - 2]) {
-    throw adg_exception::MismatchTensorShapeError();
+    throw adg_exception::MismatchTensorShapeError(
+        "MismatchTensorShapeError >> get_dot_shape\n Left shape is " +
+        utils::array_to_str(1, dim_, &*shape_left.begin()) + "Right shape is " +
+        utils::array_to_str(1, bt.get_dim(), &*shape_right.begin()));
   }
 
   // then, the answer is [..., a, c]
@@ -341,7 +351,9 @@ Tensor<dType> Tensor<dType>::dot(const Tensor<dType> &bt) const {
 template <typename dType>
 Tensor<dType> Tensor<dType>::multiply(const Tensor<dType> &bt) const {
   if (bt.shape_ != shape_) {
-    throw adg_exception::MismatchTensorShapeError();
+    throw adg_exception::MismatchTensorShapeError(
+        "MismatchTensorShapeError >> multiply " + utils::vector_to_str(shape_) +
+        " and " + utils::vector_to_str(bt.shape_));
   }
 
   Tensor<dType> result = Tensor(shape_);
@@ -365,7 +377,9 @@ Tensor<dType> Tensor<dType>::multiply(const double &multiplier) const {
 template <typename dType>
 Tensor<dType> Tensor<dType>::add(const Tensor<dType> &bt) const {
   if (bt.shape_ != shape_) {
-    throw adg_exception::MismatchTensorShapeError();
+    throw adg_exception::MismatchTensorShapeError(
+        "MismatchTensorShapeError >> add " + utils::vector_to_str(shape_) +
+        " and " + utils::vector_to_str(bt.shape_));
   }
 
   Tensor<dType> result = Tensor(std::move(shape_));
@@ -387,13 +401,54 @@ Tensor<dType> Tensor<dType>::add(const double &number) const {
 template <typename dType>
 Tensor<dType> Tensor<dType>::sub(const Tensor<dType> &bt) const {
   if (bt.shape_ != shape_) {
-    throw adg_exception::MismatchTensorShapeError();
+    throw adg_exception::MismatchTensorShapeError(
+        "MismatchTensorShapeError >> sub " + utils::vector_to_str(shape_) +
+        " and " + utils::vector_to_str(bt.shape_));
   }
 
   Tensor<dType> result = Tensor(std::move(shape_));
   utils::math::elementwise_add(size_, get_tensor_const_ptr(),
                                bt.get_tensor_const_ptr(),
                                result.get_tensor_ptr(), true);
+  return result;
+}
+
+// matrix kronecker product
+template <typename dType>
+Tensor<dType> Tensor<dType>::kron(const Tensor<dType> &lt,
+                                  const Tensor<dType> &rt) {
+  if (lt.dim_ < 2 || rt.dim_ < 2) {
+    throw adg_exception::AxisOutOfRangeError(
+        "Tensor >> kron: not enough dimension");
+  }
+
+  if (lt.dim_ != rt.dim_) {
+    throw adg_exception::MismatchTensorShapeError(
+        "Tensor >> kron: MismatchTensorShapeError");
+  }
+
+  for (size_t ix = 0; ix < lt.dim_ - 2; ++ix) {
+    if (lt.shape_[ix] != rt.shape_[ix]) {
+      throw adg_exception::MismatchTensorShapeError(
+          "Tensor >> kron: MismatchTensorShapeError at axis " + ix);
+    }
+  }
+
+  size_t left_nrow = lt.shape_[lt.dim_ - 2];
+  size_t right_nrow = rt.shape_[rt.dim_ - 2];
+  size_t left_ncol = lt.shape_[lt.dim_ - 1];
+  size_t right_ncol = rt.shape_[rt.dim_ - 1];
+
+  TensorShape result_shape = lt.shape_;
+  result_shape[lt.dim_ - 2] = left_nrow * right_nrow;
+  result_shape[lt.dim_ - 1] = left_ncol * right_ncol;
+  Tensor<dType> result(std::move(result_shape));
+
+  utils::math::tensor_kron_product(
+      lt.size_, rt.size_, left_nrow, left_ncol, right_nrow, right_ncol,
+      lt.get_tensor_const_ptr(), rt.get_tensor_const_ptr(),
+      result.get_tensor_ptr());
+
   return result;
 }
 
@@ -418,19 +473,24 @@ template <typename dType> Tensor<dType> Tensor<dType>::copy() const {
 }
 
 template <typename dType>
-Tensor<dType> Tensor<dType>::sum(const size_t &axis) const {
+Tensor<dType> Tensor<dType>::sum(const size_t &axis, bool keep_dim) const {
   if (axis == SIZE_MAX) {
     dType res = utils::math::sum(size_, get_tensor_const_ptr(), 1);
     return Tensor<dType>({1}, res);
   }
 
   if (axis >= dim_) {
-    throw adg_exception::AxisOutOfRangeError();
+    throw adg_exception::AxisOutOfRangeError(
+        "Tensor >> sum: axis out of range");
   }
 
   // only sum along the given axis
   TensorShape result_shape = shape_;
-  result_shape.erase(result_shape.begin() + axis);
+  if (!keep_dim) {
+    result_shape.erase(result_shape.begin() + axis);
+  } else {
+    result_shape[axis] = 1;
+  }
   Tensor<dType> result(std::move(result_shape));
 
   auto dest_ptr = result.get_tensor_ptr();
@@ -460,7 +520,11 @@ void Tensor<dType>::do_shape_update(const TensorShape &shape,
 
   if (keep_size) {
     if (tmp_size != keep_size) {
-      throw adg_exception::InvalidTensorShapeException();
+      throw adg_exception::InvalidTensorShapeException(
+          "Tensor >> do_shape_update: data size mismatch when update shape, "
+          "new size is " +
+          std::to_string(tmp_size) + ", while trying to keep the size of " +
+          std::to_string(keep_size));
     }
   }
 
@@ -474,7 +538,7 @@ void Tensor<dType>::do_shape_update(const TensorShape &shape,
 template <typename dType>
 void Tensor<dType>::reshape(const TensorShape &new_shape) {
   if (!is_shape_valid(new_shape)) {
-    throw adg_exception::InvalidTensorShapeException();
+    throw adg_exception::InvalidTensorShapeException("Tensor ==> reshape");
   }
 
   // keep same size
@@ -588,7 +652,8 @@ Tensor<dType> Tensor<dType>::transpose(const size_t &axis_ai,
 // by default, we transpose the last two axes for convenient matrix operation
 template <typename dType> Tensor<dType> Tensor<dType>::transpose() const {
   if (dim_ <= 1) {
-    throw adg_exception::AxisOutOfRangeError();
+    throw adg_exception::AxisOutOfRangeError(
+        "Tensor >> transpose: not enough dimension");
   }
 
   return transpose(dim_ - 2, dim_ - 1);
@@ -597,7 +662,8 @@ template <typename dType> Tensor<dType> Tensor<dType>::transpose() const {
 // short for transpose
 template <typename dType> Tensor<dType> Tensor<dType>::t() const {
   if (dim_ <= 1) {
-    throw adg_exception::AxisOutOfRangeError();
+    throw adg_exception::AxisOutOfRangeError(
+        "Tensor >> t: not enough dimension");
   }
 
   return transpose(dim_ - 2, dim_ - 1);
@@ -606,13 +672,17 @@ template <typename dType> Tensor<dType> Tensor<dType>::t() const {
 template <typename dType>
 void Tensor<dType>::fill_diag(const std::vector<dType> &diag_values) {
   if (dim_ != 2) {
-    throw adg_exception::InvalidTensorShapeException();
+    throw adg_exception::InvalidTensorShapeException(
+        "Tensor >> fill_diag get non-2d tensor");
   }
   size_t diag_len = diag_values.size();
   size_t tensor_min_dim_len = std::min(shape_[0], shape_[1]);
 
   if (diag_len > tensor_min_dim_len) {
-    throw adg_exception::MismatchTensorShapeError();
+    throw adg_exception::MismatchTensorShapeError(
+        "MismatchTensorShapeError >> fill_diag of len " +
+        std::to_string(diag_len) + " , longer than shape_min " +
+        std::to_string(tensor_min_dim_len));
   }
 
   utils::math::fill_diagonal(std::min(shape_[0], diag_len), shape_[1],
@@ -625,7 +695,6 @@ template <typename dType> void Tensor<dType>::map(Mapper<dType> &mapper) {
   pool.start(ADGC_MULTI_THREADS_NUM_);
   mapper.run(get_tensor_ptr(), size_, &pool);
 #else
-  throw adg_exception::TestingDebugException("Not here");
   mapper.run(get_tensor_ptr(), size_);
 #endif
 }
@@ -636,7 +705,6 @@ template <typename dType> void Tensor<dType>::map(Mapper<dType> &&mapper) {
   pool.start(ADGC_MULTI_THREADS_NUM_);
   mapper.run(get_tensor_ptr(), size_, &pool);
 #else
-  throw adg_exception::TestingDebugException("Not here");
   mapper.run(get_tensor_ptr(), size_);
 #endif
 }
@@ -650,7 +718,6 @@ void Tensor<dType>::map(const std::function<void(dType &)> &func) {
   pool.start(ADGC_MULTI_THREADS_NUM_);
   mapper.run(get_tensor_ptr(), size_, &pool);
 #else
-  throw adg_exception::TestingDebugException("Not here");
   mapper.run(get_tensor_ptr(), size_);
 #endif
 }

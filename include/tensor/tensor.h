@@ -57,6 +57,7 @@ public:
   void map(Mapper<dType> &mapper);
   void map(Mapper<dType> &&mapper);
   void map(const std::function<void(dType &)> &func);
+
   Tensor<dType> dot(const Tensor<dType> &bt) const;
   Tensor<dType> multiply(const double &multiplier) const;
   Tensor<dType> multiply(const Tensor<dType> &bt) const;
@@ -67,8 +68,10 @@ public:
   Tensor<dType> transpose() const;
   Tensor<dType> transpose(const size_t &axis_a, const size_t &axis_b) const;
   Tensor<dType> copy() const;
-  Tensor<dType> sum(const size_t &axis = SIZE_MAX) const;
+  Tensor<dType> sum(const size_t &axis = SIZE_MAX, bool keep_dim = false) const;
   void normal_init(double loc = 0., double scale = 1., size_t seed = SIZE_MAX);
+
+  TensorShape get_dot_shape(const Tensor<dType> &bt) const;
 
   Tensor<int32_t> to_int() const;
   Tensor<float> to_float() const;
@@ -82,6 +85,8 @@ public:
   inline std::vector<dType> to_vector() const {
     return *static_cast<std::vector<dType> *>(tensor_.get());
   };
+
+  static Tensor<dType> kron(const Tensor<dType> &lt, const Tensor<dType> &rt);
 
   static inline Tensor<dType> dot(const Tensor<dType> &lt,
                                   const Tensor<dType> &rt) {
@@ -99,6 +104,10 @@ public:
                                   const Tensor<dType> &rt) {
     return lt.sub(rt);
   }
+  static inline Tensor<dType> sum(const Tensor<dType> &ts,
+                                  const size_t &axis = SIZE_MAX) {
+    return ts.sum(axis);
+  }
 
 protected:
   // store tensor as a vector, wrapped in shared_ptr for easy copy
@@ -113,7 +122,6 @@ protected:
 
   // helper functions
   TensorIterator<dType> get_iterator(const TensorIndex &index);
-  TensorShape get_dot_shape(const Tensor<dType> &bt) const;
   static size_t get_coordinate_at_axis(const size_t &ind, const size_t &axis,
                                        const TensorShape &strides);
   static size_t get_index_after_transpose(const size_t &arr_ind,
@@ -139,6 +147,7 @@ protected:
 class Zeros : public Tensor<double> {
 public:
   Zeros(const TensorShape &shape) : Tensor<double>(shape, 0.){};
+  Zeros(size_t &) = delete;
 };
 
 class Ones : public Tensor<double> {
@@ -148,7 +157,7 @@ public:
 
 class Eye : public Tensor<double> {
 public:
-  Eye(const size_t &len) : Tensor<double>({len, len}, 0.) {
+  Eye(const size_t &len) : Tensor<double>({len, len}) {
     for (size_t ix = 0; ix < len; ix++) {
       set_value({ix, ix}, 1.);
     }

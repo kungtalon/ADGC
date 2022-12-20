@@ -65,11 +65,17 @@ target_link_libraries(tensor_lib
 )
 
 add_library(graph_lib
+    "include/autodiff/consts.h"
     "include/autodiff/node.h"
     "include/autodiff/graph.h"
     "include/autodiff/variable.h"
+    "include/autodiff/ops.h"
+    "include/autodiff/functional.h"
     "src/autodiff/node.cc"
     "src/autodiff/graph.cc"
+    "src/autodiff/variable.cc"
+    "src/autodiff/ops.cc"
+    "src/autodiff/functional.cc"
 )
 
 # testing
@@ -140,6 +146,22 @@ if(DO_TEST)
     )
   endif()
 
+  add_executable(
+      ops_funcs_test
+      test/ops_funcs_test.cc
+    )
+    target_link_libraries(ops_funcs_test 
+      graph_lib
+      cgraph
+      gvc
+      tensor_lib
+      utils_lib
+      gtest
+      gtest_main
+      gmock
+      gmock_main
+    )
+
   include(GoogleTest)
   add_test(multi_thread_test multi_thread_test)
   add_test(utils_test utils_test)
@@ -148,4 +170,5 @@ if(DO_TEST)
   if(USE_GRAPHVIZ)
     add_test(graph_test graph_test)
   endif()
+  add_test(ops_funcs_test ops_funcs_test)
 endif()

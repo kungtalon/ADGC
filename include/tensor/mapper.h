@@ -17,12 +17,13 @@ template <typename dType> class Mapper {
 public:
   Mapper(){};
   Mapper(const std::function<void(dType &)> &func);
+  Mapper(const std::function<void(dType &, const size_t &)> &func);
 
   void run(dType *p_tensor, const size_t &size,
            utils::threads::ThreadPool *p_pool = nullptr);
 
 private:
-  std::function<void(dType &)> task_;
+  std::function<void(dType &, const size_t &)> task_;
 };
 
 } // namespace tensor

@@ -242,6 +242,60 @@ TEST(AdgcMathUtilsTest, DoubleFillDiagonalTest) {
   delete zeros;
 }
 
+TEST(AdgcMathUtilsTest, Kronecker1DTest) {
+  double a[3] = {1., 2., 3.};
+  double b[4] = {3, 4, 5, 6};
+
+  double *zeros = new double[13];
+  memset(zeros, 0, sizeof(double) * 13);
+  utils::math::kron1d(3, 4, 12, a, b, zeros);
+
+  double expected[12] = {3, 4, 5, 6, 6, 8, 10, 12, 9, 12, 15, 18};
+  for (int ix = 0; ix < 12; ++ix) {
+    EXPECT_FLOAT_EQ(expected[ix], zeros[ix]);
+  }
+
+  delete zeros;
+}
+
+TEST(AdgcMathUtilsTest, Kronecker2DTest) {
+  double a[6] = {1., 2., 3., 4., 5., 6.};
+  double b[6] = {-1, -2, -3, -4, -5., -6};
+
+  double *zeros = new double[37];
+  memset(zeros, 0, sizeof(double) * 37);
+  utils::math::tensor_kron_product(6, 6, 3, 2, 2, 3, a, b, zeros);
+
+  double expected[36] = {-1.,  -2.,  -3.,  -2.,  -4.,  -6.,  -4.,  -5.,  -6.,
+                         -8.,  -10., -12., -3.,  -6.,  -9.,  -4.,  -8.,  -12.,
+                         -12., -15., -18., -16., -20., -24., -5.,  -10., -15.,
+                         -6.,  -12., -18., -20., -25., -30., -24., -30., -36.};
+  for (int ix = 0; ix < 36; ++ix) {
+    EXPECT_FLOAT_EQ(expected[ix], zeros[ix]);
+  }
+
+  delete zeros;
+}
+
+TEST(AdgcMathUtilsTest, SigmoidTest) {
+  double a[6] = {1., 2., 3., 4., 5., 6.};
+
+  double *b = new double[6];
+  memset(b, 0, sizeof(double) * 6);
+  for (int ix = 0; ix < 6; ++ix) {
+    b[ix] = utils::math::sigmoid(a[ix]);
+  }
+
+  double expected[6] = {0.7310585975646973, 0.8807970285415649,
+                        0.9525741338729858, 0.9820137619972229,
+                        0.9933071732521057, 0.9975274205207825};
+  for (int ix = 0; ix < 6; ++ix) {
+    EXPECT_FLOAT_EQ(expected[ix], b[ix]);
+  }
+
+  delete b;
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

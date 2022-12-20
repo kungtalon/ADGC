@@ -5,6 +5,15 @@
 
 namespace utils {
 
+template <typename T, typename A>
+std::string vector_to_str(const std::vector<T, A> &vec) {
+  std::stringstream ss;
+  for (auto val : vec) {
+    ss << std::to_string(val) << " ";
+  }
+  return ss.str();
+}
+
 // convert a matrix to string
 template <typename T>
 std::string array_to_str(size_t m, size_t n, T *p, std::string name) {

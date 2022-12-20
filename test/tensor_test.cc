@@ -69,6 +69,13 @@ TEST(AdgcTensorTest, EqualityTest) {
   ASSERT_TRUE(!(ta == td));
   ASSERT_TRUE(ta != te);
   ASSERT_TRUE(ta != tf);
+
+  tensor::Tensor<double> tt = tensor::EMPTY;
+  ASSERT_TRUE(tt == tensor::EMPTY);
+
+  tensor::Tensor<double> tl({2, 2}, {1., 2., 3., 4.});
+  tl = tensor::EMPTY;
+  ASSERT_TRUE(tl == tensor::EMPTY);
 }
 
 TEST(AdgcTensorTest, ReshapeTest) {
@@ -303,6 +310,21 @@ TEST(AdgcTensorTest, TensorInitTest) {
   ta.normal_init(1, 10);
 
   // FAIL() << ta.to_string();
+}
+
+TEST(AdgcTensorTest, SpecialDoubleMatricesTest) {
+  tensor::Eye ta(3);
+  auto outa = ta.to_vector();
+  ASSERT_THAT(outa, ElementsAre(1., 0.0, 0., 0., 1., 0., 0., 0., 1.));
+
+  tensor::Ones tb({4, 4});
+  auto outb = tb.to_vector();
+  auto expect_b = std::vector<double>(16, 1);
+  ASSERT_TRUE(outb == expect_b);
+
+  tensor::Zeros tc({2, 2, 1});
+  auto outc = tc.to_vector();
+  ASSERT_THAT(outc, ElementsAre(0., 0., 0., 0.));
 }
 
 TEST(AdgcTensorTest, DiagonalTensorTest) {

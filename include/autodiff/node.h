@@ -34,13 +34,28 @@ public:
   inline std::vector<Node *> get_children() const { return children_; }
   inline std::vector<Node *> get_parents() const { return parents_; }
   inline DTensor get_value() const { return value_; }
+  inline DTensor get_grad(bool reshaped = true) const {
+    if (reshaped) {
+      DTensor jacobi_cp = jacobi_;
+      jacobi_cp.reshape(value_.get_shape());
+      return jacobi_cp;
+    }
+    return jacobi_;
+  }
+  inline bool is_value_empty() const { return empty_value_; };
+  inline bool is_grad_empty() const { return empty_jacobi_; };
   inline size_t get_value_size() const { return value_.get_size(); }
   inline tensor::TensorShape get_value_shape() const {
     return value_.get_shape();
   }
 
   // inline void set_graph(Graph *graph) { graph_ = graph; }
-  inline void clear_jacobi() { jacobi_ = tensor::EMPTY; }
+  inline void clear_jacobi() {
+    if (!empty_jacobi_) {
+      jacobi_ = tensor::EMPTY;
+      empty_jacobi_ = true;
+    }
+  }
   inline void add_children(Node *child) { children_.push_back(child); }
 
   friend void graph_reset_node_name(Node *node, const std::string &name,
@@ -52,11 +67,13 @@ protected:
   std::vector<Node *> parents_;
   std::vector<Node *> children_;
   DTensor value_;
+  bool empty_value_;
   DTensor jacobi_;
+  bool empty_jacobi_;
   Graph *graph_;
 
-  virtual void do_forward() = 0;
-  virtual DTensor do_backward(Node *parent) = 0;
+  virtual void do_forward() = 0;                 // compute value
+  virtual DTensor do_backward(Node *parent) = 0; // compute jacobian
 };
 
 } // namespace graph_component
