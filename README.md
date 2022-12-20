@@ -12,6 +12,7 @@ Some of the methods implemented:
 - sum: sum the values along an axis
 - fill_diag: fill the diagonal entries with a vector
 - map: accept a lambda function and transforms the value of each entry
+- kron: do the matrix kronecker product, used in the backprop of matrix multiplication
 
 We are trying to learn BLAS and make full use of its extreme performance. Any advice would be very appreciated! :)
 
@@ -19,7 +20,7 @@ We are trying to learn BLAS and make full use of its extreme performance. Any ad
 This part contains all elements with regard to building an automatic differential graph. There are different types of nodes on the graph:
 - Node: base class for all nodes; it is abstract and no backward or forward is defined
 - Variable: leaf nodes controlling the user's input
-- Ops: operations between different nodes
+- Ops: algorithmic operations between different nodes
 - Functional: activation functions and loss functions
 
 ### Graph Visualization
