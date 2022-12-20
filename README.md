@@ -12,6 +12,7 @@ Some of the methods implemented:
 - sum: sum the values along an axis
 - fill_diag: fill the diagonal entries with a vector
 - map: accept a lambda function and transforms the value of each entry
+- kron: do the matrix kronecker product, used in the backprop of matrix multiplication
 
 We are trying to learn BLAS and make full use of its extreme performance. Any advice would be very appreciated! :)
 
