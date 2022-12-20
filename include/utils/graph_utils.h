@@ -46,6 +46,7 @@ public:
     set_node_attr_def("style", "filled");
     set_node_attr_def("fontsize", "20");
     set_node_attr_def("color", "none");
+    set_node_attr_def("fontname", "Arial");
 
     set_edge_attr_def("weight",     "0.05");
     set_edge_attr_def("color",     "gray");
