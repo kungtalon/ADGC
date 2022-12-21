@@ -21,14 +21,13 @@ Variable::Variable(const tensor::TensorShape &shape,
 Variable::Variable(const tensor::TensorShape &shape,
                    const std::vector<Node *> &parents, const std::string &name,
                    const bool &random_init, const bool &trainable, Graph *graph)
-    : Node(NodeType::ADG_VARIABLE_TYPE, parents, name, graph) {
-  value_ = DTensor(shape);
+    : Node(NodeType::ADG_VARIABLE_TYPE, parents, name, graph),
+      trainable_(trainable) {
+  unique_ptr_->assign_value(DTensor(shape), false);
   if (random_init) {
-    value_.normal_init(0., 0.001);
+    get_value().normal_init(0., 0.001);
   }
 }
-
-void Variable::set_trainable(bool is_trainable) { trainable_ = is_trainable; }
 
 DTensor Variable::do_backward(Node *parent_ptr) {
   return tensor::EMPTY;
@@ -38,9 +37,9 @@ Parameter::Parameter(){};
 
 Parameter::Parameter(const tensor::TensorShape &shape, const std::string &name,
                      Graph *graph)
-    : Node(NodeType::ADG_PARAMETER_TYPE, name, graph) {
-  value_ = DTensor(shape);
-  value_.normal_init(0., 0.001);
+    : Node(NodeType::ADG_PARAMETER_TYPE, name, graph), trainable_(true) {
+  unique_ptr_->assign_value(DTensor(shape), false);
+  get_value().normal_init(0., 0.001);
 }
 
 DTensor Parameter::do_backward(Node *parent) { return tensor::EMPTY; }

@@ -21,7 +21,8 @@ public:
            const std::string &name = "", const bool &random_init = true,
            const bool &trainable = true, Graph *graph = nullptr);
 
-  void set_trainable(bool is_trainable);
+  inline void set_trainable(bool is_trainable) { trainable_ = is_trainable; };
+  inline bool is_trainable() { return trainable_; };
 
 protected:
   bool trainable_;
@@ -36,7 +37,12 @@ public:
   Parameter(const tensor::TensorShape &shape, const std::string &name = "",
             Graph *graph = nullptr);
 
+  inline void set_trainable(bool is_trainable) { trainable_ = is_trainable; };
+  inline bool is_trainable() { return trainable_; };
+
 protected:
+  bool trainable_;
+
   void do_forward() override{}; // do nothing
   DTensor do_backward(Node *parent) override;
 };

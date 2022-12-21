@@ -29,7 +29,8 @@ public:
   Node &operator=(const Node &other);
 
   void clear_value(bool recursive = true);
-  void assign_value(const DTensor &value);
+  void assign_value(const DTensor &value, bool check_shape = true);
+  DTensor get_grad(bool reshaped = true) const;
 
   virtual void forward();
   virtual DTensor backward(Node *result);
@@ -46,14 +47,6 @@ public:
     return unique_ptr_->parents_;
   }
   inline DTensor get_value() const { return unique_ptr_->value_; }
-  inline DTensor get_grad(bool reshaped = true) const {
-    if (reshaped) {
-      DTensor jacobi_cp = unique_ptr_->jacobi_;
-      jacobi_cp.reshape(unique_ptr_->value_.get_shape());
-      return jacobi_cp;
-    }
-    return unique_ptr_->jacobi_;
-  }
   inline bool is_value_empty() const { return unique_ptr_->empty_value_; };
   inline bool is_grad_empty() const { return unique_ptr_->empty_jacobi_; };
   inline size_t get_value_size() const {

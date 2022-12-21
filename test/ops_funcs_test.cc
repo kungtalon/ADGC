@@ -360,6 +360,7 @@ TEST(FunctionalTest, FunctionStyleTest) {
   } catch (const std::exception &ex) {
     FAIL() << "Failed and got this: " << std::endl << ex.what();
   }
+  graph->remove_all();
   Graph::delete_global_graph();
 }
 

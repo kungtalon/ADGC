@@ -148,7 +148,21 @@ DTensor Node::backward(Node *result) {
   return jacobi_;
 }
 
+DTensor Node::get_grad(bool reshaped) const {
+  if (reshaped) {
+    DTensor jacobi_cp = unique_ptr_->jacobi_;
+    jacobi_cp.reshape(unique_ptr_->value_.get_shape());
+    return jacobi_cp;
+  }
+  return unique_ptr_->jacobi_;
+}
+
 void Node::clear_value(bool recursive) {
+  if (this != unique_ptr_) {
+    unique_ptr_->clear_value();
+    return;
+  }
+
   value_ = tensor::EMPTY;
   empty_value_ = true;
 
@@ -159,8 +173,13 @@ void Node::clear_value(bool recursive) {
   }
 }
 
-void Node::assign_value(const DTensor &value) {
-  if (value.get_shape() != get_value_shape()) {
+void Node::assign_value(const DTensor &value, bool check_shape) {
+  if (this != unique_ptr_) {
+    unique_ptr_->assign_value(value);
+    return;
+  }
+
+  if (check_shape && value.get_shape() != get_value_shape()) {
     throw adg_exception::MismatchTensorShapeError(
         "MismatchTensorShapeError >> Node::assign_value get different value "
         "shapes: " +

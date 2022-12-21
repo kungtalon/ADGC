@@ -1,5 +1,6 @@
 #include "autodiff/graph.h"
 #include "autodiff/node.h"
+#include "autodiff/variable.h"
 
 namespace graph_component {
 
@@ -81,7 +82,10 @@ void Graph::backward(Node &result) {
 
   for (auto node_ptr : node_ptr_list_) {
     if (node_ptr->get_type() == NodeType::ADG_VARIABLE_TYPE) {
-      node_ptr->backward(result.get_ptr());
+      Variable *var_ptr = dynamic_cast<Variable *>(node_ptr);
+      if (var_ptr->is_trainable()) {
+        node_ptr->backward(result.get_ptr());
+      }
     }
   }
 }
