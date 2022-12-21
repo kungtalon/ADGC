@@ -1,12 +1,12 @@
 #include <iostream>
 
-#include "autodiff/functional.h"
-#include "autodiff/ops.h"
-#include "autodiff/variable.h"
+#include "autodiff/component/functional.h"
+#include "autodiff/component/ops.h"
+#include "autodiff/component/variable.h"
 #include "gtest/gtest.h"
 
-typedef graph_component::Graph g;
-typedef graph_component::Variable v;
+typedef auto_diff::Graph g;
+typedef auto_diff::Variable v;
 
 TEST(GraphTest, ConstructorDestructorTest) {
   g *graph_ptr = new g();
@@ -41,14 +41,13 @@ TEST(GraphTest, GraphVizTest) {
 
     v *pv4 = new v({2, 1}, graph_ptr);
 
-    auto matmul = new graph_component::ops::MatMul(pv1, pv2, graph_ptr);
-    auto add = new graph_component::ops::Add(matmul, pv3, graph_ptr);
-    auto relu = new graph_component::functional::ReLU(add, graph_ptr);
+    auto matmul = new auto_diff::ops::MatMul(pv1, pv2, graph_ptr);
+    auto add = new auto_diff::ops::Add(matmul, pv3, graph_ptr);
+    auto relu = new auto_diff::functional::ReLU(add, graph_ptr);
 
-    auto matsum = new graph_component::ops::MatSum({relu, pv4}, graph_ptr);
-    auto sigmoid = new graph_component::functional::Sigmoid(matsum, graph_ptr);
-    auto target =
-        new graph_component::functional::ReduceSum(sigmoid, graph_ptr);
+    auto matsum = new auto_diff::ops::MatSum({relu, pv4}, graph_ptr);
+    auto sigmoid = new auto_diff::functional::Sigmoid(matsum, graph_ptr);
+    auto target = new auto_diff::functional::ReduceSum(sigmoid, graph_ptr);
 
     graph_ptr->visualize("../graphviz/test.svg");
   }

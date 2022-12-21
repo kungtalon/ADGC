@@ -1,11 +1,11 @@
-#include "autodiff/functional.h"
-#include "autodiff/ops.h"
-#include "autodiff/variable.h"
+#include "autodiff/component/functional.h"
+#include "autodiff/component/ops.h"
+#include "autodiff/component/variable.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
 using namespace testing;
-using namespace graph_component;
+using namespace auto_diff;
 
 TEST(OpsTest, AddAndReduceSumTest) {
 

@@ -1,13 +1,13 @@
 #ifndef ADGC_AUTODIFF_LAYER_LAYERS_H_
 #define ADGC_AUTODIFF_LAYER_LAYERS_H_
 
+#include "autodiff/component/functional.h"
+#include "autodiff/component/ops.h"
+#include "autodiff/component/variable.h"
 #include "autodiff/consts.h"
-#include "autodiff/functional.h"
 #include "autodiff/graph.h"
-#include "autodiff/ops.h"
-#include "autodiff/variable.h"
 
-namespace graph_component {
+namespace auto_diff {
 namespace layer {
 
 class Layer {
@@ -28,7 +28,7 @@ protected:
 };
 
 } // namespace layer
-} // namespace graph_component
+} // namespace auto_diff
 
 #include "autodiff/layer/dense.h"
 

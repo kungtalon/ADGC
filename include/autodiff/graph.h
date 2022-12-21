@@ -11,7 +11,7 @@
 #include "utils/graph_utils.h"
 #endif
 
-namespace graph_component {
+namespace auto_diff {
 
 class Node;
 
@@ -65,5 +65,5 @@ private:
   utils::TypeCounter type_counter_;
 };
 
-} // namespace graph_component
+} // namespace auto_diff
 #endif

@@ -1,8 +1,8 @@
 #include "autodiff/graph.h"
-#include "autodiff/node.h"
-#include "autodiff/variable.h"
+#include "autodiff/component/node.h"
+#include "autodiff/component/variable.h"
 
-namespace graph_component {
+namespace auto_diff {
 
 Graph::Graph(){};
 
@@ -83,6 +83,12 @@ void Graph::backward(Node &result) {
   for (auto node_ptr : node_ptr_list_) {
     if (node_ptr->get_type() == NodeType::ADG_VARIABLE_TYPE ||
         node_ptr->get_type() == NodeType::ADG_PARAMETER_TYPE) {
+      if (node_ptr->get_type() == NodeType::ADG_PARAMETER_TYPE) {
+        Parameter *param_ptr = static_cast<Parameter *>(node_ptr);
+        if (!param_ptr->is_trainable()) {
+          continue;
+        }
+      }
       node_ptr->backward(result.get_ptr());
     }
   }
@@ -154,4 +160,4 @@ void Graph::visualize(const std::string &file_name) {
 }
 #endif
 
-} // namespace graph_component
+} // namespace auto_diff

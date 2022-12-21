@@ -22,6 +22,7 @@ struct NodeType {
   static inline const std::string ADG_CROSS_ENTROPY_SOFTMAX_TYPE =
       "F_cross_entropy_softmax";
   static inline const std::string ADG_REDUCE_SUM_TYPE = "F_reduce_sum";
+  static inline const std::string ADG_REDUCE_MEAN_TYPE = "F_reduce_mean";
 };
 
 struct LayerType {

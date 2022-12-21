@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-namespace graph_component {
+namespace auto_diff {
 
 class Variable : public Node {
 public:
@@ -47,6 +47,6 @@ protected:
   DTensor do_backward(Node *parent) override;
 };
 
-} // namespace graph_component
+} // namespace auto_diff
 
 #endif

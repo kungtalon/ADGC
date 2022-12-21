@@ -1,6 +1,6 @@
-#include "autodiff/functional.h"
+#include "autodiff/component/functional.h"
 
-namespace graph_component {
+namespace auto_diff {
 
 namespace functional {
 
@@ -139,6 +139,25 @@ DTensor ReduceSum::do_backward(Node *parent_ptr) {
   return tensor::Ones({parent_ptr->get_value_size(), 1});
 }
 
+ReduceMean::ReduceMean(Node *parent_ptr, Graph *g, const std::string &name)
+    : Node(NodeType::ADG_REDUCE_SUM_TYPE, {parent_ptr}, name, g) {
+  value_ = DTensor({1});
+}
+
+void ReduceMean::do_forward() {
+  if (parents_.empty()) {
+    throw adg_exception::FunctionalParentsUnsetException(
+        "ReduceMean >> ReduceMean: FunctionalParentsUnsetException");
+  }
+
+  multiplier_ = 1 / parents_[0]->get_value_size();
+  value_ = parents_[0]->get_value().sum().multiply(multiplier_);
+}
+
+DTensor ReduceMean::do_backward(Node *parent_ptr) {
+  return DTensor({parent_ptr->get_value_size(), 1}, multiplier_);
+}
+
 } // namespace functional
 
-} // namespace graph_component
+} // namespace auto_diff

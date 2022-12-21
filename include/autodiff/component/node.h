@@ -5,13 +5,13 @@
 #include <vector>
 
 #include "assert.h"
-#include "consts.h"
+#include "autodiff/consts.h"
 #include "tensor/tensor.h"
 #include "utils/utils.h"
 
-namespace graph_component {
+namespace auto_diff {
 
-class Graph; // forward
+class Graph;
 
 typedef tensor::Tensor<double> DTensor;
 
@@ -91,8 +91,8 @@ protected:
   virtual DTensor do_backward(Node *parent) = 0; // compute jacobian
 };
 
-} // namespace graph_component
+} // namespace auto_diff
 
-#include "graph.h"
+#include "autodiff/graph.h"
 
 #endif

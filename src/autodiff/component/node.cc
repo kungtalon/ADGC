@@ -1,6 +1,6 @@
-#include "autodiff/node.h"
+#include "autodiff/component/node.h"
 
-namespace graph_component {
+namespace auto_diff {
 
 Node::Node() : Node(NodeType::ADG_UNKNOWN_TYPE) {}
 
@@ -206,4 +206,4 @@ void graph_reset_node_name(Node *node, const std::string &name, Graph *graph) {
   node->name_ = name;
 }
 
-} // namespace graph_component
+} // namespace auto_diff

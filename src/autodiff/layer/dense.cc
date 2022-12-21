@@ -1,6 +1,6 @@
 #include "autodiff/layer/layers.h"
 
-namespace graph_component {
+namespace auto_diff {
 
 namespace layer {
 
@@ -85,4 +85,4 @@ void Dense::assign_bias(const DTensor &value) {
 
 } // namespace layer
 
-} // namespace graph_component
+} // namespace auto_diff

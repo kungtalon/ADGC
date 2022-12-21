@@ -1,6 +1,6 @@
-#include "autodiff/ops.h"
+#include "autodiff/component/ops.h"
 
-namespace graph_component {
+namespace auto_diff {
 namespace ops {
 
 Add::Add(Node *parent1_ptr, Node *parent2_ptr, Graph *g,
@@ -203,4 +203,4 @@ DTensor MatSum::do_backward(Node *parent_ptr) {
 }
 
 } // namespace ops
-} // namespace graph_component
+} // namespace auto_diff

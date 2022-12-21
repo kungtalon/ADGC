@@ -66,12 +66,12 @@ target_link_libraries(tensor_lib
 
 add_library(graph_core_lib
     "include/autodiff/consts.h"
-    "include/autodiff/node.h"
     "include/autodiff/graph.h"
-    "include/autodiff/variable.h"
-    "src/autodiff/node.cc"
+    "include/autodiff/component/node.h"
+    "include/autodiff/component/variable.h"
     "src/autodiff/graph.cc"
-    "src/autodiff/variable.cc"
+    "src/autodiff/component/node.cc"
+    "src/autodiff/component/variable.cc"
 )
 if(USE_GRAPHVIZ)
   target_link_libraries(graph_core_lib
@@ -81,12 +81,12 @@ if(USE_GRAPHVIZ)
 endif(USE_GRAPHVIZ)
 
 add_library(ops_funcs_lib
-  "include/autodiff/ops.h"
-  "include/autodiff/functional.h"
-  "src/autodiff/ops.cc"
-  "src/autodiff/ops_impl.cc"
-  "src/autodiff/functional.cc"
-  "src/autodiff/functional_impl.cc"
+  "include/autodiff/component/ops.h"
+  "include/autodiff/component/functional.h"
+  "src/autodiff/component/ops.cc"
+  "src/autodiff/component/ops_impl.cc"
+  "src/autodiff/component/functional.cc"
+  "src/autodiff/component/functional_impl.cc"
 )
 target_link_libraries(ops_funcs_lib
   graph_core_lib

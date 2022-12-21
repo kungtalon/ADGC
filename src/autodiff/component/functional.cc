@@ -1,6 +1,6 @@
-#include "autodiff/functional.h"
+#include "autodiff/component/functional.h"
 
-namespace graph_component {
+namespace auto_diff {
 
 namespace functional {
 
@@ -34,6 +34,12 @@ ReduceSum &reduce_sum(const Node &parent, Graph *g, const std::string &name) {
   return *node_ptr;
 }
 
+ReduceMean &reduce_mean(const Node &parent, Graph *g, const std::string &name) {
+  ReduceMean *node_ptr =
+      new ReduceMean(Graph::get_ptr_of(parent.get_full_name(), g), g, name);
+  return *node_ptr;
+}
+
 } // namespace functional
 
-} // namespace graph_component
+} // namespace auto_diff

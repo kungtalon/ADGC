@@ -3,7 +3,7 @@
 #include "gtest/gtest.h"
 
 using namespace testing;
-using namespace graph_component;
+using namespace auto_diff;
 
 TEST(LayerTest, DenseLayerTest) {
   Graph *graph = Graph::get_instanceof_global_graph();

@@ -1,6 +1,6 @@
-#include "autodiff/ops.h"
+#include "autodiff/component/ops.h"
 
-namespace graph_component {
+namespace auto_diff {
 namespace ops {
 
 Add &add(const Node &parent1, const Node &parent2, Graph *g,
@@ -58,4 +58,4 @@ MatSum &matsum(const Node &parent_1, const Node &parent_2, const Node &parent_3,
 }
 
 } // namespace ops
-} // namespace graph_component
+} // namespace auto_diff

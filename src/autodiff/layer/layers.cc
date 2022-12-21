@@ -1,6 +1,6 @@
 #include "autodiff/layer/layers.h"
 
-namespace graph_component {
+namespace auto_diff {
 namespace layer {
 
 Layer::Layer(const std::string &layer_type, Graph *g) {
@@ -28,4 +28,4 @@ std::vector<Parameter *> Layer::get_param_ptr_list() const {
 }
 
 } // namespace layer
-} // namespace graph_component
+} // namespace auto_diff

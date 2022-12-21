@@ -1,6 +1,6 @@
-#include "autodiff/variable.h"
+#include "autodiff/component/variable.h"
 
-namespace graph_component {
+namespace auto_diff {
 
 Variable::Variable() : Variable({1}, {}, "", true, true, nullptr){};
 
@@ -44,4 +44,4 @@ Parameter::Parameter(const tensor::TensorShape &shape, const std::string &name,
 
 DTensor Parameter::do_backward(Node *parent) { return tensor::EMPTY; }
 
-} // namespace graph_component
+} // namespace auto_diff

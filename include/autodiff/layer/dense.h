@@ -3,7 +3,7 @@
 
 #include "layers.h"
 
-namespace graph_component {
+namespace auto_diff {
 
 namespace layer {
 
@@ -28,6 +28,6 @@ private:
 
 } // namespace layer
 
-} // namespace graph_component
+} // namespace auto_diff
 
 #endif
