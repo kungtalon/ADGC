@@ -46,6 +46,19 @@ public:
   DTensor do_backward(Node *parent_ptr) override;
 };
 
+Sigmoid &sigmoid(const Node &parent, Graph *g = nullptr,
+                 const std::string &name = "");
+
+ReLU &relu(const Node &parent, Graph *g = nullptr,
+           const std::string &name = "");
+
+CrossEntropyWithSoftMax &
+cross_entropy_with_softmax(const Node &parent, const Variable &labels,
+                           Graph *g = nullptr, const std::string &name = "");
+
+ReduceSum &reduce_sum(const Node &parent, Graph *g = nullptr,
+                      const std::string &name = "");
+
 } // namespace functional
 } // namespace graph_component
 

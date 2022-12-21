@@ -75,7 +75,9 @@ add_library(graph_lib
     "src/autodiff/graph.cc"
     "src/autodiff/variable.cc"
     "src/autodiff/ops.cc"
+    "src/autodiff/ops_impl.cc"
     "src/autodiff/functional.cc"
+    "src/autodiff/functional_impl.cc"
 )
 
 # testing

@@ -106,8 +106,9 @@ TEST(OpsTest, VecDotTest) {
 
 TEST(OpsTest, MatMulTest) {
   // this block limits the lifetime of all graph nodes
+  Graph *graph = Graph::get_instanceof_global_graph();
+
   try {
-    Graph *graph = Graph::get_instanceof_global_graph();
 
     Variable v1 = Variable({2, 2});
     Variable v2 = Variable({2, 2});
@@ -149,10 +150,10 @@ TEST(OpsTest, MatMulTest) {
     ASSERT_THAT(v1.get_grad().to_vector(), ElementsAre(11., 15., 11., 15.));
     ASSERT_THAT(v2.get_grad().to_vector(), ElementsAre(4., 4., 6., 6.));
 
-    Graph::delete_global_graph();
   } catch (const std::exception &ex) {
     FAIL() << "Failed and got this: " << std::endl << ex.what();
   }
+  Graph::delete_global_graph();
 }
 
 TEST(FunctionalTest, SigmoidReluTest) {
@@ -219,8 +220,8 @@ TEST(FunctionalTest, SigmoidReluTest) {
 
   } catch (const std::exception &ex) {
     FAIL() << "Failed and got this: " << std::endl << ex.what();
-    delete graph;
   }
+  delete graph;
 }
 
 TEST(FunctionalTest, CrossEntropyWithSoftmaxTest) {
@@ -298,8 +299,68 @@ TEST(FunctionalTest, CrossEntropyWithSoftmaxTest) {
 
   } catch (const std::exception &ex) {
     FAIL() << "Failed and got this: " << std::endl << ex.what();
-    Graph::delete_global_graph();
   }
+  Graph::delete_global_graph();
+}
+
+TEST(FunctionalTest, FunctionStyleTest) {
+  // this block limits the lifetime of all graph nodes
+  Graph *graph = Graph::get_instanceof_global_graph();
+
+  try {
+    Variable v1 = Variable({3, 2});
+    Variable v2 = Variable({2, 3});
+    Variable v3 = Variable({3, 3});
+    Variable label = Variable({3, 3});
+
+    DTensor value_v1 = tensor::Tensor<double>({3, 2}, {1, 2, 3, 3, 4, 5});
+    DTensor value_v2 = tensor::Tensor<double>({2, 3}, {10, 2, 3, 4, 5, 9});
+
+    v1.assign_value(value_v1);
+    v2.assign_value(value_v2);
+    v3.assign_value(tensor::Tensor<double>({3, 3}, 2));
+    label.assign_value(
+        tensor::Tensor<double>({3, 3}, {1, 0, 0, 1, 0, 0, 1, 0, 0}));
+
+    auto target = functional::cross_entropy_with_softmax(
+        functional::relu(ops::matsum(ops::matmul(v1, v2), v3)), label);
+
+    graph->zero_grad();
+    target.forward();
+
+    // test forward
+
+    ASSERT_EQ(target.get_value_shape(), tensor::TensorShape({1}));
+    ASSERT_FLOAT_EQ(target.get_value().get_value(), 3.099767939120474);
+
+    auto nodes = graph->get_node_list();
+    ASSERT_EQ(nodes.size(), 8);
+
+    graph->backward(target);
+
+    // test backward
+    ASSERT_FLOAT_EQ(target.get_value().get_value(), 3.099767939120474);
+    ASSERT_THAT(target.get_grad().to_vector(), ElementsAre(1.));
+    ASSERT_EQ(v1.get_grad().get_shape(), tensor::TensorShape({3, 2}));
+    double v1_grad_exp[6] = {-6.668175453037145,    4.7624283343757465,
+                             -0.017308368134400752, 0.012363116530203897,
+                             -0.33198111225669635,  0.23712936588919964};
+    auto v1_grad_out = v1.get_grad().to_vector();
+    for (int ix = 0; ix < 6; ++ix) {
+      ASSERT_FLOAT_EQ(v1_grad_out[ix], v1_grad_exp[ix]);
+    }
+    double v2_grad_exp[6] = {-1.1497010658603544,    0.00011754544465360147,
+                             1.1495835204157006,     -2.1497066404494545,
+                             0.00023508861479254903, 2.149471551834662};
+    auto v2_grad_out = v2.get_grad().to_vector();
+    for (int ix = 0; ix < 6; ++ix) {
+      ASSERT_FLOAT_EQ(v2_grad_out[ix], v2_grad_exp[ix]);
+    }
+
+  } catch (const std::exception &ex) {
+    FAIL() << "Failed and got this: " << std::endl << ex.what();
+  }
+  Graph::delete_global_graph();
 }
 
 int main(int argc, char **argv) {

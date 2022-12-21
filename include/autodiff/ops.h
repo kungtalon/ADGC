@@ -38,11 +38,33 @@ public:
 class MatSum : public Node {
 public:
   MatSum() : Node(NodeType::ADG_MATSUM_TYPE){};
-  MatSum(std::vector<Node *> parents, Graph *g = nullptr,
+  MatSum(const std::vector<Node *> &parents, Graph *g = nullptr,
          const std::string &name = "");
   void do_forward() override;
   DTensor do_backward(Node *parent_ptr) override;
 };
+
+Add &add(const Node &parent1, const Node &parent2, Graph *g = nullptr,
+         const std::string &name = "");
+
+VecDot &vecdot(const Node &parent1, const Node &parent2, Graph *g = nullptr,
+               const std::string &name = "");
+
+MatMul &matmul(const Node &parent1, const Node &parent2, Graph *g = nullptr,
+               const std::string &name = "");
+
+MatSum &matsum(const std::vector<Node *> &parents_ptr, Graph *g = nullptr,
+               const std::string &name = "");
+
+MatSum &matsum(const Node &parent_1, const Node &parent_2, Graph *g = nullptr,
+               const std::string &name = "");
+
+MatSum &matsum(const Node &parent_1, const Node &parent_2, const Node &parent_3,
+               Graph *g = nullptr, const std::string &name = "");
+
+MatSum &matsum(const Node &parent_1, const Node &parent_2, const Node &parent_3,
+               const Node &parent_4, Graph *g = nullptr,
+               const std::string &name = "");
 
 } // namespace ops
 

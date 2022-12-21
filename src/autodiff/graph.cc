@@ -14,7 +14,9 @@ void Graph::remove_all() {
   // don't delete nodes elsewhere
   for (auto map_iter = node_ptr_dict_.begin(); map_iter != node_ptr_dict_.end();
        ++map_iter) {
-    delete map_iter->second;
+    if (map_iter->second->get_type() != NodeType::ADG_VARIABLE_TYPE) {
+      delete map_iter->second;
+    }
   }
   node_ptr_dict_.clear();
   type_counter_.clear();
@@ -42,8 +44,53 @@ std::string Graph::add_node(Node *node, const std::string &type,
   return valid_node_name;
 }
 
+void Graph::add_relation(const std::string &parent_name,
+                         const std::string &child_name) {
+  auto parent_iter = node_ptr_dict_.find(parent_name);
+  auto child_iter = node_ptr_dict_.find(child_name);
+
+  if (parent_iter == node_ptr_dict_.end()) {
+    throw adg_exception::NodeNotFoundError(
+        "Graph >> add_relation : parent node " + parent_name + " not found\n");
+  }
+  if (child_iter == node_ptr_dict_.end()) {
+    throw adg_exception::NodeNotFoundError(
+        "Graph >> add_relation : child node " + child_name + " not found\n");
+  }
+
+  parent_iter->second->add_children(child_iter->second);
+  child_iter->second->add_parent(parent_iter->second);
+}
+
+Node *Graph::get_ptr_of(const std::string &node_name) {
+  if (!contains_node(node_name)) {
+    throw adg_exception::NodeNotFoundError("Graph >> get_ptr_of : node " +
+                                           node_name + " not found\n");
+  }
+  return node_ptr_dict_.find(node_name)->second;
+}
+
 bool Graph::contains_node(const std::string &full_node_name) const {
   return node_ptr_dict_.find(full_node_name) != node_ptr_dict_.end();
+}
+
+void Graph::backward(Node &result) {
+  if (result.get_value_size() != 1) {
+    throw adg_exception::GradError("Target is not scalar!");
+  }
+
+  for (auto node_ptr : node_ptr_list_) {
+    if (node_ptr->get_type() == NodeType::ADG_VARIABLE_TYPE) {
+      node_ptr->backward(result.get_ptr());
+    }
+  }
+}
+
+Node *Graph::get_ptr_of(const std::string &node_name, Graph *graph_ptr) {
+  if (graph_ptr == nullptr) {
+    graph_ptr = Graph::get_instanceof_global_graph();
+  }
+  return graph_ptr->get_ptr_of(node_name);
 }
 
 Graph *Graph::get_instanceof_global_graph() {

@@ -91,6 +91,12 @@ public:
   TestingDebugException(const std::string &msg) : AutoDiffGraphException(msg){};
 };
 
+class NodeNotFoundError : public AutoDiffGraphException {
+public:
+  NodeNotFoundError(){};
+  NodeNotFoundError(const std::string &msg) : AutoDiffGraphException(msg){};
+};
+
 class DuplicateNodeNameError : public AutoDiffGraphException {
 public:
   DuplicateNodeNameError(){};
@@ -158,6 +164,13 @@ class GradError : public AutoDiffGraphException {
 public:
   GradError(){};
   GradError(const std::string &msg) : AutoDiffGraphException(msg){};
+};
+
+class InvalidNodeOperationError : public AutoDiffGraphException {
+public:
+  InvalidNodeOperationError(){};
+  InvalidNodeOperationError(const std::string &msg)
+      : AutoDiffGraphException(msg){};
 };
 
 } // namespace adg_exception

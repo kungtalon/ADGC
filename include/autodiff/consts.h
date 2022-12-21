@@ -8,6 +8,7 @@
 struct NodeType {
   static inline const std::string ADG_UNKNOWN_TYPE = "unknown";
   static inline const std::string ADG_VARIABLE_TYPE = "variable";
+  static inline const std::string ADG_PARAMETER_TYPE = "parameter";
 
   // ops
   static inline const std::string ADG_MATMUL_TYPE = "OP_matmul";
@@ -18,8 +19,9 @@ struct NodeType {
   // functional
   static inline const std::string ADG_SIGMOID_TYPE = "F_sigmoid";
   static inline const std::string ADG_RELU_TYPE = "F_relu";
-  static inline const std::string ADG_CROSS_ENTROPY_SOFTMAX_TYPE = "F_softmax";
-  static inline const std::string ADG_REDUCE_SUM_TYPE = "F_sum";
+  static inline const std::string ADG_CROSS_ENTROPY_SOFTMAX_TYPE =
+      "F_cross_entropy_softmax";
+  static inline const std::string ADG_REDUCE_SUM_TYPE = "F_reduce_sum";
 };
 
 const inline std::string VAR_GRAPHVIZ_NODE_COLOR = "deepskyblue1";

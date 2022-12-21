@@ -28,8 +28,21 @@ Variable::Variable(const tensor::TensorShape &shape,
   }
 }
 
+void Variable::set_trainable(bool is_trainable) { trainable_ = is_trainable; }
+
 DTensor Variable::do_backward(Node *parent_ptr) {
   return tensor::EMPTY;
 } // do nothing
+
+Parameter::Parameter(){};
+
+Parameter::Parameter(const tensor::TensorShape &shape, const std::string &name,
+                     Graph *graph)
+    : Node(NodeType::ADG_PARAMETER_TYPE, name, graph) {
+  value_ = DTensor(shape);
+  value_.normal_init(0., 0.001);
+}
+
+DTensor Parameter::do_backward(Node *parent) { return tensor::EMPTY; }
 
 } // namespace graph_component

@@ -27,7 +27,11 @@ public:
   ~Graph();
   std::string add_node(Node *node, const std::string &type,
                        const std::string &name);
+  void add_relation(const std::string &parent_name,
+                    const std::string &child_name);
+  Node *get_ptr_of(const std::string &node_name);
   bool contains_node(const std::string &full_node_name) const;
+  void backward(Node &result);
   void clear_all_jacobi();
   void clear_all_value();
   void remove_all();
@@ -37,6 +41,7 @@ public:
   inline void set_graph_name(const std::string &name) { graph_name_ = name; };
 
   static Graph *get_instanceof_global_graph();
+  static Node *get_ptr_of(const std::string &node_name, Graph *graph_ptr);
   static inline void clear_global_graph() { global_graph->remove_all(); };
   static inline void delete_global_graph() {
     if (global_graph != NULL) {
