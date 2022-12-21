@@ -23,8 +23,8 @@ This part contains all elements with regard to building an automatic differentia
 - Ops: algorithmic operations between different nodes
 - Functional: activation functions and loss functions
 
-### Graph Forward and Backward
-Each node of the graph will have to implement the logics of `do_forward()` and `do_backward(Node* parent_ptr)`, the first one computes its forward value and the other computes the nodes' jacobian matrix with regard to one of its parent nodes.
+### Forward and Backward
+Each node of the graph needs to implement the logics of `do_forward()` and `do_backward(Node* parent_ptr)`, the first one computes its forward value and the other computes the nodes' jacobian matrix with regard to one of its parent nodes.
 
 A code snippet about how to build the graph:
 
