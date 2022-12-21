@@ -64,20 +64,45 @@ target_link_libraries(tensor_lib
   ${BLAS_LIBRARIES} 
 )
 
-add_library(graph_lib
+add_library(graph_core_lib
     "include/autodiff/consts.h"
     "include/autodiff/node.h"
     "include/autodiff/graph.h"
     "include/autodiff/variable.h"
-    "include/autodiff/ops.h"
-    "include/autodiff/functional.h"
     "src/autodiff/node.cc"
     "src/autodiff/graph.cc"
     "src/autodiff/variable.cc"
-    "src/autodiff/ops.cc"
-    "src/autodiff/ops_impl.cc"
-    "src/autodiff/functional.cc"
-    "src/autodiff/functional_impl.cc"
+)
+if(USE_GRAPHVIZ)
+  target_link_libraries(graph_core_lib
+    cgraph
+    gvc
+  )
+endif(USE_GRAPHVIZ)
+
+add_library(ops_funcs_lib
+  "include/autodiff/ops.h"
+  "include/autodiff/functional.h"
+  "src/autodiff/ops.cc"
+  "src/autodiff/ops_impl.cc"
+  "src/autodiff/functional.cc"
+  "src/autodiff/functional_impl.cc"
+)
+target_link_libraries(ops_funcs_lib
+  graph_core_lib
+)
+
+add_library(layer_lib
+  "include/autodiff/layer/layers.h"
+  "include/autodiff/layer/dense.h"
+  "src/autodiff/layer/layers.cc"
+  "src/autodiff/layer/dense.cc"
+)
+
+target_link_libraries(layer_lib  
+  ops_funcs_lib
+  tensor_lib
+  utils_lib
 )
 
 # testing
@@ -135,10 +160,8 @@ if(DO_TEST)
       test/graph_test.cc
     )
     target_link_libraries(graph_test 
-      graph_lib
+      ops_funcs_lib
       graph_utils_lib
-      cgraph
-      gvc
       tensor_lib
       utils_lib
       gtest
@@ -149,20 +172,30 @@ if(DO_TEST)
   endif()
 
   add_executable(
-      ops_funcs_test
-      test/ops_funcs_test.cc
-    )
-    target_link_libraries(ops_funcs_test 
-      graph_lib
-      cgraph
-      gvc
-      tensor_lib
-      utils_lib
-      gtest
-      gtest_main
-      gmock
-      gmock_main
-    )
+    ops_funcs_test
+    test/ops_funcs_test.cc
+  )
+  target_link_libraries(ops_funcs_test 
+    ops_funcs_lib
+    tensor_lib
+    utils_lib
+    gtest
+    gtest_main
+    gmock
+    gmock_main
+  )
+
+  add_executable(
+    layer_test
+    test/layer_test.cc
+  )
+  target_link_libraries(layer_test 
+    layer_lib
+    gtest
+    gtest_main
+    gmock
+    gmock_main
+  )
 
   include(GoogleTest)
   add_test(multi_thread_test multi_thread_test)
@@ -173,4 +206,5 @@ if(DO_TEST)
     add_test(graph_test graph_test)
   endif()
   add_test(ops_funcs_test ops_funcs_test)
+  add_test(layer_test layer_test)
 endif()

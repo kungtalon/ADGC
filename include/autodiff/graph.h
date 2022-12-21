@@ -39,6 +39,9 @@ public:
   inline void zero_grad() { clear_all_jacobi(); };
   inline std::vector<Node *> get_node_list() const { return node_ptr_list_; };
   inline void set_graph_name(const std::string &name) { graph_name_ = name; };
+  inline size_t counter_increment(const std::string &key) {
+    return type_counter_.inc(key);
+  };
 
   static Graph *get_instanceof_global_graph();
   static Node *get_ptr_of(const std::string &node_name, Graph *graph_ptr);

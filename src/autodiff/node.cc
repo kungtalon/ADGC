@@ -8,6 +8,7 @@ Node::Node(const std::string &type, const std::string &name, Graph *graph)
     : type_(type), empty_jacobi_(true), empty_value_(true) {
   value_ = tensor::EMPTY;
   jacobi_ = tensor::EMPTY;
+  unique_ptr_ = this;
   if (graph == nullptr) {
     graph_ = Graph::get_instanceof_global_graph();
   } else {
@@ -159,7 +160,7 @@ DTensor Node::get_grad(bool reshaped) const {
 
 void Node::clear_value(bool recursive) {
   if (this != unique_ptr_) {
-    unique_ptr_->clear_value();
+    unique_ptr_->clear_value(recursive);
     return;
   }
 
@@ -175,7 +176,7 @@ void Node::clear_value(bool recursive) {
 
 void Node::assign_value(const DTensor &value, bool check_shape) {
   if (this != unique_ptr_) {
-    unique_ptr_->assign_value(value);
+    unique_ptr_->assign_value(value, check_shape);
     return;
   }
 

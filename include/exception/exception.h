@@ -173,6 +173,18 @@ public:
       : AutoDiffGraphException(msg){};
 };
 
+class LayerException : public AutoDiffGraphException {
+public:
+  LayerException(){};
+  LayerException(const std::string &msg) : AutoDiffGraphException(msg){};
+};
+
+class LayerParameterError : public LayerException {
+public:
+  LayerParameterError(){};
+  LayerParameterError(const std::string &msg) : LayerException(msg){};
+};
+
 } // namespace adg_exception
 
 #endif

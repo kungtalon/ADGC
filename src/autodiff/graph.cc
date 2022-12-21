@@ -81,11 +81,9 @@ void Graph::backward(Node &result) {
   }
 
   for (auto node_ptr : node_ptr_list_) {
-    if (node_ptr->get_type() == NodeType::ADG_VARIABLE_TYPE) {
-      Variable *var_ptr = dynamic_cast<Variable *>(node_ptr);
-      if (var_ptr->is_trainable()) {
-        node_ptr->backward(result.get_ptr());
-      }
+    if (node_ptr->get_type() == NodeType::ADG_VARIABLE_TYPE ||
+        node_ptr->get_type() == NodeType::ADG_PARAMETER_TYPE) {
+      node_ptr->backward(result.get_ptr());
     }
   }
 }

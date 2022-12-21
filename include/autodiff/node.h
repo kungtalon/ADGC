@@ -27,6 +27,7 @@ public:
   Node(const Node &other);
   Node(const Node &&other);
   Node &operator=(const Node &other);
+  virtual ~Node(){};
 
   void clear_value(bool recursive = true);
   void assign_value(const DTensor &value, bool check_shape = true);
@@ -39,7 +40,7 @@ public:
   inline std::string get_name() const { return name_; }
   inline std::string get_full_name() const { return type_ + "_" + name_; }
   inline Node *get_ptr() { return unique_ptr_; }
-  inline Graph *get_graph() { return unique_ptr_->graph_; }
+  inline const Graph *get_graph() const { return unique_ptr_->graph_; }
   inline std::vector<Node *> get_children() const {
     return unique_ptr_->children_;
   }

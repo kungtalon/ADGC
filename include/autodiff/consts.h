@@ -24,6 +24,11 @@ struct NodeType {
   static inline const std::string ADG_REDUCE_SUM_TYPE = "F_reduce_sum";
 };
 
+struct LayerType {
+  static inline const std::string ADG_LAYER_TYPE = "layer";
+  static inline const std::string ADG_LAYER_DENSE = "dense";
+};
+
 const inline std::string VAR_GRAPHVIZ_NODE_COLOR = "deepskyblue1";
 const inline std::string OPS_GRAPHVIZ_NODE_COLOR = "darkorange2";
 const inline std::string FUNC_GRAPHVIZ_NODE_COLOR = "mediumseagreen";
