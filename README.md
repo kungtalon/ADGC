@@ -30,7 +30,7 @@ Use `-DUSE_GRAPHVIZ=OFF` in cmake command line to turn off using graphviz.
 
 Example output:
 
-![](graphviz/test.svg)
+<img src="graphviz/test.svg" alt="graphviz_out" style="width:700px;"/>
 
 ## Dependencies
 Here are some software and packages used in this project:
