@@ -20,8 +20,10 @@ We are trying to learn BLAS and make full use of its extreme performance. Any ad
 This part contains all elements with regard to building an automatic differential graph. There are different types of nodes on the graph:
 - Node: base class for all nodes; it is abstract and no backward or forward is defined
 - Variable: leaf nodes controlling the user's input
+- Parameter: trainable values of the neural networks
 - Ops: algorithmic operations between different nodes
 - Functional: activation functions and loss functions
+- Layer: some common layers built on top of the above nodes, like fully connected layer
 
 ### Forward and Backward
 Each node of the graph needs to implement the logics of `do_forward()` and `do_backward(Node* parent_ptr)`, the first one computes its forward value and the other computes the nodes' jacobian matrix with regard to one of its parent nodes.
