@@ -32,7 +32,7 @@ Example output:
 
 <img src="graphviz/test.svg" alt="graphviz_out" style="width:700px;"/>
 
-## Dependencies
+## Dependency
 Here are some software and packages used in this project:
 
 > cblas
