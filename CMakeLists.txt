@@ -1,18 +1,25 @@
 cmake_minimum_required(VERSION 3.15)
 project(adgc)
 
-# Options. whether use tests
-option(DO_TEST "DO_TEST" ON)
-option(USE_GRAPHVIZ "USE_GRAPHVIZ" ON)
-
 # global setting
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS -pthread)
 
+# Options. whether use tests
+option(SKIP_TEST "whether to skip ctest" OFF)
+option(USE_GRAPHVIZ "whether to use graphviz" ON)
+
 add_definitions(-DADGC_MULTI_THREADS_NUM_=3)
 
-if (USE_GRAPHVIZ)
+if (${SKIP_TEST})
+  message("-- [INFO] Skipped all tests...")
+endif()
+
+if (${USE_GRAPHVIZ})
   add_definitions(-DADGC_ENABLE_GRAPHVIZ_)
+  message("-- [INFO] Using graphviz...")
+else()
+  message("-- [INFO] Graphviz is disabled...")
 endif()
 
 include_directories("${PROJECT_SOURCE_DIR}/include/"
@@ -31,27 +38,23 @@ FetchContent_MakeAvailable(googletest)
 # global libraries
 # file(GLOB UTILS_SOURCES "src/utils/*.cc" "src/utils/*.tcc" "include/utils/*.h")
 # add_library(utils SHARED ${UTILS_SOURCES})
-add_library(utils_lib
-    "include/utils/math_utils.h"
-    "src/utils/math_utils.tcc"
-    "include/utils/thread.h"
-    "src/utils/thread.cc"
-    "include/utils/utils.h"
-    "src/utils/utils.tcc"
-)
+
+file(GLOB UTILS_LIB_FILES "include/utils/*.h" "src/utils/*cc")
+add_library(utils_lib ${UTILS_LIB_FILES})
 set_target_properties(utils_lib PROPERTIES LINKER_LANGUAGE CXX)
 
-if (USE_GRAPHVIZ)
+if (${USE_GRAPHVIZ})
 add_library(graph_utils_lib
   "include/utils/graph_utils.h"
 )
-endif()
 set_target_properties(graph_utils_lib PROPERTIES LINKER_LANGUAGE CXX)
+endif()
 
 find_package( BLAS REQUIRED )
 if(BLAS_FOUND)
   message("BLAS found.")
 endif(BLAS_FOUND)
+
 
 add_library(tensor_lib
   "include/tensor/tensor.h"
@@ -73,14 +76,14 @@ add_library(graph_core_lib
     "src/autodiff/component/node.cc"
     "src/autodiff/component/variable.cc"
 )
-if(USE_GRAPHVIZ)
+if(${USE_GRAPHVIZ})
   target_link_libraries(graph_core_lib
     cgraph
     gvc
   )
-endif(USE_GRAPHVIZ)
+endif()
 
-add_library(ops_funcs_lib
+add_library(graph_component_lib
   "include/autodiff/component/ops.h"
   "include/autodiff/component/functional.h"
   "src/autodiff/component/ops.cc"
@@ -88,25 +91,21 @@ add_library(ops_funcs_lib
   "src/autodiff/component/functional.cc"
   "src/autodiff/component/functional_impl.cc"
 )
-target_link_libraries(ops_funcs_lib
+target_link_libraries(graph_component_lib
   graph_core_lib
 )
 
-add_library(layer_lib
-  "include/autodiff/layer/layers.h"
-  "include/autodiff/layer/dense.h"
-  "src/autodiff/layer/layers.cc"
-  "src/autodiff/layer/dense.cc"
-)
+file(GLOB LAYER_LIB_FILES "include/autodiff/layer/*.h" "src/autodiff/layer/*.cc")
+add_library(layer_lib ${LAYER_LIB_FILES})
 
 target_link_libraries(layer_lib  
-  ops_funcs_lib
+  graph_component_lib
   tensor_lib
   utils_lib
 )
 
 # testing
-if(DO_TEST)
+if(NOT ${SKIP_TEST})
   enable_testing()
 
   add_executable(
@@ -154,13 +153,13 @@ if(DO_TEST)
     gmock_main
   )
 
-  if(USE_GRAPHVIZ)
+  if(${USE_GRAPHVIZ})
     add_executable(
       graph_test
       test/graph_test.cc
     )
     target_link_libraries(graph_test 
-      ops_funcs_lib
+      graph_component_lib
       graph_utils_lib
       tensor_lib
       utils_lib
@@ -176,7 +175,7 @@ if(DO_TEST)
     test/ops_funcs_test.cc
   )
   target_link_libraries(ops_funcs_test 
-    ops_funcs_lib
+    graph_component_lib
     tensor_lib
     utils_lib
     gtest
@@ -202,7 +201,7 @@ if(DO_TEST)
   add_test(utils_test utils_test)
   add_test(math_test math_test)
   add_test(tensor_test tensor_test)
-  if(USE_GRAPHVIZ)
+  if(${USE_GRAPHVIZ})
     add_test(graph_test graph_test)
   endif()
   add_test(ops_funcs_test ops_funcs_test)
