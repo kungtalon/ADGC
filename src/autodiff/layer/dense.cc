@@ -8,7 +8,7 @@ Dense::Dense(const size_t &input_channel, const size_t &output_channel,
              const std::string &activation, bool use_bias, Graph *graph)
     : Layer(LayerType::ADG_LAYER_DENSE, graph), input_channel_(input_channel),
       activation_(activation) {
-  Parameter *kernel_p = new Parameter({output_channel, input_channel},
+  Parameter *kernel_p = new Parameter({input_channel, output_channel},
                                       layer_name_ + "_kernel", graph_);
   add_param(kernel_p);
 
@@ -37,7 +37,7 @@ Node &Dense::operator()(const Node &input) {
   Node *input_ptr = Graph::get_ptr_of(input.get_full_name(), graph_);
   Parameter weight = get_weight();
   Node *output =
-      new ops::MatMul(&weight, input_ptr, graph_, layer_name_ + "_matmul");
+      new ops::MatMul(input_ptr, &weight, graph_, layer_name_ + "_matmul");
 
   if (params_ptr_list_.size() == 2) {
     Parameter bias = get_bias();
