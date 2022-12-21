@@ -28,6 +28,10 @@ We are using [Graphviz](https://graphviz.org/about/) to visualize the computatio
 
 Use `-DUSE_GRAPHVIZ=OFF` in cmake command line to turn off using graphviz.
 
+Example output:
+
+![](graphviz/test.svg)
+
 ## Dependencies
 Here are some software and packages used in this project:
 
