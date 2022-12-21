@@ -24,7 +24,7 @@ This part contains all elements with regard to building an automatic differentia
 - Functional: activation functions and loss functions
 
 ### Graph Visualization
-We are using [Graphviz](https://graphviz.org/about/) to visualize the computational graph. Call `graph.visualize("file.svg")` to convert the graph into a DOT image and saves as SVG file.
+We are using [Graphviz](https://graphviz.org/about/) to visualize the computational graph. Call `graph->visualize("file.svg")` to convert the graph into a DOT image and saves as SVG file.
 
 Use `-DUSE_GRAPHVIZ=OFF` in cmake command line to turn off using graphviz.
 
