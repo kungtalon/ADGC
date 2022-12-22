@@ -39,25 +39,23 @@ A code snippet about how to build the graph:
   tensor::Tensor<double> value_x = tensor::Tensor<double>({2, 2}, {1, 2, 3, 4});
   tensor::Tensor<double> value_labels = tensor::Tensor<double>({2, 2}, {1, 0, 1, 0});
 
-  x.assign_value(value_x);
-  labels.assign_value(value_labels);
-
-  tensor::Tensor<double> weight = tensor::Tensor<double>({2, 2}, {0.1, -0.1, 0.1, -0.1});
-  tensor::Tensor<double> bias = tensor::Tensor<double>({1}, 0.02);
-
   // build graph
-  layer::Dense dense_layer(2, 2);
-  dense_layer.assign_weight(weight);
-  dense_layer.assign_bias(bias);
+  layer::Dense dense_layer_1(2, 10);
+  layer::Dense dense_layer_2(10, 2, "none");
 
-  auto target = functional::cross_entropy_with_softmax(dense_layer(x), labels);
+  auto loss = functional::cross_entropy_with_softmax(
+    dense_layer_2(dense_layer(x)), labels);
+
+  auto optim = optimizer::Adam(loss, BATCH_SIZE, 0.01);
 
   // forward
+  x.assign_value(value_x);
+  labels.assign_value(value_labels);
   graph->zero_grad();
-  target.forward();
+  loss.forward();
 
   // backward
-  graph->backward(target);
+  optim.step();
 ```
 
 ### Graph Visualization
