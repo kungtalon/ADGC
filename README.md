@@ -42,7 +42,7 @@ A code snippet about how to build the graph:
   layer::Dense dense_layer_2(10, 2, "none");
 
   auto loss = functional::cross_entropy_with_softmax(
-    dense_layer_2(dense_layer(x)), labels);
+    dense_layer_2(dense_layer_1(x)), labels);
 
   auto optim = optimizer::Adam(loss, BATCH_SIZE, 0.01);
 
