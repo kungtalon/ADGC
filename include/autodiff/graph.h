@@ -36,11 +36,10 @@ public:
   Node *get_ptr_of(const std::string &node_name);
   bool contains_node(const std::string &full_node_name) const;
   void backward(Node &result);
-  void clear_all_jacobi();
+  void zero_grad();
   void clear_all_value();
   void remove_all();
 
-  inline void zero_grad() { clear_all_jacobi(); };
   inline std::vector<Node *> get_node_list() const { return node_ptr_list_; };
   inline NodeIteratorPair get_node_iterators() {
     return {node_ptr_list_.begin(), node_ptr_list_.end()};

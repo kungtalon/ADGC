@@ -15,6 +15,7 @@ public:
   Optimizer(const Node &target, const size_t &batch_size = 12,
             const double &learning_rate = 0.01, Graph *graph = nullptr);
 
+  void zero_grad();
   void step();
 
 protected:

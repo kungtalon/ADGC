@@ -14,6 +14,8 @@ Optimizer::Optimizer(const Node &target, const size_t &batch_size,
   target_node_ptr_ = Graph::get_ptr_of(target.get_full_name(), graph_);
 }
 
+void Optimizer::zero_grad() { graph_->zero_grad(); }
+
 void Optimizer::step() {
   propagate();
 

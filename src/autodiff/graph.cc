@@ -124,7 +124,7 @@ void Graph::clear_graph(Graph *graph) {
   }
 }
 
-void Graph::clear_all_jacobi() {
+void Graph::zero_grad() {
   for (auto node_ptr : node_ptr_list_) {
     node_ptr->clear_jacobi();
   }

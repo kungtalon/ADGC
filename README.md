@@ -49,7 +49,7 @@ A code snippet about how to build the graph:
   // forward
   x.assign_value(value_x);
   labels.assign_value(value_labels);
-  graph->zero_grad();
+  optim.zero_grad();
   loss.forward();
 
   // backward
