@@ -19,6 +19,7 @@ void Graph::remove_all() {
       delete map_iter->second;
     }
   }
+  node_ptr_list_.clear();
   node_ptr_dict_.clear();
   type_counter_.clear();
 }
@@ -106,6 +107,21 @@ Graph *Graph::get_instanceof_global_graph() {
     global_graph = new Graph();
   }
   return global_graph;
+}
+
+void Graph::clear_graph(Graph *graph) {
+  if (graph == nullptr) {
+    if (global_graph == nullptr) {
+      return;
+    }
+    global_graph->remove_all();
+    global_graph = nullptr;
+  } else {
+    if (!graph->node_ptr_dict_.empty()) {
+      graph->remove_all();
+    }
+    delete graph;
+  }
 }
 
 void Graph::clear_all_jacobi() {

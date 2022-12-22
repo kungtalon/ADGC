@@ -51,15 +51,15 @@ public:
   };
 
   static Graph *get_instanceof_global_graph();
+  static void clear_graph(Graph *graph = nullptr);
   static Node *get_ptr_of(const std::string &node_name, Graph *graph_ptr);
-  static inline void clear_global_graph() { global_graph->remove_all(); };
   static inline void delete_global_graph() {
-    if (global_graph != NULL) {
+    if (global_graph != nullptr) {
       delete global_graph;
-      global_graph = NULL;
+      global_graph = nullptr;
     }
-  };
-  static inline Graph *global_graph = NULL;
+  }
+  static inline Graph *global_graph = nullptr;
 
 #ifdef ADGC_ENABLE_GRAPHVIZ_
   void visualize(const std::string &file_name);

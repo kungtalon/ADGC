@@ -31,8 +31,6 @@ Each node of the graph needs to implement the logics of `do_forward()` and `do_b
 A code snippet about how to build the graph:
 
 ```cpp
-  Graph *graph = Graph::get_instanceof_global_graph();
-
   Variable x = Variable({2, 2});         # variable is placeholder, input shape [2, 2]
   Variable labels = Variable({2, 2}); 
 
@@ -56,6 +54,9 @@ A code snippet about how to build the graph:
 
   // backward
   optim.step();
+
+  // in the end
+  Graph::clear_graph();
 ```
 
 ### Graph Visualization

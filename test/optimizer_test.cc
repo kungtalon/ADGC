@@ -78,8 +78,7 @@ TEST(OptimizerTest, GradientDescentTest) {
   } catch (const std::exception &ex) {
     FAIL() << "Failed and got this: " << std::endl << ex.what();
   }
-  graph->remove_all();
-  Graph::delete_global_graph();
+  Graph::clear_graph();
 }
 
 TEST(OptimizerTest, AdamTest) {
@@ -144,8 +143,7 @@ TEST(OptimizerTest, AdamTest) {
   } catch (const std::exception &ex) {
     FAIL() << "Failed and got this: " << std::endl << ex.what();
   }
-  graph->remove_all();
-  Graph::delete_global_graph();
+  Graph::clear_graph();
 }
 
 int main(int argc, char **argv) {
