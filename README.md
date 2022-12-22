@@ -39,7 +39,7 @@ A code snippet about how to build the graph:
   tensor::Tensor<double> value_labels = tensor::Tensor<double>({2, 2}, {1, 0, 1, 0});
 
   // build graph
-  layer::Dense dense_layer_1(2, 10);
+  layer::Dense dense_layer_1(2, 10, "relu");
   layer::Dense dense_layer_2(10, 2, "none");
 
   auto loss = functional::cross_entropy_with_softmax(
