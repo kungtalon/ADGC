@@ -10,6 +10,12 @@ Adam::Adam(const Node &target, const size_t &batch_size,
       weight_decay_(weight_decay), beta1_(beta1), beta2_(beta2),
       beta1_power_(1.), beta2_power_(1.) {}
 
+void Adam::reset_state() {
+  beta1_power_ = 1.;
+  beta2_power_ = 1.;
+  moments_table_.clear();
+}
+
 void Adam::update() {
   NodeIteratorPair node_iterators = graph_->get_node_iterators();
 
