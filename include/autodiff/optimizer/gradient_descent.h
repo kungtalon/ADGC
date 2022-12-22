@@ -13,8 +13,6 @@ public:
                   const double &learning_rate = 0.01, Graph *graph = nullptr);
 
 private:
-  double learning_rate_;
-
   void update(); // update the gradient to parameters
 };
 } // namespace optimizer

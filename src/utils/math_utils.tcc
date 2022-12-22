@@ -111,6 +111,39 @@ inline void elementwise_multiply(const size_t &size, const int32_t *mat_a,
   throw adg_exception::NonImplementedException();
 }
 
+inline void elementwise_divide(const size_t &size, const double *mat_a,
+                               const double *mat_b, double *mat_c) {
+  for (int ix = 0; ix < size; ++ix) {
+    if (mat_a[ix] == 0.) {
+      mat_c[ix] = 0;
+      continue;
+    }
+    mat_c[ix] = mat_a[ix] / mat_b[ix];
+  }
+}
+
+inline void elementwise_divide(const size_t &size, const float *mat_a,
+                               const float *mat_b, float *mat_c) {
+  for (int ix = 0; ix < size; ++ix) {
+    if (mat_a[ix] == 0.) {
+      mat_c[ix] = 0;
+      continue;
+    }
+    mat_c[ix] = mat_a[ix] / mat_b[ix];
+  }
+}
+
+inline void elementwise_divide(const size_t &size, const int32_t *mat_a,
+                               const int32_t *mat_b, int32_t *mat_c) {
+  for (int ix = 0; ix < size; ++ix) {
+    if (mat_a[ix] == 0) {
+      mat_c[ix] = 0;
+      continue;
+    }
+    mat_c[ix] = mat_a[ix] / mat_b[ix];
+  }
+}
+
 // elementwise addition
 inline void elementwise_add(const size_t &size, const double *mat_a,
                             const double *mat_b, double *mat_c,

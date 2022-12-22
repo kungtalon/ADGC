@@ -63,7 +63,12 @@ public:
   void map(Mapper<dType> &mapper);
   void map(Mapper<dType> &&mapper);
   void map(const std::function<void(dType &)> &func);
+
   Tensor<dType> take(const size_t &axis, const TensorSlice &slice) const;
+  Tensor<dType> t() const;
+  Tensor<dType> transpose() const;
+  Tensor<dType> transpose(const size_t &axis_a, const size_t &axis_b) const;
+  Tensor<dType> copy() const;
 
   Tensor<dType> dot(const Tensor<dType> &bt) const;
   Tensor<dType> multiply(const dType &multiplier) const;
@@ -71,11 +76,8 @@ public:
   Tensor<dType> add(const Tensor<dType> &bt) const;
   Tensor<dType> add(const dType &number) const;
   Tensor<dType> sub(const Tensor<dType> &bt) const;
-  Tensor<dType> t() const;
-  Tensor<dType> transpose() const;
-  Tensor<dType> transpose(const size_t &axis_a, const size_t &axis_b) const;
-  Tensor<dType> copy() const;
   Tensor<dType> sum(const size_t &axis = SIZE_MAX, bool keep_dim = false) const;
+  Tensor<dType> mean(const size_t &axis = SIZE_MAX, bool keep_dim = false);
   void normal_init(double loc = 0., double scale = 1., size_t seed = SIZE_MAX);
 
   TensorShape get_dot_shape(const Tensor<dType> &bt) const;
@@ -94,6 +96,7 @@ public:
   };
 
   static Tensor<dType> kron(const Tensor<dType> &lt, const Tensor<dType> &rt);
+  static Tensor<dType> div(const Tensor<dType> &lt, const Tensor<dType> &rt);
 
   static inline Tensor<dType> dot(const Tensor<dType> &lt,
                                   const Tensor<dType> &rt) {

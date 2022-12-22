@@ -3,8 +3,9 @@
 namespace auto_diff {
 namespace optimizer {
 
-Optimizer::Optimizer(const Node &target, const size_t &batch_size, Graph *graph)
-    : batch_size_(batch_size), acc_counter_(0) {
+Optimizer::Optimizer(const Node &target, const size_t &batch_size,
+                     const double &learning_rate, Graph *graph)
+    : batch_size_(batch_size), acc_counter_(0), learning_rate_(learning_rate) {
   if (graph == nullptr) {
     graph_ = Graph::get_instanceof_global_graph();
   } else {
@@ -22,6 +23,19 @@ void Optimizer::step() {
     acc_grads_.clear();
     acc_counter_ = 0;
   }
+}
+
+bool Optimizer::is_trainable_param(Node *node_ptr) {
+  if (node_ptr->get_type() != NodeType::ADG_PARAMETER_TYPE) {
+    return false;
+  }
+
+  Parameter *param_ptr = static_cast<Parameter *>(node_ptr);
+  if (!param_ptr->is_trainable()) {
+    return false;
+  }
+
+  return true;
 }
 
 DTensor Optimizer::get_gradient(Node *node_ptr) {

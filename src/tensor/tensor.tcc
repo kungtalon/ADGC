@@ -502,6 +502,31 @@ Tensor<dType> Tensor<dType>::kron(const Tensor<dType> &lt,
 }
 
 template <typename dType>
+Tensor<dType> Tensor<dType>::div(const Tensor<dType> &lt,
+                                 const Tensor<dType> &rt) {
+  if (lt.shape_ != rt.shape_) {
+    throw adg_exception::MismatchTensorShapeError(
+        "Tensor >> div: MismatchTensorShapeError: get shape " +
+        utils::vector_to_str(lt.shape_) + " and " +
+        utils::vector_to_str(rt.shape_));
+  }
+
+  Tensor<dType> result(lt.shape_);
+  utils::math::elementwise_divide(lt.size_, lt.get_tensor_const_ptr(),
+                                  rt.get_tensor_const_ptr(),
+                                  result.get_tensor_ptr());
+  return result;
+}
+
+template <typename dType>
+Tensor<dType> Tensor<dType>::mean(const size_t &axis, bool keep_dim) {
+  Tensor<dType> result = sum(axis, keep_dim);
+  size_t len_at_axis = shape_[axis];
+  result.map([&len_at_axis](dType &val) { val /= len_at_axis; });
+  return result;
+}
+
+template <typename dType>
 void Tensor<dType>::normal_init(double loc, double scale, size_t seed) {
   size_t r_seed = seed;
   if (r_seed == SIZE_MAX) {
