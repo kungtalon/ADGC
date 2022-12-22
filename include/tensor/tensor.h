@@ -42,13 +42,19 @@ public:
   Tensor(const Tensor<dType> &another);
   Tensor(const Tensor<dType> &&another);
 
+  // operator overload
   Tensor<dType> &operator=(const Tensor<dType> &bt);
-  bool operator==(const Tensor<dType> &bt);
-  bool operator!=(const Tensor<dType> &bt);
-  Tensor<dType> operator[](const size_t &id);
-  Tensor<dType> operator[](const TensorSlice &slice);
+  bool operator==(const Tensor<dType> &bt) const;
+  bool operator!=(const Tensor<dType> &bt) const;
+  Tensor<dType> operator[](const size_t &id) const;
+  Tensor<dType> operator[](const TensorSlice &slice) const;
+  Tensor<dType> operator-() const;
+  Tensor<dType> operator/(const dType &denom) const;
+  Tensor<dType> &operator+=(const Tensor<dType> &bt);
+  Tensor<dType> &operator+=(const dType &number);
+  Tensor<dType> &operator-=(const Tensor<dType> &bt);
+  Tensor<dType> &operator-=(const dType &number);
 
-  Tensor<dType> take(const size_t &axis, const TensorSlice &slice);
   void set_value(const TensorIndex &index, const dType &value);
   dType get_value() const;
   dType get_value(const TensorIndex &index);
@@ -57,12 +63,13 @@ public:
   void map(Mapper<dType> &mapper);
   void map(Mapper<dType> &&mapper);
   void map(const std::function<void(dType &)> &func);
+  Tensor<dType> take(const size_t &axis, const TensorSlice &slice) const;
 
   Tensor<dType> dot(const Tensor<dType> &bt) const;
-  Tensor<dType> multiply(const double &multiplier) const;
+  Tensor<dType> multiply(const dType &multiplier) const;
   Tensor<dType> multiply(const Tensor<dType> &bt) const;
   Tensor<dType> add(const Tensor<dType> &bt) const;
-  Tensor<dType> add(const double &number) const;
+  Tensor<dType> add(const dType &number) const;
   Tensor<dType> sub(const Tensor<dType> &bt) const;
   Tensor<dType> t() const;
   Tensor<dType> transpose() const;

@@ -416,6 +416,28 @@ TEST(AdgcTensorTest, MapperTest) {
                           FloatEq(-3.24641058e-2), FloatEq(1.34251560e1)));
 }
 
+TEST(AdgcTensorTest, InplaceAlgoTest) {
+  std::vector<float> fa = {1, 2, 3, 4};
+  tensor::Tensor<float> ta({2, 2}, fa);
+
+  std::vector<float> fb = {6, 1, 9, 0};
+  tensor::Tensor<float> tb({2, 2}, fb);
+
+  ta += tb;
+  ASSERT_THAT(ta.to_vector(), ElementsAre(7, 3, 12, 4));
+  ASSERT_THAT(tb.to_vector(), ElementsAre(6, 1, 9, 0));
+
+  ta -= -tb;
+  ASSERT_THAT(ta.to_vector(), ElementsAre(13, 4, 21, 4));
+  ASSERT_THAT(tb.to_vector(), ElementsAre(6, 1, 9, 0));
+
+  ta += 1.;
+  ASSERT_THAT(ta.to_vector(), ElementsAre(14, 5, 22, 5));
+
+  ta -= 1;
+  ASSERT_THAT(ta.to_vector(), ElementsAre(13, 4, 21, 4));
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

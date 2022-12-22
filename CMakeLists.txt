@@ -59,6 +59,7 @@ endif(BLAS_FOUND)
 add_library(tensor_lib
   "include/tensor/tensor.h"
   "src/tensor/tensor.tcc"
+  "src/tensor/tensor_impl.cc"
   "include/tensor/mapper.h"
   "src/tensor/mapper.tcc"
 )
@@ -99,6 +100,15 @@ file(GLOB LAYER_LIB_FILES "include/autodiff/layer/*.h" "src/autodiff/layer/*.cc"
 add_library(layer_lib ${LAYER_LIB_FILES})
 
 target_link_libraries(layer_lib  
+  graph_component_lib
+  tensor_lib
+  utils_lib
+)
+
+file(GLOB OPTIMIZER_LIB_FILES "include/autodiff/optimizer/*.h" "src/autodiff/optimizer/*.cc")
+add_library(optimizer_lib ${OPTIMIZER_LIB_FILES})
+
+target_link_libraries(optimizer_lib  
   graph_component_lib
   tensor_lib
   utils_lib
@@ -196,6 +206,19 @@ if(NOT ${SKIP_TEST})
     gmock_main
   )
 
+  add_executable(
+    optimizer_test
+    test/optimizer_test.cc
+  )
+  target_link_libraries(optimizer_test 
+    layer_lib
+    optimizer_lib
+    gtest
+    gtest_main
+    gmock
+    gmock_main
+  )
+
   include(GoogleTest)
   add_test(multi_thread_test multi_thread_test)
   add_test(utils_test utils_test)
@@ -206,4 +229,5 @@ if(NOT ${SKIP_TEST})
   endif()
   add_test(ops_funcs_test ops_funcs_test)
   add_test(layer_test layer_test)
+  add_test(optimizer_test optimizer_test)
 endif()

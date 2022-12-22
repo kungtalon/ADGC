@@ -30,6 +30,6 @@ protected:
 } // namespace layer
 } // namespace auto_diff
 
-#include "autodiff/layer/dense.h"
+#include "dense.h"
 
 #endif

@@ -1,11 +1,7 @@
 #ifndef ADGC_AUTODIFF_LAYER_LOSS_H_
 #define ADGC_AUTODIFF_LAYER_LOSS_H_
 
-#include "autodiff/consts.h"
-#include "autodiff/component/functional.h"
-#include "autodiff/graph.h"
-#include "autodiff/component/ops.h"
-#include "autodiff/component/variable.h"
+#include "layer.h"
 
 namespace auto_diff {
 namespace layer {

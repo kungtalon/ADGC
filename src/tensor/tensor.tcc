@@ -104,7 +104,7 @@ Tensor<dType> &Tensor<dType>::operator=(const Tensor<dType> &bt) {
 }
 
 template <typename dType>
-bool Tensor<dType>::operator==(const Tensor<dType> &bt) {
+bool Tensor<dType>::operator==(const Tensor<dType> &bt) const {
   if (size_ != bt.size_ || shape_ != bt.shape_) {
     return false;
   }
@@ -112,12 +112,12 @@ bool Tensor<dType>::operator==(const Tensor<dType> &bt) {
 }
 
 template <typename dType>
-bool Tensor<dType>::operator!=(const Tensor<dType> &bt) {
+bool Tensor<dType>::operator!=(const Tensor<dType> &bt) const {
   return !(*this == bt);
 }
 
 template <typename dType>
-Tensor<dType> Tensor<dType>::operator[](const size_t &id) {
+Tensor<dType> Tensor<dType>::operator[](const size_t &id) const {
   if (id >= shape_[0]) {
     throw adg_exception::IndexOutOfRangeError();
   }
@@ -144,8 +144,58 @@ Tensor<dType> Tensor<dType>::operator[](const size_t &id) {
 }
 
 template <typename dType>
-Tensor<dType> Tensor<dType>::operator[](const TensorSlice &slice) {
+Tensor<dType> Tensor<dType>::operator[](const TensorSlice &slice) const {
   return take(0, slice);
+}
+
+template <typename dType> Tensor<dType> Tensor<dType>::operator-() const {
+  Tensor<dType> result = this->copy();
+  utils::math::elementwise_negative(result.size_, result.get_tensor_ptr());
+  return result;
+}
+
+template <typename dType>
+Tensor<dType> &Tensor<dType>::operator+=(const Tensor<dType> &bt) {
+  // in-place addition
+  if (bt.get_shape() != shape_) {
+    throw adg_exception::MismatchTensorShapeError(
+        "Tensor >> operator-=: get mismatched shapes: " +
+        utils::vector_to_str(bt.get_shape()) + " and " +
+        utils::vector_to_str(shape_));
+  }
+
+  utils::math::elementwise_add_inplace(size_, get_tensor_ptr(),
+                                       bt.get_tensor_const_ptr());
+  return *this;
+}
+
+template <typename dType>
+Tensor<dType> &Tensor<dType>::operator+=(const dType &number) {
+  // in-place addition
+  utils::math::elementwise_addn(size_, get_tensor_ptr(), number);
+  return *this;
+}
+
+template <typename dType>
+Tensor<dType> &Tensor<dType>::operator-=(const Tensor<dType> &bt) {
+  // in-place subtraction
+  if (bt.get_shape() != shape_) {
+    throw adg_exception::MismatchTensorShapeError(
+        "Tensor >> operator-=: get mismatched shapes: " +
+        utils::vector_to_str(bt.get_shape()) + " and " +
+        utils::vector_to_str(shape_));
+  }
+
+  utils::math::elementwise_add_inplace(size_, get_tensor_ptr(),
+                                       bt.get_tensor_const_ptr(), true);
+  return *this;
+}
+
+template <typename dType>
+Tensor<dType> &Tensor<dType>::operator-=(const dType &number) {
+  // in-place subtraction
+  utils::math::elementwise_addn(size_, get_tensor_ptr(), number, true);
+  return *this;
 }
 
 template <typename dType>
@@ -253,7 +303,7 @@ A simpler version :
 */
 template <typename dType>
 Tensor<dType> Tensor<dType>::take(const size_t &axis,
-                                  const TensorSlice &slice) {
+                                  const TensorSlice &slice) const {
   if (axis >= dim_) {
     throw adg_exception::AxisOutOfRangeError(
         "Tensor >> take: axis out of range");
@@ -365,8 +415,7 @@ Tensor<dType> Tensor<dType>::multiply(const Tensor<dType> &bt) const {
 
 // multiply implements the element-wise multiplication
 template <typename dType>
-Tensor<dType> Tensor<dType>::multiply(const double &multiplier) const {
-
+Tensor<dType> Tensor<dType>::multiply(const dType &multiplier) const {
   Tensor<dType> result = Tensor(shape_, static_cast<dType>(multiplier));
   utils::math::elementwise_multiply(size_, get_tensor_const_ptr(),
                                     result.get_tensor_const_ptr(),
@@ -390,7 +439,7 @@ Tensor<dType> Tensor<dType>::add(const Tensor<dType> &bt) const {
 }
 
 template <typename dType>
-Tensor<dType> Tensor<dType>::add(const double &number) const {
+Tensor<dType> Tensor<dType>::add(const dType &number) const {
   Tensor<dType> result = Tensor(shape_, static_cast<dType>(number));
   utils::math::elementwise_add(size_, get_tensor_const_ptr(),
                                result.get_tensor_const_ptr(),

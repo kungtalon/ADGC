@@ -79,6 +79,12 @@ public:
       : TensorException("InvalidTensorIndexException"){};
 };
 
+class DividingZeroException : public TensorException {
+public:
+  DividingZeroException() : TensorException("DividingZeroException"){};
+  DividingZeroException(const std::string msg) : TensorException(msg){};
+};
+
 class NonImplementedException : public AutoDiffGraphException {
 public:
   NonImplementedException()

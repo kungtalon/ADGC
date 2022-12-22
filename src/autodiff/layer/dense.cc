@@ -1,4 +1,4 @@
-#include "autodiff/layer/layers.h"
+#include "autodiff/layer/layer.h"
 
 namespace auto_diff {
 

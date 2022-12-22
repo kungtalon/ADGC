@@ -1,7 +1,7 @@
 #ifndef ADGC_AUTODIFF_LAYER_DENSE_H_
 #define ADGC_AUTODIFF_LAYER_DENSE_H_
 
-#include "layers.h"
+#include "layer.h"
 
 namespace auto_diff {
 
