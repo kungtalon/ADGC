@@ -35,10 +35,6 @@ FetchContent_Declare(
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
-# global libraries
-# file(GLOB UTILS_SOURCES "src/utils/*.cc" "src/utils/*.tcc" "include/utils/*.h")
-# add_library(utils SHARED ${UTILS_SOURCES})
-
 file(GLOB UTILS_LIB_FILES "include/utils/*.h" "src/utils/*cc")
 add_library(utils_lib ${UTILS_LIB_FILES})
 set_target_properties(utils_lib PROPERTIES LINKER_LANGUAGE CXX)
@@ -98,7 +94,6 @@ target_link_libraries(graph_component_lib
 
 file(GLOB LAYER_LIB_FILES "include/autodiff/layer/*.h" "src/autodiff/layer/*.cc")
 add_library(layer_lib ${LAYER_LIB_FILES})
-
 target_link_libraries(layer_lib  
   graph_component_lib
   tensor_lib
@@ -107,12 +102,17 @@ target_link_libraries(layer_lib
 
 file(GLOB OPTIMIZER_LIB_FILES "include/autodiff/optimizer/*.h" "src/autodiff/optimizer/*.cc")
 add_library(optimizer_lib ${OPTIMIZER_LIB_FILES})
-
 target_link_libraries(optimizer_lib  
   graph_component_lib
   tensor_lib
   utils_lib
 )
+
+file(GLOB DATA_LIB_FILES "include/data/*.h" "src/data/*.cc")
+add_library(data_lib ${DATA_LIB_FILES})
+set_target_properties(data_lib PROPERTIES LINKER_LANGUAGE CXX)
+
+
 
 # testing
 if(NOT ${SKIP_TEST})

@@ -20,7 +20,7 @@ void Layer::freeze() {
 }
 
 void Layer::add_param(Parameter *param_ptr) {
-  params_ptr_list_.push_back(param_ptr);
+  params_ptr_list_.emplace_back(param_ptr);
 }
 
 std::vector<Parameter *> Layer::get_param_ptr_list() const {

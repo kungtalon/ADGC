@@ -22,7 +22,7 @@ namespace tensor {
 typedef std::vector<size_t> TensorShape;
 typedef std::vector<size_t> TensorIndex;
 typedef std::vector<size_t> TensorSlice;
-template <typename dType> using TensorIterator = std::vector<dType>::iterator;
+template<typename dType> using TensorIterator = std::vector<dType>::iterator;
 
 const TensorShape EMPTY_SHAPE = {0};
 
@@ -30,8 +30,9 @@ const TensorShape EMPTY_SHAPE = {0};
 static const size_t MAX_THREAD_NUM = 4;
 #endif
 
-template <typename dType> class Tensor {
-public:
+template<typename dType>
+class Tensor {
+ public:
   Tensor();
   Tensor(const TensorShape &shape);
   Tensor(const TensorShape &&shape);
@@ -57,7 +58,7 @@ public:
 
   void set_value(const TensorIndex &index, const dType &value);
   dType get_value() const;
-  dType get_value(const TensorIndex &index);
+  dType get_value(const TensorIndex &index) const;
   void reshape(const TensorShape &new_shape);
   void fill_diag(const std::vector<dType> &diag_values);
   void map(Mapper<dType> &mapper);
@@ -97,6 +98,7 @@ public:
 
   static Tensor<dType> kron(const Tensor<dType> &lt, const Tensor<dType> &rt);
   static Tensor<dType> div(const Tensor<dType> &lt, const Tensor<dType> &rt);
+  static Tensor<dType> concat(const std::vector<Tensor<dType>> &tensors, const size_t &axis);
 
   static inline Tensor<dType> dot(const Tensor<dType> &lt,
                                   const Tensor<dType> &rt) {
@@ -119,7 +121,7 @@ public:
     return ts.sum(axis);
   }
 
-protected:
+ protected:
   // store tensor as a vector, wrapped in shared_ptr for easy copy
   std::shared_ptr<std::vector<dType>> tensor_;
   TensorShape shape_;
@@ -132,6 +134,7 @@ protected:
 
   // helper functions
   TensorIterator<dType> get_iterator(const TensorIndex &index);
+  const TensorIterator<dType> get_const_iterator(const TensorIndex &index) const;
   static size_t get_coordinate_at_axis(const size_t &ind, const size_t &axis,
                                        const TensorShape &strides);
   static size_t get_index_after_transpose(const size_t &arr_ind,
@@ -139,6 +142,9 @@ protected:
                                           const size_t &axis_b,
                                           const TensorShape &ori_strides,
                                           const TensorShape &new_strides);
+  static size_t get_index_after_concat(
+    const size_t &ind, const size_t &axis, const size_t &offset_at_axis,
+    const TensorShape &ori_strides, const TensorShape &new_strides);
   inline dType *get_tensor_ptr() { return &*tensor_->begin(); };
   inline const dType *get_tensor_const_ptr() const {
     return &*tensor_->begin();
@@ -155,18 +161,18 @@ protected:
 };
 
 class Zeros : public Tensor<double> {
-public:
-  Zeros(const TensorShape &shape) : Tensor<double>(shape, 0.){};
+ public:
+  Zeros(const TensorShape &shape) : Tensor<double>(shape, 0.) {};
   Zeros(size_t &) = delete;
 };
 
 class Ones : public Tensor<double> {
-public:
-  Ones(const TensorShape &shape) : Tensor<double>(shape, 1.){};
+ public:
+  Ones(const TensorShape &shape) : Tensor<double>(shape, 1.) {};
 };
 
 class Eye : public Tensor<double> {
-public:
+ public:
   Eye(const size_t &len) : Tensor<double>({len, len}) {
     for (size_t ix = 0; ix < len; ix++) {
       set_value({ix, ix}, 1.);
@@ -174,20 +180,22 @@ public:
   }
 };
 
-template <typename dType> class Diagonal : public Tensor<dType> {
-public:
-  Diagonal(){};
+template<typename dType>
+class Diagonal : public Tensor<dType> {
+ public:
+  Diagonal() {};
   Diagonal(const std::vector<dType> &values)
-      : Tensor<dType>({values.size(), values.size()}) {
+    : Tensor<dType>({values.size(), values.size()}) {
     Tensor<dType>::fill_diag(values);
   }
 };
 
-template <typename dType> class Ranges : public Tensor<dType> {
-public:
-  Ranges(){};
+template<typename dType>
+class Ranges : public Tensor<dType> {
+ public:
+  Ranges() {};
   Ranges(const TensorShape &shape, const dType &init)
-      : Tensor<dType>(std::move(shape)) {
+    : Tensor<dType>(std::move(shape)) {
     size_t size = Tensor<dType>::get_size();
     dType *val = new dType[size];
     std::iota(val, val + size, init);

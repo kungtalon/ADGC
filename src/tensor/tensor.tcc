@@ -2,47 +2,49 @@
 
 namespace tensor {
 
-template <typename dType>
+template<typename dType>
 Tensor<dType>::Tensor() : Tensor<dType>::Tensor({1}) {}
 
-template <typename dType> Tensor<dType>::Tensor(const TensorShape &shape) {
+template<typename dType>
+Tensor<dType>::Tensor(const TensorShape &shape) {
   if (!is_shape_valid(shape)) {
     throw adg_exception::InvalidTensorShapeException(
-        "InvalidTensorShapeException; Failed when constructing");
+      "InvalidTensorShapeException; Failed when constructing");
   }
 
   do_shape_update(shape);
   tensor_ = std::make_shared<std::vector<dType>>(size_);
 }
 
-template <typename dType> Tensor<dType>::Tensor(const TensorShape &&shape) {
+template<typename dType>
+Tensor<dType>::Tensor(const TensorShape &&shape) {
   if (!is_shape_valid(shape)) {
     throw adg_exception::InvalidTensorShapeException(
-        "InvalidTensorShapeException; Failed when constructing");
+      "InvalidTensorShapeException; Failed when constructing");
   }
 
   do_shape_update(shape);
   tensor_ = std::make_shared<std::vector<dType>>(size_);
 }
 
-template <typename dType>
+template<typename dType>
 Tensor<dType>::Tensor(const TensorShape &shape, const dType &single_value) {
   if (!is_shape_valid(shape)) {
     throw adg_exception::InvalidTensorShapeException(
-        "InvalidTensorShapeException; Failed when constructing");
+      "InvalidTensorShapeException; Failed when constructing");
   }
 
   do_shape_update(shape);
   tensor_ = std::make_shared<std::vector<dType>>(size_, single_value);
 }
 
-template <typename dType>
+template<typename dType>
 Tensor<dType>::Tensor(const TensorShape &shape, const dType *values) {
   // dangerous: this constructor does not check whether values has a valid
   // size compatible with the argument shape
   if (!is_shape_valid(shape)) {
     throw adg_exception::InvalidTensorShapeException(
-        "InvalidTensorShapeException; Failed when constructing");
+      "InvalidTensorShapeException; Failed when constructing");
   }
 
   do_shape_update(shape);
@@ -50,45 +52,45 @@ Tensor<dType>::Tensor(const TensorShape &shape, const dType *values) {
   memcpy(&(*tensor_->begin()), values, sizeof(dType) * size_);
 }
 
-template <typename dType>
+template<typename dType>
 Tensor<dType>::Tensor(const TensorShape &shape,
                       const std::vector<dType> &values) {
   if (!is_shape_valid(shape)) {
     throw adg_exception::InvalidTensorShapeException(
-        "InvalidTensorShapeException; Failed when constructing");
+      "InvalidTensorShapeException; Failed when constructing");
   }
 
   do_shape_update(shape, values.size());
   tensor_ = std::make_shared<std::vector<dType>>(std::move(values));
 }
 
-template <typename dType>
+template<typename dType>
 Tensor<dType>::Tensor(const TensorShape &shape,
                       const std::vector<dType> &&values) {
   if (!is_shape_valid(shape)) {
     throw adg_exception::InvalidTensorShapeException(
-        "InvalidTensorShapeException; Failed when constructing");
+      "InvalidTensorShapeException; Failed when constructing");
   }
 
   do_shape_update(shape, values.size());
   tensor_ = std::make_shared<std::vector<dType>>(values);
 }
 
-template <typename dType>
+template<typename dType>
 Tensor<dType>::Tensor(const Tensor<dType> &another)
-    : size_(another.size_), dim_(another.dim_), shape_(another.shape_),
-      strides_(another.strides_) {
+  : size_(another.size_), dim_(another.dim_), shape_(another.shape_),
+    strides_(another.strides_) {
   tensor_ = another.tensor_;
 }
 
-template <typename dType>
+template<typename dType>
 Tensor<dType>::Tensor(const Tensor<dType> &&another)
-    : size_(another.size_), dim_(another.dim_), shape_(another.shape_),
-      strides_(another.strides_) {
+  : size_(another.size_), dim_(another.dim_), shape_(another.shape_),
+    strides_(another.strides_) {
   tensor_ = another.tensor_;
 }
 
-template <typename dType>
+template<typename dType>
 Tensor<dType> &Tensor<dType>::operator=(const Tensor<dType> &bt) {
   if (tensor_ == bt.tensor_) {
     // nothing to do
@@ -103,7 +105,7 @@ Tensor<dType> &Tensor<dType>::operator=(const Tensor<dType> &bt) {
   return *this;
 }
 
-template <typename dType>
+template<typename dType>
 bool Tensor<dType>::operator==(const Tensor<dType> &bt) const {
   if (size_ != bt.size_ || shape_ != bt.shape_) {
     return false;
@@ -111,12 +113,12 @@ bool Tensor<dType>::operator==(const Tensor<dType> &bt) const {
   return tensor_ == bt.tensor_;
 }
 
-template <typename dType>
+template<typename dType>
 bool Tensor<dType>::operator!=(const Tensor<dType> &bt) const {
   return !(*this == bt);
 }
 
-template <typename dType>
+template<typename dType>
 Tensor<dType> Tensor<dType>::operator[](const size_t &id) const {
   if (id >= shape_[0]) {
     throw adg_exception::IndexOutOfRangeError();
@@ -143,23 +145,24 @@ Tensor<dType> Tensor<dType>::operator[](const size_t &id) const {
   return result;
 }
 
-template <typename dType>
+template<typename dType>
 Tensor<dType> Tensor<dType>::operator[](const TensorSlice &slice) const {
   return take(0, slice);
 }
 
-template <typename dType> Tensor<dType> Tensor<dType>::operator-() const {
+template<typename dType>
+Tensor<dType> Tensor<dType>::operator-() const {
   Tensor<dType> result = this->copy();
   utils::math::elementwise_negative(result.size_, result.get_tensor_ptr());
   return result;
 }
 
-template <typename dType>
+template<typename dType>
 Tensor<dType> &Tensor<dType>::operator+=(const Tensor<dType> &bt) {
   // in-place addition
   if (bt.get_shape() != shape_) {
     throw adg_exception::MismatchTensorShapeError(
-        "Tensor >> operator-=: get mismatched shapes: " +
+      "Tensor >> operator-=: get mismatched shapes: " +
         utils::vector_to_str(bt.get_shape()) + " and " +
         utils::vector_to_str(shape_));
   }
@@ -169,19 +172,19 @@ Tensor<dType> &Tensor<dType>::operator+=(const Tensor<dType> &bt) {
   return *this;
 }
 
-template <typename dType>
+template<typename dType>
 Tensor<dType> &Tensor<dType>::operator+=(const dType &number) {
   // in-place addition
   utils::math::elementwise_addn(size_, get_tensor_ptr(), number);
   return *this;
 }
 
-template <typename dType>
+template<typename dType>
 Tensor<dType> &Tensor<dType>::operator-=(const Tensor<dType> &bt) {
   // in-place subtraction
   if (bt.get_shape() != shape_) {
     throw adg_exception::MismatchTensorShapeError(
-        "Tensor >> operator-=: get mismatched shapes: " +
+      "Tensor >> operator-=: get mismatched shapes: " +
         utils::vector_to_str(bt.get_shape()) + " and " +
         utils::vector_to_str(shape_));
   }
@@ -191,14 +194,14 @@ Tensor<dType> &Tensor<dType>::operator-=(const Tensor<dType> &bt) {
   return *this;
 }
 
-template <typename dType>
+template<typename dType>
 Tensor<dType> &Tensor<dType>::operator-=(const dType &number) {
   // in-place subtraction
   utils::math::elementwise_addn(size_, get_tensor_ptr(), number, true);
   return *this;
 }
 
-template <typename dType>
+template<typename dType>
 TensorIterator<dType> Tensor<dType>::get_iterator(const TensorIndex &index) {
   size_t address = 0;
   size_t address_gap = 1; // the address distance between adjacent index
@@ -209,7 +212,18 @@ TensorIterator<dType> Tensor<dType>::get_iterator(const TensorIndex &index) {
   return tensor_->begin() + address;
 }
 
-template <typename dType>
+template<typename dType>
+const TensorIterator<dType> Tensor<dType>::get_const_iterator(const TensorIndex &index) const {
+  size_t address = 0;
+  size_t address_gap = 1; // the address distance between adjacent index
+  for (int ix = index.size() - 1; ix >= 0; ix--) {
+    address += index[ix] * address_gap;
+    address_gap *= shape_[ix];
+  }
+  return tensor_->begin() + address;
+}
+
+template<typename dType>
 bool Tensor<dType>::is_shape_valid(const TensorShape &shape) const {
   if (shape == EMPTY_SHAPE) {
     return false;
@@ -228,7 +242,7 @@ bool Tensor<dType>::is_shape_valid(const TensorShape &shape) const {
   return true;
 }
 
-template <typename dType>
+template<typename dType>
 bool Tensor<dType>::is_index_valid(const TensorIndex &index) const {
   if (index.size() == 0) {
     return false;
@@ -247,7 +261,7 @@ bool Tensor<dType>::is_index_valid(const TensorIndex &index) const {
   return true;
 }
 
-template <typename dType>
+template<typename dType>
 void Tensor<dType>::set_value(const TensorIndex &index, const dType &value) {
   if (!is_index_valid(index)) {
     throw adg_exception::InvalidTensorIndexException();
@@ -258,7 +272,8 @@ void Tensor<dType>::set_value(const TensorIndex &index, const dType &value) {
 }
 
 // when tensor has only one element
-template <typename dType> dType Tensor<dType>::get_value() const {
+template<typename dType>
+dType Tensor<dType>::get_value() const {
   if (size_ != 1) {
     throw adg_exception::InvalidTensorIndexException();
   }
@@ -266,26 +281,29 @@ template <typename dType> dType Tensor<dType>::get_value() const {
   return *tensor_->begin();
 }
 
-template <typename dType>
-dType Tensor<dType>::get_value(const TensorIndex &index) {
+template<typename dType>
+dType Tensor<dType>::get_value(const TensorIndex &index) const {
   if (!is_index_valid(index)) {
     throw adg_exception::InvalidTensorIndexException();
   }
 
-  return *get_iterator(index);
+  return *get_const_iterator(index);
 }
 
-template <typename dType> Tensor<int32_t> Tensor<dType>::to_int() const {
+template<typename dType>
+Tensor<int32_t> Tensor<dType>::to_int() const {
   std::vector<int32_t> values(tensor_->begin(), tensor_->end());
   return Tensor<int32_t>(shape_, std::move(values));
 }
 
-template <typename dType> Tensor<float> Tensor<dType>::to_float() const {
+template<typename dType>
+Tensor<float> Tensor<dType>::to_float() const {
   std::vector<float> values(tensor_->begin(), tensor_->end());
   return Tensor<float>(shape_, std::move(values));
 }
 
-template <typename dType> Tensor<double> Tensor<dType>::to_double() const {
+template<typename dType>
+Tensor<double> Tensor<dType>::to_double() const {
   std::vector<double> values(tensor_->begin(), tensor_->end());
   return Tensor<double>(shape_, std::move(values));
 }
@@ -301,12 +319,12 @@ A simpler version :
     }
   }
 */
-template <typename dType>
+template<typename dType>
 Tensor<dType> Tensor<dType>::take(const size_t &axis,
                                   const TensorSlice &slice) const {
   if (axis >= dim_) {
     throw adg_exception::AxisOutOfRangeError(
-        "Tensor >> take: axis out of range");
+      "Tensor >> take: axis out of range");
   }
 
   for (size_t i : slice) {
@@ -344,7 +362,7 @@ Tensor<dType> Tensor<dType>::take(const size_t &axis,
 }
 
 // get_dot_shape returns the shape of result matrix for dot_mul
-template <typename dType>
+template<typename dType>
 TensorShape Tensor<dType>::get_dot_shape(const Tensor<dType> &bt) const {
   if (get_shape() == EMPTY_SHAPE || bt.get_shape() == EMPTY_SHAPE) {
     throw adg_exception::EmptyTensorError();
@@ -370,19 +388,19 @@ TensorShape Tensor<dType>::get_dot_shape(const Tensor<dType> &bt) const {
   // check whether left.shape[-1] == right.shape[-2]
   if (shape_left[cur_dim - 1] != shape_right[cur_dim - 2]) {
     throw adg_exception::MismatchTensorShapeError(
-        "MismatchTensorShapeError >> get_dot_shape\n Left shape is " +
+      "MismatchTensorShapeError >> get_dot_shape\n Left shape is " +
         utils::array_to_str(1, dim_, &*shape_left.begin()) + "Right shape is " +
         utils::array_to_str(1, bt.get_dim(), &*shape_right.begin()));
   }
 
   // then, the answer is [..., a, c]
   TensorShape result_shape(shape_left.begin(), shape_left.end() - 1);
-  result_shape.push_back(shape_right[cur_dim - 1]);
+  result_shape.emplace_back(shape_right[cur_dim - 1]);
   return result_shape;
 }
 
 // dot implements the matrix multiplication
-template <typename dType>
+template<typename dType>
 Tensor<dType> Tensor<dType>::dot(const Tensor<dType> &bt) const {
   TensorShape result_shape = get_dot_shape(bt);
   Tensor<dType> result(result_shape);
@@ -398,11 +416,11 @@ Tensor<dType> Tensor<dType>::dot(const Tensor<dType> &bt) const {
 }
 
 // multiply implements the element-wise multiplication
-template <typename dType>
+template<typename dType>
 Tensor<dType> Tensor<dType>::multiply(const Tensor<dType> &bt) const {
   if (bt.shape_ != shape_) {
     throw adg_exception::MismatchTensorShapeError(
-        "MismatchTensorShapeError >> multiply " + utils::vector_to_str(shape_) +
+      "MismatchTensorShapeError >> multiply " + utils::vector_to_str(shape_) +
         " and " + utils::vector_to_str(bt.shape_));
   }
 
@@ -414,7 +432,7 @@ Tensor<dType> Tensor<dType>::multiply(const Tensor<dType> &bt) const {
 }
 
 // multiply implements the element-wise multiplication
-template <typename dType>
+template<typename dType>
 Tensor<dType> Tensor<dType>::multiply(const dType &multiplier) const {
   Tensor<dType> result = Tensor(shape_, static_cast<dType>(multiplier));
   utils::math::elementwise_multiply(size_, get_tensor_const_ptr(),
@@ -423,11 +441,11 @@ Tensor<dType> Tensor<dType>::multiply(const dType &multiplier) const {
   return result;
 }
 
-template <typename dType>
+template<typename dType>
 Tensor<dType> Tensor<dType>::add(const Tensor<dType> &bt) const {
   if (bt.shape_ != shape_) {
     throw adg_exception::MismatchTensorShapeError(
-        "MismatchTensorShapeError >> add " + utils::vector_to_str(shape_) +
+      "MismatchTensorShapeError >> add " + utils::vector_to_str(shape_) +
         " and " + utils::vector_to_str(bt.shape_));
   }
 
@@ -438,7 +456,7 @@ Tensor<dType> Tensor<dType>::add(const Tensor<dType> &bt) const {
   return result;
 }
 
-template <typename dType>
+template<typename dType>
 Tensor<dType> Tensor<dType>::add(const dType &number) const {
   Tensor<dType> result = Tensor(shape_, static_cast<dType>(number));
   utils::math::elementwise_add(size_, get_tensor_const_ptr(),
@@ -447,11 +465,11 @@ Tensor<dType> Tensor<dType>::add(const dType &number) const {
   return result;
 }
 
-template <typename dType>
+template<typename dType>
 Tensor<dType> Tensor<dType>::sub(const Tensor<dType> &bt) const {
   if (bt.shape_ != shape_) {
     throw adg_exception::MismatchTensorShapeError(
-        "MismatchTensorShapeError >> sub " + utils::vector_to_str(shape_) +
+      "MismatchTensorShapeError >> sub " + utils::vector_to_str(shape_) +
         " and " + utils::vector_to_str(bt.shape_));
   }
 
@@ -463,23 +481,23 @@ Tensor<dType> Tensor<dType>::sub(const Tensor<dType> &bt) const {
 }
 
 // matrix kronecker product
-template <typename dType>
+template<typename dType>
 Tensor<dType> Tensor<dType>::kron(const Tensor<dType> &lt,
                                   const Tensor<dType> &rt) {
   if (lt.dim_ < 2 || rt.dim_ < 2) {
     throw adg_exception::AxisOutOfRangeError(
-        "Tensor >> kron: not enough dimension");
+      "Tensor >> kron: not enough dimension");
   }
 
   if (lt.dim_ != rt.dim_) {
     throw adg_exception::MismatchTensorShapeError(
-        "Tensor >> kron: MismatchTensorShapeError");
+      "Tensor >> kron: MismatchTensorShapeError");
   }
 
   for (size_t ix = 0; ix < lt.dim_ - 2; ++ix) {
     if (lt.shape_[ix] != rt.shape_[ix]) {
       throw adg_exception::MismatchTensorShapeError(
-          "Tensor >> kron: MismatchTensorShapeError at axis " + ix);
+        "Tensor >> kron: MismatchTensorShapeError at axis " + ix);
     }
   }
 
@@ -494,19 +512,19 @@ Tensor<dType> Tensor<dType>::kron(const Tensor<dType> &lt,
   Tensor<dType> result(std::move(result_shape));
 
   utils::math::tensor_kron_product(
-      lt.size_, rt.size_, left_nrow, left_ncol, right_nrow, right_ncol,
-      lt.get_tensor_const_ptr(), rt.get_tensor_const_ptr(),
-      result.get_tensor_ptr());
+    lt.size_, rt.size_, left_nrow, left_ncol, right_nrow, right_ncol,
+    lt.get_tensor_const_ptr(), rt.get_tensor_const_ptr(),
+    result.get_tensor_ptr());
 
   return result;
 }
 
-template <typename dType>
+template<typename dType>
 Tensor<dType> Tensor<dType>::div(const Tensor<dType> &lt,
                                  const Tensor<dType> &rt) {
   if (lt.shape_ != rt.shape_) {
     throw adg_exception::MismatchTensorShapeError(
-        "Tensor >> div: MismatchTensorShapeError: get shape " +
+      "Tensor >> div: MismatchTensorShapeError: get shape " +
         utils::vector_to_str(lt.shape_) + " and " +
         utils::vector_to_str(rt.shape_));
   }
@@ -518,7 +536,59 @@ Tensor<dType> Tensor<dType>::div(const Tensor<dType> &lt,
   return result;
 }
 
-template <typename dType>
+template<typename dType>
+Tensor<dType> Tensor<dType>::concat(const std::vector<Tensor<dType>> &tensors, const size_t &axis) {
+  TensorShape src_shape = tensors[0].get_shape();
+  size_t len_after_concat = 0;
+
+  // check shape: except the axis to be stacked together, dimension should keep the same through all tensors
+  bool check_shape = true;
+  for (auto ts : tensors) {
+    TensorShape cur_shape = ts.get_shape();
+    len_after_concat += cur_shape[axis];
+    if (ts.get_shape() == src_shape) {
+      continue;
+    }
+    if (ts.get_dim() != src_shape.size()) {
+      check_shape = false;
+      break;
+    }
+    for (size_t ax = 0; ax < src_shape.size(); ++ax) {
+      if (ax != axis && cur_shape[ax] != src_shape[ax]) {
+        check_shape = false;
+        break;
+      }
+    }
+    if (!check_shape) { break; }
+  }
+  if (!check_shape) {
+    throw adg_exception::MismatchTensorShapeError("Tensor >> concat: MismatchTensorShapeError");
+  }
+
+  TensorShape target_shape = src_shape;
+  target_shape[axis] = len_after_concat;
+  Tensor<dType> result(std::move(target_shape));
+
+  // tensor_offset: the coordinate of the leftmost element of the current tensor on the axis after concat
+  size_t tensor_offset = 0, new_index;
+  dType *result_tensor_ptr = result.get_tensor_ptr();
+  TensorShape result_strides = result.get_strides();
+  for (size_t ix = 0; ix < tensors.size(); ++ix) {
+    const dType *src_tensor_ptr = tensors[ix].get_tensor_const_ptr();
+    TensorShape cur_strides = tensors[ix].get_strides();
+
+    for (size_t index = 0; index < tensors[ix].get_size(); index += cur_strides[axis]) {
+      new_index = get_index_after_concat(index, axis, tensor_offset,
+                                         cur_strides, result_strides);
+      memcpy(result_tensor_ptr + new_index, src_tensor_ptr + index, sizeof(dType) * cur_strides[axis]);
+    }
+
+    tensor_offset += tensors[ix].get_shape()[axis];
+  }
+  return result;
+}
+
+template<typename dType>
 Tensor<dType> Tensor<dType>::mean(const size_t &axis, bool keep_dim) {
   Tensor<dType> result = sum(axis, keep_dim);
   size_t len_at_axis = shape_[axis];
@@ -526,7 +596,7 @@ Tensor<dType> Tensor<dType>::mean(const size_t &axis, bool keep_dim) {
   return result;
 }
 
-template <typename dType>
+template<typename dType>
 void Tensor<dType>::normal_init(double loc, double scale, size_t seed) {
   size_t r_seed = seed;
   if (r_seed == SIZE_MAX) {
@@ -542,11 +612,12 @@ void Tensor<dType>::normal_init(double loc, double scale, size_t seed) {
 }
 
 // copy returns a deep copy of current tensor
-template <typename dType> Tensor<dType> Tensor<dType>::copy() const {
+template<typename dType>
+Tensor<dType> Tensor<dType>::copy() const {
   return Tensor<dType>(shape_, get_tensor_const_ptr());
 }
 
-template <typename dType>
+template<typename dType>
 Tensor<dType> Tensor<dType>::sum(const size_t &axis, bool keep_dim) const {
   if (axis == SIZE_MAX) {
     dType res = utils::math::sum(size_, get_tensor_const_ptr(), 1);
@@ -555,7 +626,7 @@ Tensor<dType> Tensor<dType>::sum(const size_t &axis, bool keep_dim) const {
 
   if (axis >= dim_) {
     throw adg_exception::AxisOutOfRangeError(
-        "Tensor >> sum: axis out of range");
+      "Tensor >> sum: axis out of range");
   }
 
   // only sum along the given axis
@@ -573,14 +644,14 @@ Tensor<dType> Tensor<dType>::sum(const size_t &axis, bool keep_dim) const {
   while (src_index < size_) {
     if (get_coordinate_at_axis(src_index, axis, strides_) == 0) {
       *(dest_ptr++) =
-          utils::math::sum(shape_[axis], src_ptr + src_index, strides_[axis]);
+        utils::math::sum(shape_[axis], src_ptr + src_index, strides_[axis]);
     }
     ++src_index;
   }
   return result;
 }
 
-template <typename dType>
+template<typename dType>
 void Tensor<dType>::do_shape_update(const TensorShape &shape,
                                     const size_t &keep_size) {
   size_t tmp_size = 1;
@@ -595,8 +666,8 @@ void Tensor<dType>::do_shape_update(const TensorShape &shape,
   if (keep_size) {
     if (tmp_size != keep_size) {
       throw adg_exception::InvalidTensorShapeException(
-          "Tensor >> do_shape_update: data size mismatch when update shape, "
-          "new size is " +
+        "Tensor >> do_shape_update: data size mismatch when update shape, "
+        "new size is " +
           std::to_string(tmp_size) + ", while trying to keep the size of " +
           std::to_string(keep_size));
     }
@@ -609,7 +680,7 @@ void Tensor<dType>::do_shape_update(const TensorShape &shape,
 }
 
 // reshape changes the shape_, dim_, strides_ of the tensor
-template <typename dType>
+template<typename dType>
 void Tensor<dType>::reshape(const TensorShape &new_shape) {
   if (!is_shape_valid(new_shape)) {
     throw adg_exception::InvalidTensorShapeException("Tensor ==> reshape");
@@ -621,7 +692,7 @@ void Tensor<dType>::reshape(const TensorShape &new_shape) {
 
 // helper function for transpose, computes the coordinate of an element on a
 // specific axis given its vector index
-template <typename dType>
+template<typename dType>
 size_t Tensor<dType>::get_coordinate_at_axis(const size_t &ind,
                                              const size_t &axis,
                                              const TensorShape &strides) {
@@ -643,17 +714,17 @@ size_t Tensor<dType>::get_coordinate_at_axis(const size_t &ind,
     ` new_ind = sum_{i != a, b} {c[i] * ns[i]} + c[a] * ns[b] + c[b] * ns[a] `
   The `offset` computed in this function is new_ind - ind
 */
-template <typename dType>
+template<typename dType>
 size_t Tensor<dType>::get_index_after_transpose(
-    const size_t &ind, const size_t &axis_a, const size_t &axis_b,
-    const TensorShape &ori_strides, const TensorShape &new_strides) {
+  const size_t &ind, const size_t &axis_a, const size_t &axis_b,
+  const TensorShape &ori_strides, const TensorShape &new_strides) {
   int64_t signed_index = ind;
   int64_t offset = 0;
   {
     int64_t coord_a = get_coordinate_at_axis(ind, axis_a, ori_strides);
     int64_t coord_b = get_coordinate_at_axis(ind, axis_b, ori_strides);
     offset += coord_a * (new_strides[axis_b] - ori_strides[axis_a]) +
-              coord_b * (new_strides[axis_a] - ori_strides[axis_b]);
+      coord_b * (new_strides[axis_a] - ori_strides[axis_b]);
   }
 
   {
@@ -668,9 +739,36 @@ size_t Tensor<dType>::get_index_after_transpose(
   return static_cast<size_t>(new_index);
 }
 
+template<typename dType>
+size_t Tensor<dType>::get_index_after_concat(
+  const size_t &ind, const size_t &axis, const size_t &offset_at_axis,
+  const TensorShape &ori_strides, const TensorShape &new_strides) {
+  // the offset between new index and ori index is definitely non-negative
+  size_t offset = 0;
+  {
+    size_t ori_coord = get_coordinate_at_axis(ind, axis, ori_strides);
+    size_t new_coord = ori_coord + offset_at_axis;
+
+    offset += new_coord * new_strides[axis] - ori_coord * ori_strides[axis];
+  }
+
+  {
+    size_t cur_coord;
+    if (axis > 0) {
+      for (int ax = axis - 1; ax >= 0; --ax) {
+        cur_coord = get_coordinate_at_axis(ind, ax, ori_strides);
+        offset += cur_coord * (new_strides[ax] - ori_strides[ax]);
+      }
+    }
+  }
+
+  size_t new_index = ind + offset;
+  return static_cast<size_t>(new_index);
+}
+
 // do_transpose impl of transpose
 // maps the index of original tensor to the index of the new tensor
-template <typename dType>
+template<typename dType>
 void Tensor<dType>::do_transpose(const size_t &axis_a, const size_t &axis_b,
                                  Tensor<dType> &dest_tensor) const {
 
@@ -691,7 +789,7 @@ void Tensor<dType>::do_transpose(const size_t &axis_a, const size_t &axis_b,
 }
 
 // transpose will switch the dimension of two axes
-template <typename dType>
+template<typename dType>
 Tensor<dType> Tensor<dType>::transpose(const size_t &axis_ai,
                                        const size_t &axis_bi) const {
   if (axis_ai == axis_bi) {
@@ -724,37 +822,39 @@ Tensor<dType> Tensor<dType>::transpose(const size_t &axis_ai,
 }
 
 // by default, we transpose the last two axes for convenient matrix operation
-template <typename dType> Tensor<dType> Tensor<dType>::transpose() const {
+template<typename dType>
+Tensor<dType> Tensor<dType>::transpose() const {
   if (dim_ <= 1) {
     throw adg_exception::AxisOutOfRangeError(
-        "Tensor >> transpose: not enough dimension");
+      "Tensor >> transpose: not enough dimension");
   }
 
   return transpose(dim_ - 2, dim_ - 1);
 }
 
 // short for transpose
-template <typename dType> Tensor<dType> Tensor<dType>::t() const {
+template<typename dType>
+Tensor<dType> Tensor<dType>::t() const {
   if (dim_ <= 1) {
     throw adg_exception::AxisOutOfRangeError(
-        "Tensor >> t: not enough dimension");
+      "Tensor >> t: not enough dimension");
   }
 
   return transpose(dim_ - 2, dim_ - 1);
 }
 
-template <typename dType>
+template<typename dType>
 void Tensor<dType>::fill_diag(const std::vector<dType> &diag_values) {
   if (dim_ != 2) {
     throw adg_exception::InvalidTensorShapeException(
-        "Tensor >> fill_diag get non-2d tensor");
+      "Tensor >> fill_diag get non-2d tensor");
   }
   size_t diag_len = diag_values.size();
   size_t tensor_min_dim_len = std::min(shape_[0], shape_[1]);
 
   if (diag_len > tensor_min_dim_len) {
     throw adg_exception::MismatchTensorShapeError(
-        "MismatchTensorShapeError >> fill_diag of len " +
+      "MismatchTensorShapeError >> fill_diag of len " +
         std::to_string(diag_len) + " , longer than shape_min " +
         std::to_string(tensor_min_dim_len));
   }
@@ -763,7 +863,8 @@ void Tensor<dType>::fill_diag(const std::vector<dType> &diag_values) {
                              &*diag_values.begin(), get_tensor_ptr());
 }
 
-template <typename dType> void Tensor<dType>::map(Mapper<dType> &mapper) {
+template<typename dType>
+void Tensor<dType>::map(Mapper<dType> &mapper) {
 #if ADGC_MULTI_THREADS_NUM_
   utils::threads::ThreadPool pool;
   pool.start(ADGC_MULTI_THREADS_NUM_);
@@ -773,7 +874,8 @@ template <typename dType> void Tensor<dType>::map(Mapper<dType> &mapper) {
 #endif
 }
 
-template <typename dType> void Tensor<dType>::map(Mapper<dType> &&mapper) {
+template<typename dType>
+void Tensor<dType>::map(Mapper<dType> &&mapper) {
 #if ADGC_MULTI_THREADS_NUM_
   utils::threads::ThreadPool pool;
   pool.start(ADGC_MULTI_THREADS_NUM_);
@@ -783,7 +885,7 @@ template <typename dType> void Tensor<dType>::map(Mapper<dType> &&mapper) {
 #endif
 }
 
-template <typename dType>
+template<typename dType>
 void Tensor<dType>::map(const std::function<void(dType &)> &func) {
   Mapper<dType> mapper(func);
 

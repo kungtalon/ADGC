@@ -20,14 +20,17 @@ struct NodeType {
   static inline const std::string ADG_SIGMOID_TYPE = "F_sigmoid";
   static inline const std::string ADG_RELU_TYPE = "F_relu";
   static inline const std::string ADG_CROSS_ENTROPY_SOFTMAX_TYPE =
-      "F_cross_entropy_softmax";
+    "F_cross_entropy_softmax";
   static inline const std::string ADG_REDUCE_SUM_TYPE = "F_reduce_sum";
   static inline const std::string ADG_REDUCE_MEAN_TYPE = "F_reduce_mean";
 };
 
 struct LayerType {
-  static inline const std::string ADG_LAYER_TYPE = "layer";
-  static inline const std::string ADG_LAYER_DENSE = "dense";
+  static inline const std::string ADG_LAYER_TYPE = "L_layer";
+  static inline const std::string ADG_LAYER_DENSE = "L_dense";
+  static inline const std::string ADG_LAYER_RELU = "L_relu";
+  static inline const std::string ADG_LAYER_SIGMOID = "L_sigmoid";
+  static inline const std::string ADG_LAYER_CROSS_ENTROPY_SOFTMAX = "L_cross_entropy_softmax";
 };
 
 const inline std::string VAR_GRAPHVIZ_NODE_COLOR = "deepskyblue1";

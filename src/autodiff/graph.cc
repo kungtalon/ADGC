@@ -4,7 +4,7 @@
 
 namespace auto_diff {
 
-Graph::Graph(){};
+Graph::Graph() {};
 
 Graph::Graph(const std::string &name) : graph_name_(name) {}
 
@@ -38,11 +38,11 @@ std::string Graph::add_node(Node *node, const std::string &type,
 
   if (contains_node(full_node_name)) {
     throw adg_exception::DuplicateNodeNameError(
-        "Found duplicated node names: " + full_node_name);
+      "Found duplicated node names: " + full_node_name);
   }
 
   node_ptr_dict_[full_node_name] = node;
-  node_ptr_list_.push_back(node);
+  node_ptr_list_.emplace_back(node);
   return valid_node_name;
 }
 
@@ -53,11 +53,11 @@ void Graph::add_relation(const std::string &parent_name,
 
   if (parent_iter == node_ptr_dict_.end()) {
     throw adg_exception::NodeNotFoundError(
-        "Graph >> add_relation : parent node " + parent_name + " not found\n");
+      "Graph >> add_relation : parent node " + parent_name + " not found\n");
   }
   if (child_iter == node_ptr_dict_.end()) {
     throw adg_exception::NodeNotFoundError(
-        "Graph >> add_relation : child node " + child_name + " not found\n");
+      "Graph >> add_relation : child node " + child_name + " not found\n");
   }
 
   parent_iter->second->add_children(child_iter->second);
@@ -67,7 +67,7 @@ void Graph::add_relation(const std::string &parent_name,
 Node *Graph::get_ptr_of(const std::string &node_name) {
   if (!contains_node(node_name)) {
     throw adg_exception::NodeNotFoundError("Graph >> get_ptr_of : node " +
-                                           node_name + " not found\n");
+      node_name + " not found\n");
   }
   return node_ptr_dict_.find(node_name)->second;
 }
@@ -83,7 +83,7 @@ void Graph::backward(Node &result) {
 
   for (auto node_ptr : node_ptr_list_) {
     if (node_ptr->get_type() == NodeType::ADG_VARIABLE_TYPE ||
-        node_ptr->get_type() == NodeType::ADG_PARAMETER_TYPE) {
+      node_ptr->get_type() == NodeType::ADG_PARAMETER_TYPE) {
       if (node_ptr->get_type() == NodeType::ADG_PARAMETER_TYPE) {
         Parameter *param_ptr = static_cast<Parameter *>(node_ptr);
         if (!param_ptr->is_trainable()) {
@@ -155,13 +155,13 @@ void Graph::visualize(const std::string &file_name) {
        ++map_iter) {
     std::string full_node_name = map_iter->first;
     Agnode_t *cur_agnode_t =
-        get_agnode_t(full_node_name, map_iter->second->get_type());
+      get_agnode_t(full_node_name, map_iter->second->get_type());
     Node *cur_node = map_iter->second;
 
     Agnode_t *child_agnode_t;
     for (auto child_ptr : cur_node->get_children()) {
       child_agnode_t =
-          get_agnode_t(child_ptr->get_full_name(), child_ptr->get_type());
+        get_agnode_t(child_ptr->get_full_name(), child_ptr->get_type());
       gv_tool.add_edge(cur_agnode_t, child_agnode_t);
     }
 

@@ -96,6 +96,7 @@ void multi_array_to_str_helper(size_t rank, size_t cur_axis,
   out << " ]";
 }
 
+
 // template instantiations
 template std::string array_to_str<int32_t>(size_t m, size_t n, int32_t *p,
                                            std::string name = "");

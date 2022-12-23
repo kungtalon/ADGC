@@ -6,19 +6,20 @@
 namespace auto_diff {
 namespace layer {
 
-class CrossEntropyWithSoftmax {
-public:
-  CrossEntropyWithSoftmax(){};
-  CrossEntropyWithSoftmax(const std::string& reduction="mean");
-  ~CrossEntropyWithSoftmax(){};
-  
-private:
-   std::string reduction_;
+class CrossEntropyWithSoftmax : public Layer {
+ public:
+  CrossEntropyWithSoftmax() {};
+  CrossEntropyWithSoftmax(const std::string &reduction = "mean", Graph *graph = nullptr);
+  ~CrossEntropyWithSoftmax() {};
+
+  DTensor get_probs();
+  Node &operator()(const Node &input, const Variable &label);
+
+ private:
+  std::string reduction_;
+  DTensor probs_;
+
 };
-
-
-
-
 
 } // namespace layer
 } // namespace auto_diff

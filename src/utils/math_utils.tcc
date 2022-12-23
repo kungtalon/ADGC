@@ -203,26 +203,20 @@ inline void elementwise_add_inplace(const size_t &size, int32_t *mat_a,
 
 inline void elementwise_addn(const size_t &size, double *mat,
                              const double &number, bool subtract = false) {
-  double *tmp = new double[2];
-  tmp[0] = number;
   if (subtract) {
-    cblas_daxpy(size, -1., tmp, 0, mat, 1);
+    cblas_daxpy(size, -1., &number, 0, mat, 1);
   } else {
-    cblas_daxpy(size, 1., tmp, 0, mat, 1);
+    cblas_daxpy(size, 1., &number, 0, mat, 1);
   }
-  delete tmp;
 }
 
 inline void elementwise_addn(const size_t &size, float *mat,
                              const float &number, bool subtract = false) {
-  float *tmp = new float[2];
-  tmp[0] = number;
   if (subtract) {
-    cblas_saxpy(size, -1., tmp, 0, mat, 1);
+    cblas_saxpy(size, -1., &number, 0, mat, 1);
   } else {
-    cblas_saxpy(size, 1., tmp, 0, mat, 1);
+    cblas_saxpy(size, 1., &number, 0, mat, 1);
   }
-  delete tmp;
 }
 
 inline void elementwise_addn(const size_t &size, int32_t *mat,
@@ -231,17 +225,13 @@ inline void elementwise_addn(const size_t &size, int32_t *mat,
 }
 
 inline void elementwise_negative(const size_t &size, double *mat) {
-  double *tmp = new double[2];
-  tmp[0] = 0.;
-  cblas_daxpby(size, 1., tmp, 0, -1., mat, 1);
-  delete tmp;
+  double tmp = 0;
+  cblas_daxpby(size, 1., &tmp, 0, -1., mat, 1);
 }
 
 inline void elementwise_negative(const size_t &size, float *mat) {
-  float *tmp = new float[2];
-  tmp[0] = 0.;
-  cblas_saxpby(size, 1., tmp, 0, -1., mat, 1);
-  delete tmp;
+  float tmp = 0.;
+  cblas_saxpby(size, 1., &tmp, 0, -1., mat, 1);
 }
 
 inline void elementwise_negative(const size_t &size, const int32_t *mat) {
@@ -285,14 +275,14 @@ inline double sigmoid(double x) {
 }
 
 inline float sigmoid(float x) {
-  return 1 / (1 + std::exp(std::min(-x, (float)100)));
+  return 1 / (1 + std::exp(std::min(-x, (float) 100)));
 }
 
 inline double relu(double x) { return std::max(x, 0.); }
 
-inline float relu(float x) { return std::max(x, (float)0); }
+inline float relu(float x) { return std::max(x, (float) 0); }
 
-template <typename dType>
+template<typename dType>
 void tensor_gemm(const size_t &size_a, const size_t &size_b,
                  const size_t &size_c, const size_t &M, const size_t &N,
                  const size_t &K, const dType *mat_a, const dType *mat_b,
@@ -309,27 +299,27 @@ void tensor_gemm(const size_t &size_a, const size_t &size_b,
     gemm(M, N, K, mat_a, mat_b, mat_c);
   }
 #if USE_MULTI_THREAD_GEMM_BOOL
-  else {
-    auto threads_p = new utils::threads::ThreadPool();
-    threads_p->start(2);
+    else {
+      auto threads_p = new utils::threads::ThreadPool();
+      threads_p->start(2);
 
-    // split the tensor into blocks of size M*N or N*K
-    // use thread pool to run the gemm concurrently
-    dType *cur_c_p = mat_c;
-    for (size_t ix = 0; ix < n_blocks; ix++) {
-      const dType *cur_a_p = mat_a + inc_a * ix;
-      const dType *cur_b_p = mat_b + inc_b * ix;
-      threads_p->submit_job(
-          [&]() mutable { gemm(M, N, K, cur_a_p, cur_b_p, cur_c_p); });
-      cur_c_p += inc_c;
-    }
+      // split the tensor into blocks of size M*N or N*K
+      // use thread pool to run the gemm concurrently
+      dType *cur_c_p = mat_c;
+      for (size_t ix = 0; ix < n_blocks; ix++) {
+        const dType *cur_a_p = mat_a + inc_a * ix;
+        const dType *cur_b_p = mat_b + inc_b * ix;
+        threads_p->submit_job(
+            [&]() mutable { gemm(M, N, K, cur_a_p, cur_b_p, cur_c_p); });
+        cur_c_p += inc_c;
+      }
 
-    while (true) {
-      if (!threads_p->busy()) {
-        break;
+      while (true) {
+        if (!threads_p->busy()) {
+          break;
+        }
       }
     }
-  }
 #else
   else {
     // split the tensor into blocks of size M*N or N*K
@@ -344,7 +334,7 @@ void tensor_gemm(const size_t &size_a, const size_t &size_b,
 #endif
 }
 
-template <typename dType>
+template<typename dType>
 void tensor_kron_product(const size_t &size_a, const size_t &size_b,
                          const size_t &row_a, const size_t &col_a,
                          const size_t &row_b, const size_t &col_b,

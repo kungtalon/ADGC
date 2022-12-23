@@ -6,189 +6,201 @@
 namespace adg_exception {
 
 class AutoDiffGraphException : public std::exception {
-public:
-  AutoDiffGraphException(){};
-  AutoDiffGraphException(const std::string &msg) : message_(msg){};
+ public:
+  AutoDiffGraphException() {};
+  AutoDiffGraphException(const std::string &msg) : message_(msg) {};
   const char *what() const noexcept { return message_.c_str(); };
 
-protected:
+ protected:
   std::string message_;
 };
 
 // errors for tensor class
 class TensorException : public AutoDiffGraphException {
-public:
-  TensorException() : AutoDiffGraphException("Tensor Exception"){};
+ public:
+  TensorException() : AutoDiffGraphException("Tensor Exception") {};
   TensorException(const std::string &msg)
-      : AutoDiffGraphException("Tensor Exception >> " + msg){};
+    : AutoDiffGraphException("Tensor Exception >> " + msg) {};
 };
 
 class EmptyTensorError : public TensorException {
-public:
-  EmptyTensorError() : TensorException("EmptyTensorError"){};
+ public:
+  EmptyTensorError() : TensorException("EmptyTensorError") {};
 };
 
 class IndexOutOfRangeError : public TensorException {
-public:
-  IndexOutOfRangeError() : TensorException("IndexOutOfRangeError"){};
+ public:
+  IndexOutOfRangeError() : TensorException("IndexOutOfRangeError") {};
 };
 
 class AxisOutOfRangeError : public TensorException {
-public:
-  AxisOutOfRangeError() : TensorException("AxisOutOfRangeError"){};
-  AxisOutOfRangeError(const std::string msg) : TensorException(msg){};
+ public:
+  AxisOutOfRangeError() : TensorException("AxisOutOfRangeError") {};
+  AxisOutOfRangeError(const std::string msg) : TensorException(msg) {};
 };
 
 class MismatchTensorDimError : public TensorException {
-public:
-  MismatchTensorDimError() : TensorException("MismatchTensorDimError"){};
-  MismatchTensorDimError(const std::string msg) : TensorException(msg){};
+ public:
+  MismatchTensorDimError() : TensorException("MismatchTensorDimError") {};
+  MismatchTensorDimError(const std::string msg) : TensorException(msg) {};
 };
 
 class MismatchTensorShapeError : public TensorException {
-public:
-  MismatchTensorShapeError() : TensorException("MismatchTensorShapeError"){};
-  MismatchTensorShapeError(const std::string msg) : TensorException(msg){};
+ public:
+  MismatchTensorShapeError() : TensorException("MismatchTensorShapeError") {};
+  MismatchTensorShapeError(const std::string msg) : TensorException(msg) {};
 };
 
 class MismatchTensorTypeError : public TensorException {
-public:
-  MismatchTensorTypeError() : TensorException("MismatchTensorTypeError"){};
+ public:
+  MismatchTensorTypeError() : TensorException("MismatchTensorTypeError") {};
 };
 
 class ResultTensorShapeError : public TensorException {
-public:
-  ResultTensorShapeError() : TensorException("ResultTensorShapeError"){};
+ public:
+  ResultTensorShapeError() : TensorException("ResultTensorShapeError") {};
 };
 
 class InvalidDtypeException : public TensorException {
-public:
-  InvalidDtypeException() : TensorException("InvalidDtypeException"){};
+ public:
+  InvalidDtypeException() : TensorException("InvalidDtypeException") {};
 };
 
 class InvalidTensorShapeException : public TensorException {
-public:
+ public:
   InvalidTensorShapeException()
-      : TensorException("InvalidTensorShapeException"){};
-  InvalidTensorShapeException(const std::string &msg) : TensorException(msg){};
+    : TensorException("InvalidTensorShapeException") {};
+  InvalidTensorShapeException(const std::string &msg) : TensorException(msg) {};
 };
 
 class InvalidTensorIndexException : public TensorException {
-public:
+ public:
   InvalidTensorIndexException()
-      : TensorException("InvalidTensorIndexException"){};
+    : TensorException("InvalidTensorIndexException") {};
 };
 
 class DividingZeroException : public TensorException {
-public:
-  DividingZeroException() : TensorException("DividingZeroException"){};
-  DividingZeroException(const std::string msg) : TensorException(msg){};
+ public:
+  DividingZeroException() : TensorException("DividingZeroException") {};
+  DividingZeroException(const std::string msg) : TensorException(msg) {};
 };
 
 class NonImplementedException : public AutoDiffGraphException {
-public:
+ public:
   NonImplementedException()
-      : AutoDiffGraphException("NonImplementedException"){};
+    : AutoDiffGraphException("NonImplementedException") {};
 };
 
 class TestingDebugException : public AutoDiffGraphException {
-public:
-  TestingDebugException(){};
-  TestingDebugException(const std::string &msg) : AutoDiffGraphException(msg){};
+ public:
+  TestingDebugException() {};
+  TestingDebugException(const std::string &msg) : AutoDiffGraphException(msg) {};
 };
 
 class NodeNotFoundError : public AutoDiffGraphException {
-public:
-  NodeNotFoundError(){};
-  NodeNotFoundError(const std::string &msg) : AutoDiffGraphException(msg){};
+ public:
+  NodeNotFoundError() {};
+  NodeNotFoundError(const std::string &msg) : AutoDiffGraphException(msg) {};
 };
 
 class DuplicateNodeNameError : public AutoDiffGraphException {
-public:
-  DuplicateNodeNameError(){};
+ public:
+  DuplicateNodeNameError() {};
   DuplicateNodeNameError(const std::string &msg)
-      : AutoDiffGraphException(msg){};
+    : AutoDiffGraphException(msg) {};
 };
 
 class MismatchRegisterdGraphError : public AutoDiffGraphException {
-public:
-  MismatchRegisterdGraphError(){};
+ public:
+  MismatchRegisterdGraphError() {};
   MismatchRegisterdGraphError(const std::string &msg)
-      : AutoDiffGraphException(msg){};
+    : AutoDiffGraphException(msg) {};
 };
 
 class MismatchNodeValueShapeError : public AutoDiffGraphException {
-public:
-  MismatchNodeValueShapeError(){};
+ public:
+  MismatchNodeValueShapeError() {};
   MismatchNodeValueShapeError(const std::string &msg)
-      : AutoDiffGraphException(msg){};
+    : AutoDiffGraphException(msg) {};
 };
 
 class IncompatibleNodeValueShapeError : public AutoDiffGraphException {
-public:
-  IncompatibleNodeValueShapeError(){};
+ public:
+  IncompatibleNodeValueShapeError() {};
   IncompatibleNodeValueShapeError(const std::string &msg)
-      : AutoDiffGraphException(msg){};
+    : AutoDiffGraphException(msg) {};
 };
 
 class OpsParentsNumException : public AutoDiffGraphException {
-public:
-  OpsParentsNumException(){};
+ public:
+  OpsParentsNumException() {};
   OpsParentsNumException(const std::string &msg)
-      : AutoDiffGraphException(msg){};
+    : AutoDiffGraphException(msg) {};
 };
 
 class OpsParentsUnsetException : public AutoDiffGraphException {
-public:
-  OpsParentsUnsetException(){};
+ public:
+  OpsParentsUnsetException() {};
   OpsParentsUnsetException(const std::string &msg)
-      : AutoDiffGraphException(msg){};
+    : AutoDiffGraphException(msg) {};
 };
 
 class FunctionalParentsNumException : public AutoDiffGraphException {
-public:
-  FunctionalParentsNumException(){};
+ public:
+  FunctionalParentsNumException() {};
   FunctionalParentsNumException(const std::string &msg)
-      : AutoDiffGraphException(msg){};
+    : AutoDiffGraphException(msg) {};
 };
 
 class FunctionalParentsUnsetException : public AutoDiffGraphException {
-public:
-  FunctionalParentsUnsetException(){};
+ public:
+  FunctionalParentsUnsetException() {};
   FunctionalParentsUnsetException(const std::string &msg)
-      : AutoDiffGraphException(msg){};
+    : AutoDiffGraphException(msg) {};
 };
 
 class UnexpectedParentTypeError : public AutoDiffGraphException {
-public:
-  UnexpectedParentTypeError(){};
+ public:
+  UnexpectedParentTypeError() {};
   UnexpectedParentTypeError(const std::string &msg)
-      : AutoDiffGraphException(msg){};
+    : AutoDiffGraphException(msg) {};
 };
 
 class GradError : public AutoDiffGraphException {
-public:
-  GradError(){};
-  GradError(const std::string &msg) : AutoDiffGraphException(msg){};
+ public:
+  GradError() {};
+  GradError(const std::string &msg) : AutoDiffGraphException(msg) {};
 };
 
 class InvalidNodeOperationError : public AutoDiffGraphException {
-public:
-  InvalidNodeOperationError(){};
+ public:
+  InvalidNodeOperationError() {};
   InvalidNodeOperationError(const std::string &msg)
-      : AutoDiffGraphException(msg){};
+    : AutoDiffGraphException(msg) {};
+};
+
+class NodeValueError : public AutoDiffGraphException {
+ public:
+  NodeValueError() {};
+  NodeValueError(const std::string &msg) : AutoDiffGraphException(msg) {};
 };
 
 class LayerException : public AutoDiffGraphException {
-public:
-  LayerException(){};
-  LayerException(const std::string &msg) : AutoDiffGraphException(msg){};
+ public:
+  LayerException() {};
+  LayerException(const std::string &msg) : AutoDiffGraphException(msg) {};
 };
 
 class LayerParameterError : public LayerException {
-public:
-  LayerParameterError(){};
-  LayerParameterError(const std::string &msg) : LayerException(msg){};
+ public:
+  LayerParameterError() {};
+  LayerParameterError(const std::string &msg) : LayerException(msg) {};
+};
+
+class DatasetError : public AutoDiffGraphException {
+ public:
+  DatasetError() {};
+  DatasetError(const std::string &msg) : AutoDiffGraphException(msg) {};
 };
 
 } // namespace adg_exception

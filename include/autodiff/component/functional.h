@@ -8,53 +8,54 @@ namespace auto_diff {
 namespace functional {
 
 class Sigmoid : public Node {
-public:
-  Sigmoid() : Node(NodeType::ADG_SIGMOID_TYPE){};
+ public:
+  Sigmoid() : Node(NodeType::ADG_SIGMOID_TYPE) {};
   Sigmoid(Node *parent_ptr, Graph *g = nullptr, const std::string &name = "");
   void do_forward() override;
   DTensor do_backward(Node *parent_ptr) override;
 };
 
 class ReLU : public Node {
-public:
-  ReLU() : Node(NodeType::ADG_RELU_TYPE){};
+ public:
+  ReLU() : Node(NodeType::ADG_RELU_TYPE) {};
   ReLU(Node *parent_ptr, Graph *g = nullptr, const std::string &name = "");
   void do_forward() override;
   DTensor do_backward(Node *parent_ptr) override;
 };
 
 class CrossEntropyWithSoftMax : public Node {
-public:
-  CrossEntropyWithSoftMax() : Node(NodeType::ADG_CROSS_ENTROPY_SOFTMAX_TYPE){};
+ public:
+  CrossEntropyWithSoftMax() : Node(NodeType::ADG_CROSS_ENTROPY_SOFTMAX_TYPE) {};
   CrossEntropyWithSoftMax(Node *parent_ptr, Variable *labels_ptr,
                           Graph *g = nullptr, const std::string &name = "");
   static DTensor softmax(const DTensor &input);
+  DTensor get_probs();
   void do_forward() override;
   DTensor do_backward(Node *parent_ptr) override;
 
-private:
+ private:
   static inline double epsilon_ = 1e-9;
   DTensor probs_;
   DTensor neg_log_probs_;
 };
 
 class ReduceSum : public Node {
-public:
-  ReduceSum() : Node(NodeType::ADG_REDUCE_SUM_TYPE){};
+ public:
+  ReduceSum() : Node(NodeType::ADG_REDUCE_SUM_TYPE) {};
   ReduceSum(Node *parent_ptr, Graph *g = nullptr, const std::string &name = "");
   void do_forward() override;
   DTensor do_backward(Node *parent_ptr) override;
 };
 
 class ReduceMean : public Node {
-public:
-  ReduceMean() : Node(NodeType::ADG_REDUCE_SUM_TYPE){};
+ public:
+  ReduceMean() : Node(NodeType::ADG_REDUCE_SUM_TYPE) {};
   ReduceMean(Node *parent_ptr, Graph *g = nullptr,
              const std::string &name = "");
   void do_forward() override;
   DTensor do_backward(Node *parent_ptr) override;
 
-private:
+ private:
   double multiplier_;
 };
 
