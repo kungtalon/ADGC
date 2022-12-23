@@ -3,3 +3,4 @@ debug/
 build/
 test.ipynb
 cmake-build-debug*/
+.idea/

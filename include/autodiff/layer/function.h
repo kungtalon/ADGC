@@ -14,7 +14,7 @@ public:
   Node &forward(const std::vector<std::string> &input_nodes) override;
 
 private:
-  Node *do_forward(const std::vector<Node *> &node_ptrs);
+  Node *do_forward(const std::vector<Node *> &node_ptrs) override;
 };
 
 class Sigmoid : public Layer {
@@ -25,7 +25,7 @@ public:
   Node &forward(const std::vector<std::string> &input_nodes) override;
 
 private:
-  Node *do_forward(const std::vector<Node *> &node_ptrs);
+  Node *do_forward(const std::vector<Node *> &node_ptrs) override;
 };
 
 
