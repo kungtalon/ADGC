@@ -253,6 +253,42 @@ inline int32_t sum(const size_t &size, const int32_t *mat_a,
   throw adg_exception::NonImplementedException();
 }
 
+inline float max(const size_t &size, const float *mat_a, const size_t &inc) {
+  float result = mat_a[0];
+  for (size_t ix = 1, index = inc; ix < size; ++ix, index += inc) {
+    result = mat_a[index] > result ? mat_a[index] : result;
+  }
+  return result;
+}
+
+inline double max(const size_t &size, const double *mat_a, const size_t &inc) {
+  double result = mat_a[0];
+  for (size_t ix = 0, index = inc; ix < size; ++ix, index += inc) {
+    result = mat_a[index] > result ? mat_a[index] : result;
+  }
+  return result;
+}
+
+inline int32_t max(const size_t &size, const int32_t *mat_a, const size_t &inc) {
+  int32_t result = mat_a[0];
+  for (size_t ix = 0, index = inc; ix < size; ++ix, index += inc) {
+    result = mat_a[index] > result ? mat_a[index] : result;
+  }
+  return result;
+}
+
+inline size_t arg_amax(const size_t &size, const float *mat_a, const size_t &inc) {
+  return cblas_isamax(size, mat_a, inc);
+}
+
+inline size_t arg_amax(const size_t &size, const double *mat_a, const size_t &inc) {
+  return cblas_idamax(size, mat_a, inc);
+}
+
+inline size_t arg_amax(const size_t &size, const int32_t *mat_a, const size_t &inc) {
+  throw adg_exception::NonImplementedException();
+}
+
 inline void fill_diagonal(const size_t &M, const size_t &N,
                           const double *values, double *mat) {
   cblas_dcopy(std::min(M, N), values, 1, mat, N + 1);

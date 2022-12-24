@@ -392,6 +392,46 @@ TEST(AdgcTensorTest, AxisAlongSumTest) {
   ASSERT_FLOAT_EQ(res4.get_value(), 222.);
 }
 
+TEST(AdgcTensorTest, AxisAlongMaxTest) {
+  float fa[24] = {2, 18, 13, 17, 2, 3, 7, 14, 17, 3, 15, 0,
+                  5, 17, 5, 10, 10, 2, 11, 12, 15, 6, 9, 9};
+
+  tensor::Tensor<float> ta({3, 2, 4}, fa);
+
+  auto res1 = ta.max(0);
+  ASSERT_THAT(res1.to_vector(), ElementsAre(17, 18, 15, 17, 15, 17, 9, 14));
+
+  auto res2 = ta.max(1);
+  ASSERT_THAT(res2.to_vector(),
+              ElementsAre(2, 18, 13, 17, 17, 17, 15, 10, 15, 6, 11, 12));
+
+  auto res3 = ta.max(2);
+  ASSERT_THAT(res3.to_vector(), ElementsAre(18, 14, 17, 17, 12, 15));
+
+  auto res4 = ta.max();
+  ASSERT_FLOAT_EQ(res4.get_value(), 18.);
+}
+
+TEST(AdgcTensorTest, AxisAlongArgAmaxTest) {
+  float fa[24] = {2, 18, 13, 17, 2, 3, 7, 14, 17, 3, 15, 0,
+                  5, 17, 5, 10, 10, 2, 11, 12, 15, 6, 9, 9};
+
+  tensor::Tensor<float> ta({3, 2, 4}, fa);
+
+  auto res1 = ta.arg_amax(0);
+  ASSERT_THAT(res1.to_vector(), ElementsAre(1, 0, 1, 0, 2, 1, 2, 0));
+
+  auto res2 = ta.arg_amax(1);
+  ASSERT_THAT(res2.to_vector(),
+              ElementsAre(0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0));
+
+  auto res3 = ta.arg_amax(2);
+  ASSERT_THAT(res3.to_vector(), ElementsAre(1, 3, 0, 1, 3, 0));
+
+  auto res4 = ta.arg_amax();
+  ASSERT_FLOAT_EQ(res4.get_value(), 1.);
+}
+
 TEST(AdgcTensorTest, MapperTest) {
   float fa[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 

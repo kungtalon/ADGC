@@ -78,7 +78,9 @@ class Tensor {
   Tensor<dType> add(const dType &number) const;
   Tensor<dType> sub(const Tensor<dType> &bt) const;
   Tensor<dType> sum(const size_t &axis = SIZE_MAX, bool keep_dim = false) const;
-  Tensor<dType> mean(const size_t &axis = SIZE_MAX, bool keep_dim = false);
+  Tensor<dType> mean(const size_t &axis = SIZE_MAX, bool keep_dim = false) const;
+  Tensor<dType> max(const size_t &axis = SIZE_MAX, bool keep_dim = false) const;
+  Tensor<dType> arg_amax(const size_t &axis = SIZE_MAX, bool keep_dim = false) const;
   void normal_init(double loc = 0., double scale = 1., size_t seed = SIZE_MAX);
 
   TensorShape get_dot_shape(const Tensor<dType> &bt) const;
@@ -211,5 +213,7 @@ static const Tensor<double> EMPTY = {{1}};
 } // namespace tensor
 
 #include "tensor/tensor.tcc"
+#include "tensor/tensor_manip.tcc"
+#include "tensor/tensor_numeric.tcc"
 
 #endif

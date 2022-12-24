@@ -3,6 +3,7 @@
 
 #include "node.h"
 #include "variable.h"
+#include "data/data_utils.h"
 
 namespace auto_diff {
 namespace functional {

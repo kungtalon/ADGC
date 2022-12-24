@@ -17,8 +17,7 @@ class CrossEntropyWithSoftmax : public Layer {
 
  private:
   std::string reduction_;
-  DTensor probs_;
-
+  functional::CrossEntropyWithSoftMax *output_ptr_;
 };
 
 } // namespace layer
