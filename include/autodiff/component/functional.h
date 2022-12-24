@@ -3,6 +3,7 @@
 
 #include "node.h"
 #include "variable.h"
+#include "data/data_utils.h"
 
 namespace auto_diff {
 namespace functional {
@@ -67,13 +68,13 @@ ReLU &relu(const Node &parent, Graph *g = nullptr,
            const std::string &name = "");
 
 CrossEntropyWithSoftMax &
-cross_entropy_with_softmax(const Node &parent, const Variable &labels,
+cross_entropy_with_softmax(const Node &input, const Variable &labels,
                            Graph *g = nullptr, const std::string &name = "");
 
-ReduceSum &reduce_sum(const Node &parent, Graph *g = nullptr,
+ReduceSum &reduce_sum(const Node &input, Graph *g = nullptr,
                       const std::string &name = "");
 
-ReduceMean &reduce_mean(const Node &parent, Graph *g = nullptr,
+ReduceMean &reduce_mean(const Node &input, Graph *g = nullptr,
                         const std::string &name = "");
 
 } // namespace functional

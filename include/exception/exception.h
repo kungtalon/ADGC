@@ -77,6 +77,7 @@ class InvalidTensorIndexException : public TensorException {
  public:
   InvalidTensorIndexException()
     : TensorException("InvalidTensorIndexException") {};
+  InvalidTensorIndexException(const std::string &msg) : TensorException(msg) {};
 };
 
 class DividingZeroException : public TensorException {

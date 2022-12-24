@@ -13,9 +13,6 @@ ImageDataset::ImageDataset(const std::string &root,
                            unsigned long shuffle_seed)
   : batch_size_(batch_size), shuffle_(shuffle), shuffle_seed_(shuffle_seed) {
   utils::read_lines_from_file(list_txt.c_str(), img_file_list_);
-  if (shuffle) {
-    do_shuffle(shuffle_seed);
-  }
 
   std::unordered_set<double> labels_set;
 
@@ -50,11 +47,29 @@ ImageDataset::ImageDataset(const std::string &root,
   image_iter_ = img_file_list_.begin();
   label_iter_ = labels_.begin();
   nlabels_ = labels_set.size();
+
+  if (shuffle) {
+    do_shuffle(shuffle_seed);
+  }
 }
 
 void ImageDataset::do_shuffle(unsigned long seed) {
+  std::vector<size_t> indexes(labels_.size());
+  std::iota(indexes.begin(), indexes.end(), 0);
   auto rng = std::default_random_engine(seed);
-  std::shuffle(std::begin(img_file_list_), std::end(img_file_list_), rng);
+  std::shuffle(std::begin(indexes), std::end(indexes), rng);
+
+  std::vector<double> tmp_labels(labels_.size());
+  std::vector<std::string> tmp_img_files(img_file_list_.size());
+
+  for (size_t ix = 0; ix < indexes.size(); ++ix) {
+    tmp_labels[ix] = labels_[indexes[ix]];
+    tmp_img_files[ix] = img_file_list_[indexes[ix]];
+  }
+
+  labels_ = tmp_labels;
+  img_file_list_ = img_file_list_;
+
 }
 
 bool ImageDataset::has_next() const {

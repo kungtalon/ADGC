@@ -16,7 +16,7 @@ class Graph;
 typedef tensor::Tensor<double> DTensor;
 
 class Node {
-public:
+ public:
   Node();
   Node(const std::string &type, const std::string &name = "",
        Graph *graph = nullptr);
@@ -27,7 +27,7 @@ public:
   Node(const Node &other);
   Node(const Node &&other);
   Node &operator=(const Node &other);
-  virtual ~Node(){};
+  virtual ~Node() {};
 
   void clear_value(bool recursive = true);
   void assign_value(const DTensor &value, bool check_shape = true);
@@ -56,6 +56,9 @@ public:
   inline tensor::TensorShape get_value_shape() const {
     return unique_ptr_->value_.get_shape();
   }
+  inline size_t get_value_dim() const {
+    return unique_ptr_->value_.get_dim();
+  }
 
   // inline void set_graph(Graph *graph) { graph_ = graph; }
   inline void clear_jacobi() {
@@ -75,7 +78,7 @@ public:
   friend void graph_reset_node_name(Node *node, const std::string &name,
                                     Graph *graph);
 
-protected:
+ protected:
   std::string type_;
   std::string name_;
   std::vector<Node *> parents_;
