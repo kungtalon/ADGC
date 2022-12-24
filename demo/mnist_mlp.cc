@@ -86,7 +86,8 @@ void train(const size_t &batch_size,
               << std::endl;
     test_data_set.reset_iterator();
   }
-
+  
+  Graph::clear_graph();
 }
 
 int main(int argc, char *argv[]) {
