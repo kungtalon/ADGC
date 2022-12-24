@@ -107,6 +107,21 @@ add_library(data_lib ${DATA_LIB_FILES})
 set_target_properties(data_lib PROPERTIES LINKER_LANGUAGE CXX)
 
 
+add_executable(
+        mnist_trainer
+        "${PROJECT_SOURCE_DIR}/demo/mnist_mlp.cc"
+)
+target_link_libraries(mnist_trainer
+        graph_core_lib
+        graph_component_lib
+        tensor_lib
+        data_lib
+        layer_lib
+        optimizer_lib
+        utils_lib
+        )
+
+
 # testing
 if (NOT ${SKIP_TEST})
     enable_testing()
@@ -212,6 +227,20 @@ if (NOT ${SKIP_TEST})
             gmock_main
             )
 
+    add_executable(
+            data_test
+            test/data_test.cc
+    )
+    target_link_libraries(data_test
+            data_lib
+            tensor_lib
+            utils_lib
+            gtest
+            gtest_main
+            gmock
+            gmock_main
+            )
+
     include(GoogleTest)
     add_test(multi_thread_test multi_thread_test)
     add_test(utils_test utils_test)
@@ -223,4 +252,5 @@ if (NOT ${SKIP_TEST})
     add_test(ops_funcs_test ops_funcs_test)
     add_test(layer_test layer_test)
     add_test(optimizer_test optimizer_test)
+    add_test(data_test data_test)
 endif ()

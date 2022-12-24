@@ -122,10 +122,11 @@ DTensor CrossEntropyWithSoftMax::do_backward(Node *parent_ptr) {
 }
 
 DTensor CrossEntropyWithSoftMax::get_probs() {
-  if (probs_ == tensor::EMPTY) {
-    throw adg_exception::NodeValueError(
-      "CrossEntropyWithSoftMax >> get_probs: No valid value for probs, check forward propagation...");
+  if (this != unique_ptr_) {
+    auto real_ptr = dynamic_cast<CrossEntropyWithSoftMax *>(unique_ptr_);
+    return real_ptr->probs_.copy();
   }
+  
   return probs_.copy();
 }
 

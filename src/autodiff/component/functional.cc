@@ -6,37 +6,37 @@ namespace functional {
 
 Sigmoid &sigmoid(const Node &parent, Graph *g, const std::string &name) {
   Sigmoid *node_ptr =
-      new Sigmoid(Graph::get_ptr_of(parent.get_full_name(), g), g, name);
+    new Sigmoid(Graph::get_ptr_of(parent.get_full_name(), g), g, name);
   return *node_ptr;
 }
 
 ReLU &relu(const Node &parent, Graph *g, const std::string &name) {
   ReLU *node_ptr =
-      new ReLU(Graph::get_ptr_of(parent.get_full_name(), g), g, name);
+    new ReLU(Graph::get_ptr_of(parent.get_full_name(), g), g, name);
   return *node_ptr;
 }
 
-CrossEntropyWithSoftMax &cross_entropy_with_softmax(const Node &parent,
+CrossEntropyWithSoftMax &cross_entropy_with_softmax(const Node &input,
                                                     const Variable &labels,
                                                     Graph *g,
                                                     const std::string &name) {
-  Node *parent_ptr = Graph::get_ptr_of(parent.get_full_name(), g);
+  Node *parent_ptr = Graph::get_ptr_of(input.get_full_name(), g);
   Variable *label_ptr =
-      dynamic_cast<Variable *>(Graph::get_ptr_of(labels.get_full_name(), g));
+    dynamic_cast<Variable *>(Graph::get_ptr_of(labels.get_full_name(), g));
   CrossEntropyWithSoftMax *node_ptr =
-      new CrossEntropyWithSoftMax(parent_ptr, label_ptr, g, name);
+    new CrossEntropyWithSoftMax(parent_ptr, label_ptr, g, name);
   return *node_ptr;
 }
 
-ReduceSum &reduce_sum(const Node &parent, Graph *g, const std::string &name) {
+ReduceSum &reduce_sum(const Node &input, Graph *g, const std::string &name) {
   ReduceSum *node_ptr =
-      new ReduceSum(Graph::get_ptr_of(parent.get_full_name(), g), g, name);
+    new ReduceSum(Graph::get_ptr_of(input.get_full_name(), g), g, name);
   return *node_ptr;
 }
 
-ReduceMean &reduce_mean(const Node &parent, Graph *g, const std::string &name) {
+ReduceMean &reduce_mean(const Node &input, Graph *g, const std::string &name) {
   ReduceMean *node_ptr =
-      new ReduceMean(Graph::get_ptr_of(parent.get_full_name(), g), g, name);
+    new ReduceMean(Graph::get_ptr_of(input.get_full_name(), g), g, name);
   return *node_ptr;
 }
 

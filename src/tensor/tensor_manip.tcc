@@ -101,7 +101,9 @@ bool Tensor<dType>::is_index_valid(const TensorIndex &index) const {
 template<typename dType>
 void Tensor<dType>::set_value(const TensorIndex &index, const dType &value) {
   if (!is_index_valid(index)) {
-    throw adg_exception::InvalidTensorIndexException();
+    throw adg_exception::InvalidTensorIndexException(
+      "InvalidTensorIndexException: the target shape is " + utils::vector_to_str(shape_) + " ,while getting index: "
+        + utils::vector_to_str(index));
   }
 
   TensorIterator<dType> iter = get_iterator(index);
@@ -112,7 +114,8 @@ void Tensor<dType>::set_value(const TensorIndex &index, const dType &value) {
 template<typename dType>
 dType Tensor<dType>::get_value() const {
   if (size_ != 1) {
-    throw adg_exception::InvalidTensorIndexException();
+    throw adg_exception::InvalidTensorIndexException(
+      "InvalidTensorIndexException: get_value() expects a tensor with single entry...");
   }
 
   return *tensor_->begin();
@@ -121,7 +124,9 @@ dType Tensor<dType>::get_value() const {
 template<typename dType>
 dType Tensor<dType>::get_value(const TensorIndex &index) const {
   if (!is_index_valid(index)) {
-    throw adg_exception::InvalidTensorIndexException();
+    throw adg_exception::InvalidTensorIndexException(
+      "InvalidTensorIndexException: the target shape is " + utils::vector_to_str(shape_) + " ,while getting index: "
+        + utils::vector_to_str(index));
   }
 
   return *get_const_iterator(index);
