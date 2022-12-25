@@ -10,6 +10,7 @@
 #include <random>
 #include <string>
 #include <vector>
+#include <utility>
 
 #include "exception/exception.h"
 #include "mapper.h"
@@ -21,7 +22,7 @@ namespace tensor {
 
 typedef std::vector<size_t> TensorShape;
 typedef std::vector<size_t> TensorIndex;
-typedef std::vector<size_t> TensorSlice;
+typedef std::vector<std::array<size_t, 3>> TensorSlice;
 template<typename dType> using TensorIterator = std::vector<dType>::iterator;
 
 const TensorShape EMPTY_SHAPE = {0};
@@ -48,7 +49,7 @@ class Tensor {
   bool operator==(const Tensor<dType> &bt) const;
   bool operator!=(const Tensor<dType> &bt) const;
   Tensor<dType> operator[](const size_t &id) const;
-  Tensor<dType> operator[](const TensorSlice &slice) const;
+  Tensor<dType> operator[](const std::vector<size_t> &slice_indice) const;
   Tensor<dType> operator-() const;
   Tensor<dType> operator/(const dType &denom) const;
   Tensor<dType> &operator+=(const Tensor<dType> &bt);
@@ -65,7 +66,8 @@ class Tensor {
   void map(Mapper<dType> &&mapper);
   void map(const std::function<void(dType &)> &func);
 
-  Tensor<dType> take(const size_t &axis, const TensorSlice &slice) const;
+  Tensor<dType> take(const size_t &axis, const std::vector<size_t> &slice_indices) const;
+  Tensor<dType> slice(const TensorSlice &slice) const;
   Tensor<dType> t() const;
   Tensor<dType> transpose() const;
   Tensor<dType> transpose(const size_t &axis_a, const size_t &axis_b) const;
@@ -97,31 +99,13 @@ class Tensor {
   inline std::vector<dType> to_vector() const {
     return *static_cast<std::vector<dType> *>(tensor_.get());
   };
+  inline const dType *get_tensor_const_ptr() const {
+    return &*tensor_->begin();
+  };
 
   static Tensor<dType> kron(const Tensor<dType> &lt, const Tensor<dType> &rt);
   static Tensor<dType> div(const Tensor<dType> &lt, const Tensor<dType> &rt);
   static Tensor<dType> concat(const std::vector<Tensor<dType>> &tensors, const size_t &axis);
-
-  static inline Tensor<dType> dot(const Tensor<dType> &lt,
-                                  const Tensor<dType> &rt) {
-    return lt.dot(rt);
-  }
-  static inline Tensor<dType> multiply(const Tensor<dType> &lt,
-                                       const Tensor<dType> &rt) {
-    return lt.multiply(rt);
-  }
-  static inline Tensor<dType> add(const Tensor<dType> &lt,
-                                  const Tensor<dType> &rt) {
-    return lt.add(rt);
-  }
-  static inline Tensor<dType> sub(const Tensor<dType> &lt,
-                                  const Tensor<dType> &rt) {
-    return lt.sub(rt);
-  }
-  static inline Tensor<dType> sum(const Tensor<dType> &ts,
-                                  const size_t &axis = SIZE_MAX) {
-    return ts.sum(axis);
-  }
 
  protected:
   // store tensor as a vector, wrapped in shared_ptr for easy copy
@@ -137,6 +121,8 @@ class Tensor {
   // helper functions
   TensorIterator<dType> get_iterator(const TensorIndex &index);
   const TensorIterator<dType> get_const_iterator(const TensorIndex &index) const;
+  void slice_recursive_copy(const size_t &depth, const size_t &cur_axis, const TensorSlice &slice,
+                            const dType *src_ptr, dType *dest_ptr, size_t &dest_index) const;
   static size_t get_coordinate_at_axis(const size_t &ind, const size_t &axis,
                                        const TensorShape &strides);
   static size_t get_index_after_transpose(const size_t &arr_ind,
@@ -148,9 +134,6 @@ class Tensor {
     const size_t &ind, const size_t &axis, const size_t &offset_at_axis,
     const TensorShape &ori_strides, const TensorShape &new_strides);
   inline dType *get_tensor_ptr() { return &*tensor_->begin(); };
-  inline const dType *get_tensor_const_ptr() const {
-    return &*tensor_->begin();
-  };
 
   // impl functions
   void do_shape_update(const TensorShape &shape, const size_t &keep_size = 0);

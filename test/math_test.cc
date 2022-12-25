@@ -159,6 +159,26 @@ TEST(AdgcMathUtilsTest, FloatGemmTest) {
   delete[] out_c;
 }
 
+TEST(AdgcMathUtilsTest, GemmLeft2dRight3dTest) {
+  // [3 ,2]
+  float a[6] = {-9., 7., -3., -2., -1., -5.};
+  // [3, 2, 3]
+  float b[18] = {5., 11., 7., -7., -2., 1., 0., 9., 7., -2., -1., 5., 9., 5.,
+                 3., 0., -3., -3.};
+  float *c = new float[27];
+  float ec[27] = {-94., -113., -56., -1., -29., -23., 30., -1., -12., -14.,
+                  -88., -28., 4., -25., -31., 10., -4., -32., -81., -66.,
+                  -48., -27., -9., -3., -9., 10., 12.};
+
+  utils::math::tensor_gemm(6, 18, 27, 3, 3, 2, a, b, c);
+
+  for (int ix = 0; ix < 27; ++ix) {
+    EXPECT_FLOAT_EQ(ec[ix], c[ix]);
+  }
+
+  delete[] c;
+}
+
 TEST(AdgcMathUtilsTest, FloatElementAddTest) {
   float a[3] = {1, 2, 3};
   float b[3] = {6, 7, 2};

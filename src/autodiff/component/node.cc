@@ -5,7 +5,7 @@ namespace auto_diff {
 Node::Node() : Node(NodeType::ADG_UNKNOWN_TYPE) {}
 
 Node::Node(const std::string &type, const std::string &name, Graph *graph)
-    : type_(type), empty_jacobi_(true), empty_value_(true) {
+  : type_(type), empty_jacobi_(true), empty_value_(true), backward_version_(0) {
   value_ = tensor::EMPTY;
   jacobi_ = tensor::EMPTY;
   unique_ptr_ = this;
@@ -20,7 +20,7 @@ Node::Node(const std::string &type, const std::string &name, Graph *graph)
 
 Node::Node(const std::string &type, const std::vector<Node *> &parents,
            const std::string &name, Graph *graph)
-    : type_(type), empty_jacobi_(true), empty_value_(true) {
+  : type_(type), empty_jacobi_(true), empty_value_(true), backward_version_(0) {
   value_ = tensor::EMPTY;
   jacobi_ = tensor::EMPTY;
   unique_ptr_ = this;
@@ -34,7 +34,7 @@ Node::Node(const std::string &type, const std::vector<Node *> &parents,
     if (parent_ptr->get_graph() != graph_) {
       // parent nodes must belong to the same graph!
       throw adg_exception::MismatchRegisterdGraphError(
-          "Different graphs for a node " + type + " and parent node " +
+        "Different graphs for a node " + type + " and parent node " +
           parent_ptr->get_full_name());
     }
 
@@ -42,18 +42,18 @@ Node::Node(const std::string &type, const std::vector<Node *> &parents,
     add_parent(parent_ptr);
   }
   name_ =
-      graph_->add_node(this, type_, name); // register this node into the graph
+    graph_->add_node(this, type_, name); // register this node into the graph
 }
 
 // copy constructor: we call the new nodes proxy nodes as they are only
 // proxies to the real nodes which are unique and stored in graph containers
 Node::Node(const Node &other)
-    : type_(other.type_), name_(other.name_), graph_(other.graph_),
-      unique_ptr_(other.unique_ptr_) {}
+  : type_(other.type_), name_(other.name_), graph_(other.graph_),
+    unique_ptr_(other.unique_ptr_), backward_version_(other.backward_version_) {}
 
 Node::Node(const Node &&other)
-    : type_(other.type_), name_(other.name_), graph_(other.graph_),
-      unique_ptr_(other.unique_ptr_) {}
+  : type_(other.type_), name_(other.name_), graph_(other.graph_),
+    unique_ptr_(other.unique_ptr_), backward_version_(other.backward_version_) {}
 
 Node &Node::operator=(const Node &other) {
   if (&other == this) {
@@ -88,8 +88,8 @@ void Node::forward() {
 DTensor Node::backward(Node *result) {
   if (this != unique_ptr_) {
     throw adg_exception::InvalidNodeOperationError(
-        "InvalidNodeOperationError: backward on a proxy node... use "
-        "graph->backward() instead");
+      "InvalidNodeOperationError: backward on a proxy node... use "
+      "graph->backward() instead");
   }
 
   if (is_grad_empty()) {
@@ -136,8 +136,14 @@ DTensor Node::backward(Node *result) {
         if (!child_ptr->is_value_empty()) {
           DTensor childs_backward, childs_contrib;
           childs_backward = child_ptr->backward(result);
-          childs_contrib =
+          if (child_ptr->get_backward_version() == 1) {
+            childs_contrib =
+              child_ptr->do_backward(unique_ptr_); // new backward convention, directly calculate the grad
+            childs_contrib.reshape({childs_contrib.get_size(), 1});
+          } else {
+            childs_contrib =
               child_ptr->do_backward(unique_ptr_).dot(childs_backward);
+          }
           jacobi_ = jacobi_.add(childs_contrib);
         }
       }
@@ -182,8 +188,8 @@ void Node::assign_value(const DTensor &value, bool check_shape) {
 
   if (check_shape && value.get_shape() != get_value_shape()) {
     throw adg_exception::MismatchTensorShapeError(
-        "MismatchTensorShapeError >> Node::assign_value get different value "
-        "shapes: " +
+      "MismatchTensorShapeError >> Node::assign_value get different value "
+      "shapes: " +
         utils::vector_to_str(value.get_shape()) + " and " +
         utils::vector_to_str(get_value_shape()));
   }

@@ -80,6 +80,13 @@ class InvalidTensorIndexException : public TensorException {
   InvalidTensorIndexException(const std::string &msg) : TensorException(msg) {};
 };
 
+class InvalidTensorSliceException : public TensorException {
+ public:
+  InvalidTensorSliceException()
+    : TensorException("InvalidTensorSliceException") {};
+  InvalidTensorSliceException(const std::string &msg) : TensorException(msg) {};
+};
+
 class DividingZeroException : public TensorException {
  public:
   DividingZeroException() : TensorException("DividingZeroException") {};
@@ -177,6 +184,13 @@ class InvalidNodeOperationError : public AutoDiffGraphException {
  public:
   InvalidNodeOperationError() {};
   InvalidNodeOperationError(const std::string &msg)
+    : AutoDiffGraphException(msg) {};
+};
+
+class InvalidNodeArgumentError : public AutoDiffGraphException {
+ public:
+  InvalidNodeArgumentError() {};
+  InvalidNodeArgumentError(const std::string &msg)
     : AutoDiffGraphException(msg) {};
 };
 

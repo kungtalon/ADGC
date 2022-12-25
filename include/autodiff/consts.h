@@ -14,7 +14,12 @@ struct NodeType {
   static inline const std::string ADG_MATMUL_TYPE = "OP_matmul";
   static inline const std::string ADG_VECDOT_TYPE = "OP_vecdot";
   static inline const std::string ADG_ADD_TYPE = "OP_add";
+  static inline const std::string ADG_MATADDVEC_TYPE = "OP_mataddvec";
   static inline const std::string ADG_MATSUM_TYPE = "OP_matsum";
+  static inline const std::string ADG_RESHAPE_TYPE = "OP_reshape";
+  static inline const std::string ADG_POINTMUL_TYPE = "OP_pointmul";
+  static inline const std::string ADG_PAD2D_TYPE = "OP_pad2d";
+  static inline const std::string ADG_CONV2D_TYPE = "OP_conv2d";
 
   // functional
   static inline const std::string ADG_SIGMOID_TYPE = "F_sigmoid";

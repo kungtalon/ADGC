@@ -3,6 +3,7 @@
 
 #include "tensor/mapper.h"
 #include "tensor/tensor.h"
+#include "tensor/extension.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
@@ -344,6 +345,36 @@ TEST(AdgcTensorTest, RangesTensorTest) {
               ElementsAre(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12));
 }
 
+TEST(AdgcTensorTest, GeneralSliceTest) {
+  float fa[80] = {18, 5, 3, 18, 18, 4, 6, 9, 11, 14, 11, 17, 8, 15, 15, 11, 18,
+                  7, 5, 2, 4, 8, 3, 17, 11, 5, 9, 17, 8, 15, 3, 18, 7, 10,
+                  19, 0, 3, 7, 6, 0, 12, 3, 13, 17, 8, 17, 10, 5, 2, 18, 9,
+                  13, 3, 1, 17, 12, 8, 4, 11, 0, 4, 9, 13, 5, 5, 0, 8, 16,
+                  0, 15, 5, 7, 7, 12, 17, 1, 8, 4, 12, 15};
+
+  tensor::Tensor<float> ta({4, 4, 5}, fa);
+
+  auto res1 = ta.slice({{0, 1, 3}, {1, 2, 3}});
+  ASSERT_EQ(res1.get_shape(), tensor::TensorShape({2, 1, 5}));
+  ASSERT_THAT(res1.to_vector(),
+              ElementsAre(3, 18, 7, 10, 19, 9, 13, 3, 1, 17)) << "tensor : " + res1.to_string();
+
+  auto res2 = ta.slice({{0, 2, 4}, {2, 1, 3}});
+  ASSERT_EQ(res2.get_shape(), tensor::TensorShape({2, 4, 2}));
+  ASSERT_THAT(res2.to_vector(),
+              ElementsAre(3, 13, 10, 5, 13, 3, 8, 4, 9, 13, 8, 16, 7, 7, 8, 4)) << "tensor : " + res2.to_string();
+
+  auto res3 = ta.slice({{0, 3, 4}, {1, 2, 3}, {2, 1, 2}});
+  ASSERT_EQ(res3.get_shape(), tensor::TensorShape({1, 1, 1}));
+  ASSERT_FLOAT_EQ(res3.get_value(),
+                  7) << "tensor : " + res3.to_string();
+
+  auto res4 = ta.slice({{1, 2, 3}, {2, 1, 2}});
+  ASSERT_EQ(res4.get_shape(), tensor::TensorShape({4, 1, 1}));
+  ASSERT_THAT(res4.to_vector(),
+              ElementsAre(17, 18, 13, 7)) << "tensor : " + res4.to_string();
+}
+
 TEST(AdgcTensorTest, AxisAlongSliceTest) {
   float fa[24] = {29, 28, 62, 55, 56, 51, 0, 82, 76, 85, 14, 26,
                   62, 8, 64, 94, 18, 75, 58, 47, 61, 65, 47, 14};
@@ -516,6 +547,25 @@ TEST(AdgcTensorTest, ConcatTest) {
 
   ASSERT_THAT(result3.to_vector(), ElementsAre(3, 0, 16, 2, 5, 10, 7, 3, 7, 17, 3, 12, 19, 6, 16, 8, 18,
                                                2, 12, 4));
+}
+
+TEST(AdgcTensorExtensionTest, PadTest) {
+  tensor::Tensor<float> ta({3, 2}, {5, 2, 0, 3, 1, 4});
+
+  tensor::Tensor<float> result1 = tensor::pad2d(ta, {2, 2});
+
+  ASSERT_THAT(result1.to_vector(), ElementsAre(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 2, 0, 0, 0, 0, 0, 3,
+                                               0, 0, 0, 0, 1, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
+            << "Result is : \n" << result1.to_string();
+
+  tensor::Tensor<float> tb({2, 2, 2}, {4, 6, 8, 1, 4, 5, 2, 4});
+
+  tensor::Tensor<float> result2 = tensor::pad2d(tb, {{1, 2}, {1, 2}});
+
+  ASSERT_THAT(result2.to_vector(), ElementsAre(0, 0, 0, 0, 0, 0, 4, 6, 0, 0, 0, 8, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                               0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 5, 0, 0, 0, 2, 4, 0, 0, 0, 0, 0, 0,
+                                               0, 0, 0, 0, 0, 0))
+            << "Result is : \n" << result2.to_string();
 }
 
 int main(int argc, char **argv) {

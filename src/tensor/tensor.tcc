@@ -9,7 +9,7 @@ template<typename dType>
 Tensor<dType>::Tensor(const TensorShape &shape) {
   if (!is_shape_valid(shape)) {
     throw adg_exception::InvalidTensorShapeException(
-      "InvalidTensorShapeException; Failed when constructing");
+      "InvalidTensorShapeException; Failed when constructing: " + utils::vector_to_str(shape));
   }
 
   do_shape_update(shape);
@@ -20,7 +20,7 @@ template<typename dType>
 Tensor<dType>::Tensor(const TensorShape &&shape) {
   if (!is_shape_valid(shape)) {
     throw adg_exception::InvalidTensorShapeException(
-      "InvalidTensorShapeException; Failed when constructing");
+      "InvalidTensorShapeException; Failed when constructing: " + utils::vector_to_str(shape));
   }
 
   do_shape_update(shape);
@@ -31,7 +31,7 @@ template<typename dType>
 Tensor<dType>::Tensor(const TensorShape &shape, const dType &single_value) {
   if (!is_shape_valid(shape)) {
     throw adg_exception::InvalidTensorShapeException(
-      "InvalidTensorShapeException; Failed when constructing");
+      "InvalidTensorShapeException; Failed when constructing: " + utils::vector_to_str(shape));
   }
 
   do_shape_update(shape);
@@ -44,7 +44,7 @@ Tensor<dType>::Tensor(const TensorShape &shape, const dType *values) {
   // size compatible with the argument shape
   if (!is_shape_valid(shape)) {
     throw adg_exception::InvalidTensorShapeException(
-      "InvalidTensorShapeException; Failed when constructing");
+      "InvalidTensorShapeException; Failed when constructing: " + utils::vector_to_str(shape));
   }
 
   do_shape_update(shape);
@@ -57,7 +57,7 @@ Tensor<dType>::Tensor(const TensorShape &shape,
                       const std::vector<dType> &values) {
   if (!is_shape_valid(shape)) {
     throw adg_exception::InvalidTensorShapeException(
-      "InvalidTensorShapeException; Failed when constructing");
+      "InvalidTensorShapeException; Failed when constructing: " + utils::vector_to_str(shape));
   }
 
   do_shape_update(shape, values.size());
@@ -69,7 +69,7 @@ Tensor<dType>::Tensor(const TensorShape &shape,
                       const std::vector<dType> &&values) {
   if (!is_shape_valid(shape)) {
     throw adg_exception::InvalidTensorShapeException(
-      "InvalidTensorShapeException; Failed when constructing");
+      "InvalidTensorShapeException; Failed when constructing: " + utils::vector_to_str(shape));
   }
 
   do_shape_update(shape, values.size());

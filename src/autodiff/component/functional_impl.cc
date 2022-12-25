@@ -6,6 +6,7 @@ namespace functional {
 
 Sigmoid::Sigmoid(Node *parent_ptr, Graph *g, const std::string &name)
   : Node(NodeType::ADG_SIGMOID_TYPE, {parent_ptr}, name, g) {
+  set_backward_version(1);
   value_ = DTensor(parent_ptr->get_value_shape());
 }
 
@@ -26,13 +27,13 @@ DTensor Sigmoid::do_backward(Node *parent_ptr) {
 
   DTensor ones = tensor::Ones(get_value_shape());
   DTensor sigmoid_backward =
-    DTensor::multiply(value_, DTensor::sub(ones, value_));
-  return tensor::Diagonal<double>(
-    sigmoid_backward.to_vector()); // shape [value_size, value_size]
+    tensor::multiply(value_, tensor::sub(ones, value_));
+  return sigmoid_backward.multiply(get_grad());
 }
 
 ReLU::ReLU(Node *parent_ptr, Graph *g, const std::string &name)
   : Node(NodeType::ADG_RELU_TYPE, {parent_ptr}, name, g) {
+  set_backward_version(1);
   value_ = DTensor(parent_ptr->get_value_shape());
 }
 
@@ -58,8 +59,7 @@ DTensor ReLU::do_backward(Node *parent_ptr) {
       val = 0.0;
     }
   });
-  return tensor::Diagonal<double>(
-    relu_backward.to_vector()); // shape: [value_size, value_size]
+  return relu_backward.multiply(get_grad());
 }
 
 // loss function takes two parents, one is the label data being Variable type
@@ -68,6 +68,7 @@ CrossEntropyWithSoftMax::CrossEntropyWithSoftMax(Node *parent_ptr,
                                                  const std::string &name)
   : Node(NodeType::ADG_CROSS_ENTROPY_SOFTMAX_TYPE, {parent_ptr, labels_ptr},
          name, g) {
+  set_backward_version(1);
   value_ = DTensor({1});
 }
 
@@ -99,7 +100,7 @@ void CrossEntropyWithSoftMax::do_forward() {
   neg_log_probs_.map([](double &val) { val = -std::log(val + epsilon_); });
   // sum_i { - yi * log(pi) }
   value_ =
-    DTensor::sum(DTensor::multiply(parents_[1]->get_value(), neg_log_probs_));
+    tensor::sum(tensor::multiply(parents_[1]->get_value(), neg_log_probs_));
 }
 
 DTensor CrossEntropyWithSoftMax::do_backward(Node *parent_ptr) {
@@ -110,15 +111,14 @@ DTensor CrossEntropyWithSoftMax::do_backward(Node *parent_ptr) {
 
   DTensor result;
   if (parent_ptr == parents_[0]) {
-    result = DTensor::sub(probs_, parents_[1]->get_value());
+    result = tensor::sub(probs_, parents_[1]->get_value());
   } else {
     result = neg_log_probs_;
   }
   // throw adg_exception::TestingDebugException(
   //     "Get pa value of " +
   //     utils::vector_to_str(parent_ptr->get_value().to_vector()));
-  result.reshape({parent_ptr->get_value_size(), 1});
-  return result;
+  return result.multiply(get_grad().get_value());
 }
 
 DTensor CrossEntropyWithSoftMax::get_probs() {
@@ -126,12 +126,13 @@ DTensor CrossEntropyWithSoftMax::get_probs() {
     auto real_ptr = dynamic_cast<CrossEntropyWithSoftMax *>(unique_ptr_);
     return real_ptr->probs_.copy();
   }
-  
+
   return probs_.copy();
 }
 
 ReduceSum::ReduceSum(Node *parent_ptr, Graph *g, const std::string &name)
   : Node(NodeType::ADG_REDUCE_SUM_TYPE, {parent_ptr}, name, g) {
+  set_backward_version(1);
   value_ = DTensor({1});
 }
 
@@ -145,11 +146,12 @@ void ReduceSum::do_forward() {
 }
 
 DTensor ReduceSum::do_backward(Node *parent_ptr) {
-  return tensor::Ones({parent_ptr->get_value_size(), 1});
+  return DTensor({parent_ptr->get_value_size(), 1}, get_grad().get_value());
 }
 
 ReduceMean::ReduceMean(Node *parent_ptr, Graph *g, const std::string &name)
   : Node(NodeType::ADG_REDUCE_SUM_TYPE, {parent_ptr}, name, g) {
+  set_backward_version(1);
   value_ = DTensor({1});
 }
 
@@ -159,12 +161,12 @@ void ReduceMean::do_forward() {
       "ReduceMean >> ReduceMean: FunctionalParentsUnsetException");
   }
 
-  multiplier_ = 1 / parents_[0]->get_value_size();
+  multiplier_ = 1. / parents_[0]->get_value_size();
   value_ = parents_[0]->get_value().sum().multiply(multiplier_);
 }
 
 DTensor ReduceMean::do_backward(Node *parent_ptr) {
-  return DTensor({parent_ptr->get_value_size(), 1}, multiplier_);
+  return DTensor({parent_ptr->get_value_size(), 1}, multiplier_ * get_grad().get_value());
 }
 
 } // namespace functional
