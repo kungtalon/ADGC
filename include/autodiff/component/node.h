@@ -60,6 +60,12 @@ class Node {
   inline size_t get_value_dim() const {
     return unique_ptr_->value_.get_dim();
   }
+  inline void set_backward_version(int version) {
+    unique_ptr_->backward_version_ = version;
+  }
+  inline int get_backward_version() const {
+    return unique_ptr_->backward_version_;
+  }
 
   // inline void set_graph(Graph *graph) { graph_ = graph; }
   inline void clear_jacobi() {
@@ -90,6 +96,7 @@ class Node {
   bool empty_jacobi_;
   Graph *graph_;
   Node *unique_ptr_; // use this as the reference to the unique node pointer
+  int backward_version_;
 
   virtual void do_forward() = 0;                 // compute value
   virtual DTensor do_backward(Node *parent) = 0; // compute jacobian

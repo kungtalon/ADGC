@@ -68,18 +68,26 @@ TensorShape Tensor<dType>::get_dot_shape(const Tensor<dType> &bt) const {
   // if tensor dot tensor, mat mul will only change the last two dimensions
   // if tensor dot matrix...
   if (get_dim() != bt.get_dim()) {
-    if (bt.get_dim() == 2) {
+    if (bt.get_dim() == 2 || get_dim() == 2) {
       tensor_dot_matrix = true;
     } else {
       throw adg_exception::MismatchTensorDimError(
-        "Tensor >> get_dot_shape: the second tensor should have either dim 2, or the same dim as the first");
+        "Tensor >> get_dot_shape: the tensor should have either dim 2, or the same dim as the other");
     }
   }
 
   size_t left_dim = get_dim();
   size_t right_dim = bt.get_dim();
-  TensorShape shape_left = get_shape();
-  TensorShape shape_right = bt.get_shape();
+  TensorShape shape_left, shape_right, shape_larger;
+  // make the left shape with the bigger dim
+  if (left_dim < right_dim) {
+    shape_larger = bt.get_shape();
+  } else {
+    shape_larger = get_shape();
+  }
+
+  shape_left = get_shape();
+  shape_right = bt.get_shape();
 
   if (!tensor_dot_matrix) {
     for (int ix = 0; ix < left_dim - 2; ix++) {
@@ -100,7 +108,8 @@ TensorShape Tensor<dType>::get_dot_shape(const Tensor<dType> &bt) const {
   }
 
   // then, the answer is [..., a, c]
-  TensorShape result_shape(shape_left.begin(), shape_left.end() - 1);
+  TensorShape result_shape(shape_larger.begin(), shape_larger.end() - 2);
+  result_shape.emplace_back(shape_left[left_dim - 2]);
   result_shape.emplace_back(shape_right[right_dim - 1]);
   return result_shape;
 }

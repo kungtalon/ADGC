@@ -80,6 +80,13 @@ class InvalidTensorIndexException : public TensorException {
   InvalidTensorIndexException(const std::string &msg) : TensorException(msg) {};
 };
 
+class InvalidTensorSliceException : public TensorException {
+ public:
+  InvalidTensorSliceException()
+    : TensorException("InvalidTensorSliceException") {};
+  InvalidTensorSliceException(const std::string &msg) : TensorException(msg) {};
+};
+
 class DividingZeroException : public TensorException {
  public:
   DividingZeroException() : TensorException("DividingZeroException") {};

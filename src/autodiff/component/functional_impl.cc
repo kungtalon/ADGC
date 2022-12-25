@@ -6,6 +6,7 @@ namespace functional {
 
 Sigmoid::Sigmoid(Node *parent_ptr, Graph *g, const std::string &name)
   : Node(NodeType::ADG_SIGMOID_TYPE, {parent_ptr}, name, g) {
+  set_backward_version(1);
   value_ = DTensor(parent_ptr->get_value_shape());
 }
 
@@ -27,12 +28,12 @@ DTensor Sigmoid::do_backward(Node *parent_ptr) {
   DTensor ones = tensor::Ones(get_value_shape());
   DTensor sigmoid_backward =
     tensor::multiply(value_, tensor::sub(ones, value_));
-  return tensor::Diagonal<double>(
-    sigmoid_backward.to_vector()); // shape [value_size, value_size]
+  return sigmoid_backward.multiply(get_grad()); // shape [value_size, value_size]
 }
 
 ReLU::ReLU(Node *parent_ptr, Graph *g, const std::string &name)
   : Node(NodeType::ADG_RELU_TYPE, {parent_ptr}, name, g) {
+  set_backward_version(1);
   value_ = DTensor(parent_ptr->get_value_shape());
 }
 
@@ -58,8 +59,7 @@ DTensor ReLU::do_backward(Node *parent_ptr) {
       val = 0.0;
     }
   });
-  return tensor::Diagonal<double>(
-    relu_backward.to_vector()); // shape: [value_size, value_size]
+  return relu_backward.multiply(get_grad()); // shape: [value_size, value_size]
 }
 
 // loss function takes two parents, one is the label data being Variable type
@@ -68,6 +68,7 @@ CrossEntropyWithSoftMax::CrossEntropyWithSoftMax(Node *parent_ptr,
                                                  const std::string &name)
   : Node(NodeType::ADG_CROSS_ENTROPY_SOFTMAX_TYPE, {parent_ptr, labels_ptr},
          name, g) {
+  set_backward_version(1);
   value_ = DTensor({1});
 }
 
@@ -117,8 +118,7 @@ DTensor CrossEntropyWithSoftMax::do_backward(Node *parent_ptr) {
   // throw adg_exception::TestingDebugException(
   //     "Get pa value of " +
   //     utils::vector_to_str(parent_ptr->get_value().to_vector()));
-  result.reshape({parent_ptr->get_value_size(), 1});
-  return result;
+  return result.multiply(get_grad().get_value());
 }
 
 DTensor CrossEntropyWithSoftMax::get_probs() {
@@ -132,6 +132,7 @@ DTensor CrossEntropyWithSoftMax::get_probs() {
 
 ReduceSum::ReduceSum(Node *parent_ptr, Graph *g, const std::string &name)
   : Node(NodeType::ADG_REDUCE_SUM_TYPE, {parent_ptr}, name, g) {
+  set_backward_version(1);
   value_ = DTensor({1});
 }
 
@@ -145,11 +146,12 @@ void ReduceSum::do_forward() {
 }
 
 DTensor ReduceSum::do_backward(Node *parent_ptr) {
-  return tensor::Ones({parent_ptr->get_value_size(), 1});
+  return DTensor({parent_ptr->get_value_size(), 1}, get_grad().get_value());
 }
 
 ReduceMean::ReduceMean(Node *parent_ptr, Graph *g, const std::string &name)
   : Node(NodeType::ADG_REDUCE_SUM_TYPE, {parent_ptr}, name, g) {
+  set_backward_version(1);
   value_ = DTensor({1});
 }
 
@@ -159,12 +161,12 @@ void ReduceMean::do_forward() {
       "ReduceMean >> ReduceMean: FunctionalParentsUnsetException");
   }
 
-  multiplier_ = 1 / parents_[0]->get_value_size();
+  multiplier_ = 1. / parents_[0]->get_value_size();
   value_ = parents_[0]->get_value().sum().multiply(multiplier_);
 }
 
 DTensor ReduceMean::do_backward(Node *parent_ptr) {
-  return DTensor({parent_ptr->get_value_size(), 1}, multiplier_);
+  return DTensor({parent_ptr->get_value_size(), 1}, multiplier_ * get_grad().get_value());
 }
 
 } // namespace functional

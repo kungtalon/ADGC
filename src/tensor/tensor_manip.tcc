@@ -34,8 +34,8 @@ Tensor<dType> Tensor<dType>::operator[](const size_t &id) const {
 }
 
 template<typename dType>
-Tensor<dType> Tensor<dType>::operator[](const TensorSlice &slice) const {
-  return take(0, slice);
+Tensor<dType> Tensor<dType>::operator[](const std::vector<size_t> &slice_indice) const {
+  return take(0, slice_indice);
 }
 
 template<typename dType>
@@ -145,24 +145,24 @@ A simpler version :
 */
 template<typename dType>
 Tensor<dType> Tensor<dType>::take(const size_t &axis,
-                                  const TensorSlice &slice) const {
+                                  const std::vector<size_t> &slice_indices) const {
   if (axis >= dim_) {
     throw adg_exception::AxisOutOfRangeError(
       "Tensor >> take: axis out of range");
   }
 
-  for (size_t i : slice) {
+  for (size_t i : slice_indices) {
     if (i >= shape_[axis]) {
       throw adg_exception::IndexOutOfRangeError();
     }
   }
 
-  size_t slice_len = slice.size();
+  size_t slice_len = slice_indices.size();
   TensorShape result_shape = shape_;
   result_shape[axis] = slice_len;
   Tensor<dType> result(std::move(result_shape));
 
-  std::vector<size_t> indices = slice;
+  std::vector<size_t> indices = slice_indices;
   for (size_t &index : indices) {
     index *= strides_[axis];
   }
@@ -183,6 +183,81 @@ Tensor<dType> Tensor<dType>::take(const size_t &axis,
   }
 
   return result;
+}
+
+template<typename dType>
+Tensor<dType> Tensor<dType>::slice(const TensorSlice &slice) const {
+  // slice is a vector of tuple3 {axis, start_index, end_index};
+  // only support continuous slice
+  TensorShape result_shape = shape_;
+  TensorSlice sorted_slice(slice);
+  std::sort(sorted_slice.begin(), sorted_slice.end(),
+            [](const std::array<size_t, 3> &a, const std::array<size_t, 3> &b) { return a[0] < b[0]; });
+
+  for (auto slice_tuple : sorted_slice) {
+    if (slice_tuple[0] > dim_) {
+      throw adg_exception::InvalidTensorSliceException(
+        "Tensor >> slice: slice axis out of range: " + std::to_string(slice_tuple[0]));
+    }
+
+    if (slice_tuple[2] < slice_tuple[1]) {
+      throw adg_exception::InvalidTensorSliceException(
+        "Tensor >> slice: slice tuple (axis, start_ix, end_ix) must assure start_ix < end_ix");
+    }
+
+    result_shape[slice_tuple[0]] = slice_tuple[2] - slice_tuple[1];
+  }
+
+  Tensor<dType> result(std::move(result_shape));
+
+  size_t dest_index = 0;
+  slice_recursive_copy(0, 0, sorted_slice, get_tensor_const_ptr(),
+                       result.get_tensor_ptr(), dest_index);
+  return result;
+}
+
+template<typename dType>
+void Tensor<dType>::slice_recursive_copy(const size_t &depth,
+                                         const size_t &cur_axis,
+                                         const TensorSlice &slice,
+                                         const dType *src_ptr,
+                                         dType *dest_ptr,
+                                         size_t &dest_index) const {
+  if (depth == slice.size()) {
+    // reach the end of recursion, do the copy without restriction
+    memcpy(dest_ptr + dest_index, src_ptr, sizeof(dType) * strides_[cur_axis - 1]);
+    dest_index += strides_[cur_axis - 1];
+    return;
+  }
+
+  // loop over the desired index
+  size_t start_index, end_index;
+  size_t depth_move = 0;
+  if (cur_axis != slice[depth][0]) {
+    start_index = 0;
+    end_index = shape_[cur_axis];
+  } else {
+    // if cur axis equals the slice[depth][0], the depth should move by one slot
+    depth_move = 1;
+    start_index = slice[depth][1];
+    end_index = slice[depth][2];
+  }
+  if (cur_axis == dim_ - 1) {
+    // optimize the slice on the last dim
+    // this part can get removed while the function will run expectedly
+    size_t copy_len = end_index - start_index;
+    memcpy(dest_ptr + dest_index, src_ptr + start_index, sizeof(dType) * copy_len);
+    dest_index += copy_len;
+    return;
+  }
+  for (size_t ix = start_index; ix < end_index; ++ix) {
+    slice_recursive_copy(depth + depth_move,
+                         cur_axis + 1,
+                         slice,
+                         src_ptr + ix * strides_[cur_axis],
+                         dest_ptr,
+                         dest_index);
+  }
 }
 
 // copy returns a deep copy of current tensor
@@ -222,6 +297,10 @@ void Tensor<dType>::do_shape_update(const TensorShape &shape,
 // reshape changes the shape_, dim_, strides_ of the tensor
 template<typename dType>
 void Tensor<dType>::reshape(const TensorShape &new_shape) {
+  if (new_shape == shape_) {
+    return;
+  }
+
   if (!is_shape_valid(new_shape)) {
     throw adg_exception::InvalidTensorShapeException("Tensor ==> reshape");
   }
@@ -402,7 +481,6 @@ void Tensor<dType>::fill_diag(const std::vector<dType> &diag_values) {
   utils::math::fill_diagonal(std::min(shape_[0], diag_len), shape_[1],
                              &*diag_values.begin(), get_tensor_ptr());
 }
-
 
 template<typename dType>
 Tensor<int32_t> Tensor<dType>::to_int() const {

@@ -76,13 +76,26 @@ class PointMul : public Node {
   DTensor do_backward(Node *parent_ptr) override;
 };
 
-class Conv : public Node {
-  Conv() : Node(NodeType::ADG_CONV_TYPE) {};
-  Conv(Node *input_ptr,
-       Parameter *kernel_ptr,
-       const std::vector<size_t> &strides,
-       Graph *g = nullptr,
-       const std::string &name = "");
+class Pad2D : public Node {
+ public:
+  Pad2D() : Node(NodeType::ADG_PAD2D_TYPE) {};
+  Pad2D(Node *parent_ptr, const std::vector<std::pair<size_t, size_t>> &padding, const double &value = 0,
+        Graph *g = nullptr, const std::string &name = "");
+  void do_forward() override;
+  DTensor do_backward(Node *parent_ptr) override;
+ private :
+  double pad_value_;
+  std::vector<std::pair<size_t, size_t>> padding_;
+
+};
+
+class Conv2D : public Node {
+  Conv2D() : Node(NodeType::ADG_CONV2D_TYPE) {};
+  Conv2D(Node *input_ptr,
+         Parameter *kernel_ptr,
+         const std::vector<size_t> &strides,
+         Graph *g = nullptr,
+         const std::string &name = "");
   void do_forward() override;
   DTensor do_backward(Node *parent_ptr) override;
 

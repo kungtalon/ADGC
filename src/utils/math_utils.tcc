@@ -329,10 +329,15 @@ void tensor_gemm(const size_t &size_a, const size_t &size_b,
   size_t inc_a = M * K;
   size_t inc_b = K * N;
   size_t inc_c = M * N;
-  size_t n_blocks = size_a / inc_a;
-  if (n_blocks != size_b / inc_b) {
+  size_t n_blocks_a = size_a / inc_a;
+  size_t n_blocks_b = size_b / inc_b;
+  size_t n_blocks = std::max(n_blocks_a, n_blocks_b);
+  if (n_blocks != n_blocks_b) {
     // tensor_b is a matrix should be repeated
     inc_b = 0;
+  }
+  if (n_blocks != n_blocks_a) {
+    inc_a = 0;
   }
 
   if (n_blocks == 1) {
