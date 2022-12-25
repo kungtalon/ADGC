@@ -1,7 +1,10 @@
-#include "autodiff/component/ops.h"
+//
+// Created by kungtalon on 2022/12/25.
+//
+#include "autodiff/component/functional/tensor_basic.h"
 
 namespace auto_diff {
-namespace ops {
+namespace functional {
 
 Add::Add(Node *parent1_ptr, Node *parent2_ptr, Graph *g,
          const std::string &name)
@@ -225,32 +228,6 @@ DTensor MatSum::do_backward(Node *parent_ptr) {
   return get_grad(false);
 }
 
-Reshape::Reshape(Node *parent_ptr, const tensor::TensorShape &shape, Graph *g,
-                 const std::string &name)
-  : Node(NodeType::ADG_RESHAPE_TYPE, {parent_ptr}, name, g) {
-  set_backward_version(1);
-  size_t new_size = 1;
-  for (auto len : shape) {
-    new_size *= len;
-  }
-
-  if (parents_[0]->get_value_size() != new_size) {
-    throw adg_exception::MismatchNodeValueShapeError("Reshape >> Reshape: MismatchNodeValueShapeError for reshape");
-  }
-
-  value_ = DTensor(shape);
-  new_shape_ = shape;
-}
-
-void Reshape::do_forward() {
-  value_ = parents_[0]->get_value().copy();
-  value_.reshape(new_shape_);
-}
-
-DTensor Reshape::do_backward(Node *parent_ptr) {
-  return get_grad(false);
-}
-
 PointMul::PointMul(Node *parent_ptr1, Node *parent_ptr2, Graph *g, const std::string &name)
   : Node(NodeType::ADG_POINTMUL_TYPE, {parent_ptr1, parent_ptr2}, name, g) {
   set_backward_version(1);
@@ -273,113 +250,62 @@ DTensor PointMul::do_backward(Node *parent_ptr) {
   }
 }
 
-Pad2D::Pad2D(Node *parent_ptr, const std::vector<std::pair<size_t, size_t>> &padding, const double &value,
-             Graph *g, const std::string &name)
-  : Node(NodeType::ADG_PAD2D_TYPE, {parent_ptr}, name, g), pad_value_(value), padding_(padding) {
-  set_backward_version(1);
-  if (padding.size() != 2) {
-    throw adg_exception::InvalidNodeArgumentError(
-      "Pad2D >> Pad2D: expect padding for 2 dimensions, got " + std::to_string(padding.size()));
-  }
+
+// functions:
+
+Add &add(const Node &parent1, const Node &parent2, Graph *g,
+         const std::string &name) {
+  Add *node_ptr =
+    new Add(Graph::get_ptr_of(parent1.get_full_name(), g),
+            Graph::get_ptr_of(parent2.get_full_name(), g), g, name);
+  return *node_ptr;
 }
 
-void Pad2D::do_forward() {
-  value_ = tensor::pad2d(parents_[0]->get_value(), padding_, pad_value_);
+VecDot &vecdot(const Node &parent1, const Node &parent2, Graph *g,
+               const std::string &name) {
+  VecDot *node_ptr =
+    new VecDot(Graph::get_ptr_of(parent1.get_full_name(), g),
+               Graph::get_ptr_of(parent2.get_full_name(), g), g, name);
+  return *node_ptr;
 }
 
-DTensor Pad2D::do_backward(Node *parent_ptr) {
-  size_t pad_left, pad_right, pad_top, pad_bottom;
-  size_t dim = get_value_dim();
-  tensor::TensorShape shape = get_value_shape();
-
-  pad_top = padding_[0].first;
-  pad_bottom = padding_[0].second;
-  pad_left = padding_[1].first;
-  pad_right = padding_[1].second;
-
-  DTensor grad = get_grad();
-  return grad.slice({{dim - 2, pad_top, shape[dim - 2] - pad_bottom}, {dim - 1, pad_left, shape[dim - 1] - pad_right}});
+MatMul &matmul(const Node &parent1, const Node &parent2, Graph *g,
+               const std::string &name) {
+  MatMul *node_ptr =
+    new MatMul(Graph::get_ptr_of(parent1.get_full_name(), g),
+               Graph::get_ptr_of(parent2.get_full_name(), g), g, name);
+  return *node_ptr;
 }
 
-Conv2D::Conv2D(Node *input_ptr,
-               Parameter *kernel_ptr,
-               const std::vector<size_t> &strides,
-               Graph *g,
-               const std::string &name)
-  : Node(NodeType::ADG_CONV2D_TYPE, {input_ptr, kernel_ptr}, name, g),
-    strides_(strides) {
-  set_backward_version(1);
-  // second being the kernel
-  // input : image features [B, H, W, Cin], kernel [Kh, Kw, Cin, Cout]
-  // if input.size() == 3: use bias of size : [Cout]
-  if (parents_.size() != 2) {
-    throw adg_exception::OpsParentsNumException("Conv >> Conv: expect 2 parent nodes...");
-  }
-
-  if (strides_.size() != 2) {
-    throw adg_exception::InvalidNodeArgumentError("Conv >> Conv: strides should have size of 2...");
-  }
-
-  for (size_t &stride : strides_) {
-    if (stride < 1) {
-      throw adg_exception::InvalidNodeArgumentError("Conv >> Conv: getting stride smaller than 1..");
-    }
-  }
-
-  auto image_shape = parents_[0]->get_value_shape();
-  kernel_shape_ = parents_[1]->get_value_shape();
-  size_t h = image_shape[1];
-  size_t w = image_shape[2];
-  size_t in_c = image_shape[3];
-  if (kernel_shape_[2] != in_c) {
-    throw adg_exception::MismatchNodeValueShapeError(
-      "Conv >> Conv: different channel size for image and kernel! "
-        + std::to_string(kernel_shape_[2]) + " and " + std::to_string(in_c));
-  }
-
-  out_c_ = parents_[1]->get_value_shape()[parents_[1]->get_value_dim() - 1];
-  out_h_ = (h - kernel_shape_[0]) / strides[0] + 1;
-  out_w_ = (w - kernel_shape_[1]) / strides[1] + 1;
-
-  value_ = DTensor({out_c_, out_h_, out_w_});
+MatSum &matsum(const std::vector<Node *> &parents_ptr, Graph *g,
+               const std::string &name) {
+  MatSum *node_ptr = new MatSum(parents_ptr, g, name);
+  return *node_ptr;
 }
 
-void Conv2D::do_forward() {
-  col_kernel_ = parents_[1]->get_value().copy();
-  col_kernel_.reshape({kernel_shape_[0] * kernel_shape_[1] * kernel_shape_[2], out_c_});
-  // shape: [kh * kw * cin, cout]
-
-  im2col(parents_[1]->get_value()); // shape: [B, (h - kh) * (w - kw), kh * kw * cin]
-
-  value_ = col_image_.dot(col_kernel_); // shape: [B, (h-kh)*(w-kw), c_out]
-  value_.reshape({out_h_, out_w_, out_c_});
+MatSum &matsum(const Node &parent_1, const Node &parent_2, Graph *g,
+               const std::string &name) {
+  return matsum({Graph::get_ptr_of(parent_1.get_full_name(), g),
+                 Graph::get_ptr_of(parent_2.get_full_name(), g)},
+                g, name);
 }
 
-DTensor Conv2D::do_backward(Node *parent_ptr) {
-
+MatSum &matsum(const Node &parent_1, const Node &parent_2, const Node &parent_3,
+               Graph *g, const std::string &name) {
+  return matsum({Graph::get_ptr_of(parent_1.get_full_name(), g),
+                 Graph::get_ptr_of(parent_2.get_full_name(), g),
+                 Graph::get_ptr_of(parent_3.get_full_name(), g)},
+                g, name);
 }
 
-void Conv2D::im2col(const DTensor &input) {
-  // input : [b, h, w, c]
-  size_t row_steps, col_steps;
-  tensor::TensorShape shape = input.get_shape();
-  row_steps = shape[1] / strides_[0];
-  col_steps = shape[2] / strides_[1];
-
-  col_image_ = DTensor({shape[0], out_h_ * out_w_, shape[3]});
-  size_t window_size = kernel_shape_[0] * kernel_shape_[1];
-
-  size_t cur_window_index;   // index of the windows' leftmost element
-  for (size_t ib = 0; ib < shape[0]; ++ib) {
-    for (size_t ih = 0; ih < shape[1]; ih += strides_[0]) {
-      for (size_t iw = 0; iw < shape[2]; iw += strides_[1]) {
-        for (size_t ii = 0; ii < window_size; ++ii) {
-
-        }
-      }
-    }
-  }
+MatSum &matsum(const Node &parent_1, const Node &parent_2, const Node &parent_3,
+               const Node &parent_4, Graph *g, const std::string &name) {
+  return matsum({Graph::get_ptr_of(parent_1.get_full_name(), g),
+                 Graph::get_ptr_of(parent_2.get_full_name(), g),
+                 Graph::get_ptr_of(parent_3.get_full_name(), g),
+                 Graph::get_ptr_of(parent_4.get_full_name(), g)},
+                g, name);
 }
 
-} // namespace ops
-} // namespace auto_diff
+}
+}

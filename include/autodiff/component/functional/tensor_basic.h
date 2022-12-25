@@ -1,13 +1,14 @@
-#ifndef ADGC_AUTODIFF_OPS_H_
-#define ADGC_AUTODIFF_OPS_H_
+//
+// Created by kungtalon on 2022/12/25.
+//
 
-#include <algorithm>
+#ifndef ADGC_INCLUDE_AUTODIFF_COMPONENT_FUNCTIONAL_TENSOR_BASIC_H_
+#define ADGC_INCLUDE_AUTODIFF_COMPONENT_FUNCTIONAL_TENSOR_BASIC_H_
 
-#include "node.h"
-#include "variable.h"
+#include "autodiff/component/functional.h"
 
 namespace auto_diff {
-namespace ops {
+namespace functional {
 
 class Add : public Node {
  public:
@@ -55,18 +56,6 @@ class MatSum : public Node {
   DTensor do_backward(Node *parent_ptr) override;
 };
 
-class Reshape : public Node {
- public:
-  Reshape() : Node(NodeType::ADG_POINTMUL_TYPE) {};
-  Reshape(Node *parent_ptr, const tensor::TensorShape &shape, Graph *g = nullptr,
-          const std::string &name = "");
-  void do_forward() override;
-  DTensor do_backward(Node *parent_ptr) override;
-
- private:
-  tensor::TensorShape new_shape_;
-};
-
 class PointMul : public Node {
  public:
   PointMul() : Node(NodeType::ADG_POINTMUL_TYPE) {};
@@ -74,38 +63,6 @@ class PointMul : public Node {
            const std::string &name = "");
   void do_forward() override;
   DTensor do_backward(Node *parent_ptr) override;
-};
-
-class Pad2D : public Node {
- public:
-  Pad2D() : Node(NodeType::ADG_PAD2D_TYPE) {};
-  Pad2D(Node *parent_ptr, const std::vector<std::pair<size_t, size_t>> &padding, const double &value = 0,
-        Graph *g = nullptr, const std::string &name = "");
-  void do_forward() override;
-  DTensor do_backward(Node *parent_ptr) override;
- private :
-  double pad_value_;
-  std::vector<std::pair<size_t, size_t>> padding_;
-
-};
-
-class Conv2D : public Node {
-  Conv2D() : Node(NodeType::ADG_CONV2D_TYPE) {};
-  Conv2D(Node *input_ptr,
-         Parameter *kernel_ptr,
-         const std::vector<size_t> &strides,
-         Graph *g = nullptr,
-         const std::string &name = "");
-  void do_forward() override;
-  DTensor do_backward(Node *parent_ptr) override;
-
- private:
-  size_t out_c_, out_h_, out_w_;
-  DTensor col_image_, col_kernel_;
-  std::vector<size_t> strides_, kernel_shape_;
-
-  void im2col(const DTensor &input);
-  DTensor col2im(const DTensor &input);
 };
 
 Add &add(const Node &parent1, const Node &parent2, Graph *g = nullptr,
@@ -130,8 +87,8 @@ MatSum &matsum(const Node &parent_1, const Node &parent_2, const Node &parent_3,
                const Node &parent_4, Graph *g = nullptr,
                const std::string &name = "");
 
-} // namespace ops
+}
 
-} // namespace auto_diff
+}
 
-#endif
+#endif //ADGC_INCLUDE_AUTODIFF_COMPONENT_FUNCTIONAL_TENSOR_BASIC_H_

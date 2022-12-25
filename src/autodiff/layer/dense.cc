@@ -36,11 +36,11 @@ Node &Dense::operator()(const Node &input) {
   Node *input_ptr = Graph::get_ptr_of(input.get_full_name(), graph_);
   Parameter weight = get_weight();
   Node *output =
-    new ops::MatMul(input_ptr, &weight, graph_, layer_name_ + "_matmul");
+    new functional::MatMul(input_ptr, &weight, graph_, layer_name_ + "_matmul");
 
   if (params_ptr_list_.size() == 2) {
     Parameter bias = get_bias();
-    output = new ops::Add(output, &bias);
+    output = new functional::Add(output, &bias);
   }
 
   if (activation_ == "relu") {

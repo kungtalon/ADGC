@@ -1,5 +1,4 @@
 #include "autodiff/component/functional.h"
-#include "autodiff/component/ops.h"
 #include "autodiff/component/variable.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -22,7 +21,7 @@ TEST(OpsTest, AddAndReduceSumTest) {
     v1.assign_value(value_v1);
     v2.assign_value(value_v2);
 
-    auto add_ops = ops::MatSum({&v1, &v2});
+    auto add_ops = functional::MatSum({&v1, &v2});
     auto target = functional::ReduceSum(&add_ops);
 
     graph->zero_grad();
@@ -71,7 +70,7 @@ TEST(OpsTest, VecDotTest) {
     v1.assign_value(value_v1);
     v2.assign_value(value_v2);
 
-    auto target = ops::VecDot(&v1, &v2);
+    auto target = functional::VecDot(&v1, &v2);
 
     graph->zero_grad();
     target.forward();
@@ -119,7 +118,7 @@ TEST(OpsTest, MatMulTest) {
     v1.assign_value(value_v1);
     v2.assign_value(value_v2);
 
-    auto matmul_ops = ops::MatMul(&v1, &v2);
+    auto matmul_ops = functional::MatMul(&v1, &v2);
     auto target = functional::ReduceSum(&matmul_ops);
 
     graph->zero_grad();
@@ -172,7 +171,7 @@ TEST(OpsTest, MatMul3DTest) {
     v1.assign_value(value_v1);
     v2.assign_value(value_v2);
 
-    auto matmul_ops = ops::MatMul(&v1, &v2);
+    auto matmul_ops = functional::MatMul(&v1, &v2);
     auto target = functional::ReduceSum(&matmul_ops);
 
     graph->zero_grad();
@@ -219,7 +218,7 @@ TEST(OpsTest, PointMulReduceMeanTest) {
     v1.assign_value(value_v1);
     v2.assign_value(value_v2);
 
-    auto pm = ops::PointMul(&v1, &v2);
+    auto pm = functional::PointMul(&v1, &v2);
     auto target = functional::ReduceMean(&pm);
 
     graph->zero_grad();
@@ -277,7 +276,7 @@ TEST(OpsTest, Pad2DTest) {
 
     v1.assign_value(value_v1);
 
-    auto pd = ops::Pad2D(&v1, {{1, 2}, {0, 1}});
+    auto pd = functional::Pad2D(&v1, {{1, 2}, {0, 1}});
     auto target = functional::ReduceMean(&pd);
 
     graph->zero_grad();
@@ -332,8 +331,8 @@ TEST(FunctionalTest, SigmoidReluTest) {
     v2.assign_value(value_v2);
     v3.assign_value(DTensor({1}, -8));
 
-    auto matmul_ops = ops::MatMul(&v1, &v2, graph);
-    auto add_ops = ops::Add(&matmul_ops, &v3, graph);
+    auto matmul_ops = functional::MatMul(&v1, &v2, graph);
+    auto add_ops = functional::Add(&matmul_ops, &v3, graph);
     auto relu = functional::ReLU(&add_ops, graph);
     auto sigmoid = functional::Sigmoid(&relu, graph);
     auto target = functional::ReduceSum(&sigmoid, graph);
@@ -403,8 +402,8 @@ TEST(FunctionalTest, CrossEntropyWithSoftmaxTest) {
     label.assign_value(
       tensor::Tensor<double>({3, 3}, {1, 0, 0, 1, 0, 0, 1, 0, 0}));
 
-    auto matmul_ops = ops::MatMul(&v1, &v2);
-    auto add_ops = ops::Add(&matmul_ops, &v3);
+    auto matmul_ops = functional::MatMul(&v1, &v2);
+    auto add_ops = functional::Add(&matmul_ops, &v3);
     auto target = functional::CrossEntropyWithSoftMax(&add_ops, &label);
 
     graph->zero_grad();
@@ -483,7 +482,7 @@ TEST(FunctionalTest, FunctionStyleTest) {
       tensor::Tensor<double>({3, 3}, {1, 0, 0, 1, 0, 0, 1, 0, 0}));
 
     auto target = functional::cross_entropy_with_softmax(
-      functional::relu(ops::matsum(ops::matmul(v1, v2), v3)), label);
+      functional::relu(functional::matsum(functional::matmul(v1, v2), v3)), label);
 
     graph->zero_grad();
     target.forward();

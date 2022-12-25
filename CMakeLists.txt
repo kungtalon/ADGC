@@ -74,22 +74,20 @@ if (${USE_GRAPHVIZ})
             )
 endif ()
 
-add_library(graph_component_lib
-        "include/autodiff/component/ops.h"
+
+file(GLOB FUNCTIONAL_LIB_IMPL_FILES "include/autodiff/component/functional/*.h" "src/autodiff/component/functional/*.cc")
+add_library(functional_lib
         "include/autodiff/component/functional.h"
-        "src/autodiff/component/ops.cc"
-        "src/autodiff/component/ops_impl.cc"
-        "src/autodiff/component/functional.cc"
-        "src/autodiff/component/functional_impl.cc"
+        ${FUNCTIONAL_LIB_IMPL_FILES}
         )
-target_link_libraries(graph_component_lib
+target_link_libraries(functional_lib
         graph_core_lib
         )
 
 file(GLOB LAYER_LIB_FILES "include/autodiff/layer/*.h" "src/autodiff/layer/*.cc")
 add_library(layer_lib ${LAYER_LIB_FILES})
 target_link_libraries(layer_lib
-        graph_component_lib
+        functional_lib
         tensor_lib
         utils_lib
         )
@@ -97,7 +95,7 @@ target_link_libraries(layer_lib
 file(GLOB OPTIMIZER_LIB_FILES "include/autodiff/optimizer/*.h" "src/autodiff/optimizer/*.cc")
 add_library(optimizer_lib ${OPTIMIZER_LIB_FILES})
 target_link_libraries(optimizer_lib
-        graph_component_lib
+        functional_lib
         tensor_lib
         utils_lib
         )
@@ -113,7 +111,7 @@ add_executable(
 )
 target_link_libraries(mnist_trainer
         graph_core_lib
-        graph_component_lib
+        functional_lib
         tensor_lib
         data_lib
         layer_lib
@@ -177,7 +175,7 @@ if (NOT ${SKIP_TEST})
                 test/graph_test.cc
         )
         target_link_libraries(graph_test
-                graph_component_lib
+                functional_lib
                 graph_utils_lib
                 tensor_lib
                 utils_lib
@@ -193,7 +191,7 @@ if (NOT ${SKIP_TEST})
             test/ops_funcs_test.cc
     )
     target_link_libraries(ops_funcs_test
-            graph_component_lib
+            functional_lib
             tensor_lib
             utils_lib
             gtest

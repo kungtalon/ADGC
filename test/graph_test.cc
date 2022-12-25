@@ -1,7 +1,6 @@
 #include <iostream>
 
 #include "autodiff/component/functional.h"
-#include "autodiff/component/ops.h"
 #include "autodiff/component/variable.h"
 #include "gtest/gtest.h"
 
@@ -17,7 +16,7 @@ TEST(GraphTest, ConstructorDestructorTest) {
     v *node_ptr1 = new v({2}, {}, "node1", true, true, graph_ptr);
     v *node_ptr2 = new v({2}, {node_ptr1}, "node2", true, true, graph_ptr);
     v *node_ptr3 =
-        new v({2}, {node_ptr1, node_ptr2}, "node3", true, true, graph_ptr);
+      new v({2}, {node_ptr1, node_ptr2}, "node3", true, true, graph_ptr);
 
     EXPECT_THROW(new v({2}, {node_ptr1, node_ptr2}),
                  adg_exception::MismatchRegisterdGraphError);
@@ -41,11 +40,11 @@ TEST(GraphTest, GraphVizTest) {
 
     v *pv4 = new v({2, 1}, graph_ptr);
 
-    auto matmul = new auto_diff::ops::MatMul(pv1, pv2, graph_ptr);
-    auto add = new auto_diff::ops::Add(matmul, pv3, graph_ptr);
+    auto matmul = new auto_diff::functional::MatMul(pv1, pv2, graph_ptr);
+    auto add = new auto_diff::functional::Add(matmul, pv3, graph_ptr);
     auto relu = new auto_diff::functional::ReLU(add, graph_ptr);
 
-    auto matsum = new auto_diff::ops::MatSum({relu, pv4}, graph_ptr);
+    auto matsum = new auto_diff::functional::MatSum({relu, pv4}, graph_ptr);
     auto sigmoid = new auto_diff::functional::Sigmoid(matsum, graph_ptr);
     auto target = new auto_diff::functional::ReduceSum(sigmoid, graph_ptr);
 
