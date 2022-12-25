@@ -10,6 +10,7 @@
 #include <random>
 #include <string>
 #include <vector>
+#include <utility>
 
 #include "exception/exception.h"
 #include "mapper.h"
@@ -97,31 +98,13 @@ class Tensor {
   inline std::vector<dType> to_vector() const {
     return *static_cast<std::vector<dType> *>(tensor_.get());
   };
+  inline const dType *get_tensor_const_ptr() const {
+    return &*tensor_->begin();
+  };
 
   static Tensor<dType> kron(const Tensor<dType> &lt, const Tensor<dType> &rt);
   static Tensor<dType> div(const Tensor<dType> &lt, const Tensor<dType> &rt);
   static Tensor<dType> concat(const std::vector<Tensor<dType>> &tensors, const size_t &axis);
-
-  static inline Tensor<dType> dot(const Tensor<dType> &lt,
-                                  const Tensor<dType> &rt) {
-    return lt.dot(rt);
-  }
-  static inline Tensor<dType> multiply(const Tensor<dType> &lt,
-                                       const Tensor<dType> &rt) {
-    return lt.multiply(rt);
-  }
-  static inline Tensor<dType> add(const Tensor<dType> &lt,
-                                  const Tensor<dType> &rt) {
-    return lt.add(rt);
-  }
-  static inline Tensor<dType> sub(const Tensor<dType> &lt,
-                                  const Tensor<dType> &rt) {
-    return lt.sub(rt);
-  }
-  static inline Tensor<dType> sum(const Tensor<dType> &ts,
-                                  const size_t &axis = SIZE_MAX) {
-    return ts.sum(axis);
-  }
 
  protected:
   // store tensor as a vector, wrapped in shared_ptr for easy copy
@@ -148,9 +131,6 @@ class Tensor {
     const size_t &ind, const size_t &axis, const size_t &offset_at_axis,
     const TensorShape &ori_strides, const TensorShape &new_strides);
   inline dType *get_tensor_ptr() { return &*tensor_->begin(); };
-  inline const dType *get_tensor_const_ptr() const {
-    return &*tensor_->begin();
-  };
 
   // impl functions
   void do_shape_update(const TensorShape &shape, const size_t &keep_size = 0);

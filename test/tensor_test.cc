@@ -3,6 +3,7 @@
 
 #include "tensor/mapper.h"
 #include "tensor/tensor.h"
+#include "tensor/extension.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
@@ -516,6 +517,25 @@ TEST(AdgcTensorTest, ConcatTest) {
 
   ASSERT_THAT(result3.to_vector(), ElementsAre(3, 0, 16, 2, 5, 10, 7, 3, 7, 17, 3, 12, 19, 6, 16, 8, 18,
                                                2, 12, 4));
+}
+
+TEST(AdgcTensorExtensionTest, PadTest) {
+  tensor::Tensor<float> ta({3, 2}, {5, 2, 0, 3, 1, 4});
+
+  tensor::Tensor<float> result1 = tensor::pad2d(ta, {2, 2});
+
+  ASSERT_THAT(result1.to_vector(), ElementsAre(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 2, 0, 0, 0, 0, 0, 3,
+                                               0, 0, 0, 0, 1, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
+            << "Result is : \n" << result1.to_string();
+
+  tensor::Tensor<float> tb({2, 2, 2}, {4, 6, 8, 1, 4, 5, 2, 4});
+
+  tensor::Tensor<float> result2 = tensor::pad2d(tb, {{1, 2}, {1, 2}});
+
+  ASSERT_THAT(result2.to_vector(), ElementsAre(0, 0, 0, 0, 0, 0, 4, 6, 0, 0, 0, 8, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                               0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 5, 0, 0, 0, 2, 4, 0, 0, 0, 0, 0, 0,
+                                               0, 0, 0, 0, 0, 0))
+            << "Result is : \n" << result2.to_string();
 }
 
 int main(int argc, char **argv) {

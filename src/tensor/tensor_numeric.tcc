@@ -64,25 +64,35 @@ TensorShape Tensor<dType>::get_dot_shape(const Tensor<dType> &bt) const {
     throw adg_exception::EmptyTensorError();
   }
 
-  // mat mul will only change the last two dimensions
-  // first check the other dimension are aligned
+  bool tensor_dot_matrix = false;
+  // if tensor dot tensor, mat mul will only change the last two dimensions
+  // if tensor dot matrix...
   if (get_dim() != bt.get_dim()) {
-    return EMPTY_SHAPE;
+    if (bt.get_dim() == 2) {
+      tensor_dot_matrix = true;
+    } else {
+      throw adg_exception::MismatchTensorDimError(
+        "Tensor >> get_dot_shape: the second tensor should have either dim 2, or the same dim as the first");
+    }
   }
 
-  size_t cur_dim = get_dim();
+  size_t left_dim = get_dim();
+  size_t right_dim = bt.get_dim();
   TensorShape shape_left = get_shape();
   TensorShape shape_right = bt.get_shape();
 
-  for (int ix = 0; ix < cur_dim - 2; ix++) {
-    if (shape_left[ix] != shape_right[ix]) {
-      return EMPTY_SHAPE;
+  if (!tensor_dot_matrix) {
+    for (int ix = 0; ix < left_dim - 2; ix++) {
+      if (shape_left[ix] != shape_right[ix]) {
+        throw adg_exception::MismatchTensorDimError(
+          "Tensor >> get_dot_shape: MismatchTensorDimError.");
+      }
     }
   }
 
   // [a, b], [b, c] -> [a, c]
   // check whether left.shape[-1] == right.shape[-2]
-  if (shape_left[cur_dim - 1] != shape_right[cur_dim - 2]) {
+  if (shape_left[left_dim - 1] != shape_right[right_dim - 2]) {
     throw adg_exception::MismatchTensorShapeError(
       "MismatchTensorShapeError >> get_dot_shape\n Left shape is " +
         utils::array_to_str(1, dim_, &*shape_left.begin()) + "Right shape is " +
@@ -91,7 +101,7 @@ TensorShape Tensor<dType>::get_dot_shape(const Tensor<dType> &bt) const {
 
   // then, the answer is [..., a, c]
   TensorShape result_shape(shape_left.begin(), shape_left.end() - 1);
-  result_shape.emplace_back(shape_right[cur_dim - 1]);
+  result_shape.emplace_back(shape_right[right_dim - 1]);
   return result_shape;
 }
 
@@ -102,7 +112,7 @@ Tensor<dType> Tensor<dType>::dot(const Tensor<dType> &bt) const {
   Tensor<dType> result(result_shape);
 
   size_t M = shape_[dim_ - 2];
-  size_t N = bt.shape_[dim_ - 1];
+  size_t N = bt.shape_[bt.get_dim() - 1];
   size_t K = shape_[dim_ - 1];
 
   utils::math::tensor_gemm(size_, bt.size_, result.size_, M, N, K,
@@ -234,6 +244,10 @@ Tensor<dType> Tensor<dType>::div(const Tensor<dType> &lt,
 
 template<typename dType>
 Tensor<dType> Tensor<dType>::concat(const std::vector<Tensor<dType>> &tensors, const size_t &axis) {
+  if (tensors.size() == 1) {
+    return tensors[0].copy();
+  }
+
   TensorShape src_shape = tensors[0].get_shape();
   size_t len_after_concat = 0;
 

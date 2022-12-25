@@ -39,7 +39,7 @@ void train(const size_t &batch_size,
         dense_layer_1(x))
     ), labels);
 
-  auto optim = optimizer::Adam(loss);
+  auto optim = optimizer::Adam(loss, batch_size);
 
   std::cout << "[INFO] Started training!!!" << std::endl;
 
@@ -59,7 +59,7 @@ void train(const size_t &batch_size,
       optim.step();
 
       if (cur_step && cur_step % 20 == 0) {
-        std::cout << "[INFO] Cur Step: " << cur_step << "\tCur loss: " << acc_loss / 10 << std::endl;
+        std::cout << "[INFO] Cur Step: " << cur_step << "\tCur loss: " << acc_loss / 20 << std::endl;
         acc_loss = 0;
       }
 
@@ -86,7 +86,7 @@ void train(const size_t &batch_size,
               << std::endl;
     test_data_set.reset_iterator();
   }
-  
+
   Graph::clear_graph();
 }
 

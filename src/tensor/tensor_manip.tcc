@@ -403,6 +403,7 @@ void Tensor<dType>::fill_diag(const std::vector<dType> &diag_values) {
                              &*diag_values.begin(), get_tensor_ptr());
 }
 
+
 template<typename dType>
 Tensor<int32_t> Tensor<dType>::to_int() const {
   std::vector<int32_t> values(tensor_->begin(), tensor_->end());

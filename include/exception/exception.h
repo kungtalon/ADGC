@@ -180,6 +180,13 @@ class InvalidNodeOperationError : public AutoDiffGraphException {
     : AutoDiffGraphException(msg) {};
 };
 
+class InvalidNodeArgumentError : public AutoDiffGraphException {
+ public:
+  InvalidNodeArgumentError() {};
+  InvalidNodeArgumentError(const std::string &msg)
+    : AutoDiffGraphException(msg) {};
+};
+
 class NodeValueError : public AutoDiffGraphException {
  public:
   NodeValueError() {};

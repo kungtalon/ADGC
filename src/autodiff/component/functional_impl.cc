@@ -26,7 +26,7 @@ DTensor Sigmoid::do_backward(Node *parent_ptr) {
 
   DTensor ones = tensor::Ones(get_value_shape());
   DTensor sigmoid_backward =
-    DTensor::multiply(value_, DTensor::sub(ones, value_));
+    tensor::multiply(value_, tensor::sub(ones, value_));
   return tensor::Diagonal<double>(
     sigmoid_backward.to_vector()); // shape [value_size, value_size]
 }
@@ -99,7 +99,7 @@ void CrossEntropyWithSoftMax::do_forward() {
   neg_log_probs_.map([](double &val) { val = -std::log(val + epsilon_); });
   // sum_i { - yi * log(pi) }
   value_ =
-    DTensor::sum(DTensor::multiply(parents_[1]->get_value(), neg_log_probs_));
+    tensor::sum(tensor::multiply(parents_[1]->get_value(), neg_log_probs_));
 }
 
 DTensor CrossEntropyWithSoftMax::do_backward(Node *parent_ptr) {
@@ -110,7 +110,7 @@ DTensor CrossEntropyWithSoftMax::do_backward(Node *parent_ptr) {
 
   DTensor result;
   if (parent_ptr == parents_[0]) {
-    result = DTensor::sub(probs_, parents_[1]->get_value());
+    result = tensor::sub(probs_, parents_[1]->get_value());
   } else {
     result = neg_log_probs_;
   }
@@ -126,7 +126,7 @@ DTensor CrossEntropyWithSoftMax::get_probs() {
     auto real_ptr = dynamic_cast<CrossEntropyWithSoftMax *>(unique_ptr_);
     return real_ptr->probs_.copy();
   }
-  
+
   return probs_.copy();
 }
 

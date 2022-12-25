@@ -7,6 +7,7 @@
 #include "assert.h"
 #include "autodiff/consts.h"
 #include "tensor/tensor.h"
+#include "tensor/extension.h"
 #include "utils/utils.h"
 
 namespace auto_diff {

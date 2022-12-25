@@ -330,6 +330,10 @@ void tensor_gemm(const size_t &size_a, const size_t &size_b,
   size_t inc_b = K * N;
   size_t inc_c = M * N;
   size_t n_blocks = size_a / inc_a;
+  if (n_blocks != size_b / inc_b) {
+    // tensor_b is a matrix should be repeated
+    inc_b = 0;
+  }
 
   if (n_blocks == 1) {
     gemm(M, N, K, mat_a, mat_b, mat_c);
