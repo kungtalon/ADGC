@@ -104,7 +104,7 @@ class Conv2D : public Node {
   DTensor col_image_, col_kernel_;
   std::vector<size_t> strides_, kernel_shape_;
 
-  DTensor im2col(const DTensor &input);
+  void im2col(const DTensor &input);
   DTensor col2im(const DTensor &input);
 };
 

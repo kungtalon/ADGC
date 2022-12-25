@@ -305,13 +305,14 @@ Conv2D::Conv2D(Node *input_ptr,
                Parameter *kernel_ptr,
                const std::vector<size_t> &strides,
                Graph *g,
-               const std::string &name) : Node(NodeType::ADG_CONV2D_TYPE, {input_ptr, kernel_ptr}, name, g),
-                                          strides_(strides) {
+               const std::string &name)
+  : Node(NodeType::ADG_CONV2D_TYPE, {input_ptr, kernel_ptr}, name, g),
+    strides_(strides) {
   set_backward_version(1);
   // second being the kernel
   // input : image features [B, H, W, Cin], kernel [Kh, Kw, Cin, Cout]
   // if input.size() == 3: use bias of size : [Cout]
-  if (parents_.size() < 2 || parents_.size() > 3) {
+  if (parents_.size() != 2) {
     throw adg_exception::OpsParentsNumException("Conv >> Conv: expect 2 parent nodes...");
   }
 
@@ -327,11 +328,9 @@ Conv2D::Conv2D(Node *input_ptr,
 
   auto image_shape = parents_[0]->get_value_shape();
   kernel_shape_ = parents_[1]->get_value_shape();
-  size_t h = image_shape[0];
-  size_t w = image_shape[1];
-  size_t in_c = image_shape[2];
-  size_t kh = kernel_shape_[0];
-  size_t kw = kernel_shape_[1];
+  size_t h = image_shape[1];
+  size_t w = image_shape[2];
+  size_t in_c = image_shape[3];
   if (kernel_shape_[2] != in_c) {
     throw adg_exception::MismatchNodeValueShapeError(
       "Conv >> Conv: different channel size for image and kernel! "
@@ -339,8 +338,8 @@ Conv2D::Conv2D(Node *input_ptr,
   }
 
   out_c_ = parents_[1]->get_value_shape()[parents_[1]->get_value_dim() - 1];
-  out_h_ = (h - kh) / strides[0] + 1;
-  out_w_ = (w - kw) / strides[1] + 1;
+  out_h_ = (h - kernel_shape_[0]) / strides[0] + 1;
+  out_w_ = (w - kernel_shape_[1]) / strides[1] + 1;
 
   value_ = DTensor({out_c_, out_h_, out_w_});
 }
@@ -350,7 +349,7 @@ void Conv2D::do_forward() {
   col_kernel_.reshape({kernel_shape_[0] * kernel_shape_[1] * kernel_shape_[2], out_c_});
   // shape: [kh * kw * cin, cout]
 
-  col_image_ = im2col(parents_[1]->get_value()); // shape: [B, (h - kh) * (w - kw), kh * kw * cin]
+  im2col(parents_[1]->get_value()); // shape: [B, (h - kh) * (w - kw), kh * kw * cin]
 
   value_ = col_image_.dot(col_kernel_); // shape: [B, (h-kh)*(w-kw), c_out]
   value_.reshape({out_h_, out_w_, out_c_});
@@ -360,8 +359,26 @@ DTensor Conv2D::do_backward(Node *parent_ptr) {
 
 }
 
-DTensor Conv2D::im2col(const DTensor &input) {
+void Conv2D::im2col(const DTensor &input) {
+  // input : [b, h, w, c]
+  size_t row_steps, col_steps;
+  tensor::TensorShape shape = input.get_shape();
+  row_steps = shape[1] / strides_[0];
+  col_steps = shape[2] / strides_[1];
 
+  col_image_ = DTensor({shape[0], out_h_ * out_w_, shape[3]});
+  size_t window_size = kernel_shape_[0] * kernel_shape_[1];
+
+  size_t cur_window_index;   // index of the windows' leftmost element
+  for (size_t ib = 0; ib < shape[0]; ++ib) {
+    for (size_t ih = 0; ih < shape[1]; ih += strides_[0]) {
+      for (size_t iw = 0; iw < shape[2]; iw += strides_[1]) {
+        for (size_t ii = 0; ii < window_size; ++ii) {
+
+        }
+      }
+    }
+  }
 }
 
 } // namespace ops
