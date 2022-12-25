@@ -28,7 +28,7 @@ DTensor Sigmoid::do_backward(Node *parent_ptr) {
   DTensor ones = tensor::Ones(get_value_shape());
   DTensor sigmoid_backward =
     tensor::multiply(value_, tensor::sub(ones, value_));
-  return sigmoid_backward.multiply(get_grad()); // shape [value_size, value_size]
+  return sigmoid_backward.multiply(get_grad());
 }
 
 ReLU::ReLU(Node *parent_ptr, Graph *g, const std::string &name)
@@ -59,7 +59,7 @@ DTensor ReLU::do_backward(Node *parent_ptr) {
       val = 0.0;
     }
   });
-  return relu_backward.multiply(get_grad()); // shape: [value_size, value_size]
+  return relu_backward.multiply(get_grad());
 }
 
 // loss function takes two parents, one is the label data being Variable type
