@@ -40,6 +40,12 @@ Pad2D::Pad2D(Node *parent_ptr, const std::vector<std::pair<size_t, size_t>> &pad
     throw adg_exception::InvalidNodeArgumentError(
       "Pad2D >> Pad2D: expect padding for 2 dimensions, got " + std::to_string(padding.size()));
   }
+
+  tensor::TensorShape shape = parent_ptr->get_value_shape();
+  size_t dim = shape.size();
+  shape[dim - 2] += padding[0].first + padding[0].second;
+  shape[dim - 1] += padding[1].first + padding[1].second;
+  value_ = DTensor(shape);
 }
 
 void Pad2D::do_forward() {

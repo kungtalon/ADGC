@@ -2,13 +2,13 @@
 
 namespace auto_diff {
 namespace optimizer {
-Adam::Adam(const Node &target, const size_t &batch_size,
+Adam::Adam(const Node &target,
            const double &learning_rate, const double &beta1,
            const double &beta2, const double &weight_decay,
            const double &epsilon, Graph *graph)
-    : Optimizer(target, batch_size, learning_rate, graph),
-      weight_decay_(weight_decay), beta1_(beta1), beta2_(beta2),
-      beta1_power_(1.), beta2_power_(1.) {}
+  : Optimizer(target, learning_rate, graph),
+    weight_decay_(weight_decay), beta1_(beta1), beta2_(beta2),
+    beta1_power_(1.), beta2_power_(1.) {}
 
 void Adam::reset_state() {
   beta1_power_ = 1.;
@@ -17,12 +17,8 @@ void Adam::reset_state() {
 }
 
 void Adam::update() {
-  NodeIteratorPair node_iterators = graph_->get_node_iterators();
-
-  for (auto node_iter = node_iterators.first;
-       node_iter != node_iterators.second; ++node_iter) {
-    Node *node_ptr = *node_iter;
-    if (is_trainable_param(node_ptr)) {
+  for (auto *node_ptr : trainable_params_list_) {
+    if (node_ptr->get_type() == NodeType::ADG_PARAMETER_TYPE) {
       DTensor grad = get_gradient(node_ptr);
 
       if (weight_decay_ >= 0) {
@@ -68,7 +64,7 @@ DTensor Adam::update_moments(const std::string &node_name,
   first_moment = first_moment.multiply(1. / (1 - beta1_power_ * beta1_));
   second_moment = second_moment.multiply(1. / (1 - beta2_power_ * beta2_));
   second_moment.map(
-      [this](double &val) { val = std::sqrt(val + this->epsilon_); });
+    [this](double &val) { val = std::sqrt(val + this->epsilon_); });
 
   // get the self-adaptive gradients
   return DTensor::div(first_moment, second_moment);

@@ -522,6 +522,77 @@ TEST(FunctionalTest, FunctionStyleTest) {
   Graph::delete_global_graph();
 }
 
+TEST(OpsTest, MatAddVecTest) {
+  Graph *graph = Graph::get_instanceof_global_graph();
+
+  try {
+    Variable v0 = Variable({5, 4, 2, 3});
+    Variable p0 = Variable({3});
+
+    v0.assign_value({{5, 4, 2, 3}, {0., 12., 17., 17., 0., 8., 3., 7., 16., 1., 5., 16., 18., 6.,
+                                    19., 3., 7., 3., 14., 6., 13., 5., 17., 13., 8., 7., 18., 7.,
+                                    14., 15., 16., 12., 4., 2., 10., 3., 11., 17., 1., 18., 17., 13.,
+                                    12., 6., 8., 0., 12., 15., 12., 19., 4., 11., 13., 18., 17., 17.,
+                                    9., 3., 18., 11., 9., 6., 9., 0., 14., 1., 6., 1., 9., 9.,
+                                    7., 16., 6., 10., 17., 3., 2., 7., 3., 8., 13., 14., 14., 11.,
+                                    7., 5., 8., 19., 15., 2., 17., 14., 6., 3., 6., 5., 7., 2.,
+                                    8., 2., 13., 10., 5., 5., 6., 16., 15., 19., 17., 3., 5., 16.,
+                                    3., 14., 0., 8., 13., 9., 6., 1.}});
+    p0.assign_value({{3}, {13, 11, 1}});
+
+    auto add = functional::MatAddVec(&v0, &p0);
+    auto com = functional::ReduceSum(&add);
+
+    graph->zero_grad();
+    com.forward();
+
+    auto exp1 = std::vector<double>({13., 23., 18., 30., 11., 9., 16., 18., 17., 14., 16., 17., 31., 17.,
+                                     20., 16., 18., 4., 27., 17., 14., 18., 28., 14., 21., 18., 19., 20.,
+                                     25., 16., 29., 23., 5., 15., 21., 4., 24., 28., 2., 31., 28., 14.,
+                                     25., 17., 9., 13., 23., 16., 25., 30., 5., 24., 24., 19., 30., 28.,
+                                     10., 16., 29., 12., 22., 17., 10., 13., 25., 2., 19., 12., 10., 22.,
+                                     18., 17., 19., 21., 18., 16., 13., 8., 16., 19., 14., 27., 25., 12.,
+                                     20., 16., 9., 32., 26., 3., 30., 25., 7., 16., 17., 6., 20., 13.,
+                                     9., 15., 24., 11., 18., 16., 7., 29., 26., 20., 30., 14., 6., 29.,
+                                     14., 15., 13., 19., 14., 22., 17., 2.});
+    ASSERT_THAT(add.get_value().to_vector(), ElementsAreArray(exp1));
+
+    graph->backward(com);
+
+    auto exp_v0g = std::vector<double>(v0.get_value_size(), 1);
+    ASSERT_THAT(v0.get_grad().to_vector(), ElementsAreArray(exp_v0g));
+    ASSERT_THAT(p0.get_grad().to_vector(), ElementsAre(40, 40, 40));
+
+    Variable p1 = Variable({4});
+    p1.assign_value({{4}, {4, 8, 14, 2}});
+
+    auto nadd = functional::MatAddVec(&v0, &p1, 1);
+    auto ns = functional::ReduceSum(&nadd);
+
+    graph->zero_grad();
+    ns.forward();
+
+    ASSERT_THAT(nadd.get_value().to_vector(),
+                ElementsAre(4., 16., 21., 21., 4., 12., 11., 15., 24., 9., 13., 24., 32., 20.,
+                            33., 17., 21., 17., 16., 8., 15., 7., 19., 15., 12., 11., 22., 11.,
+                            18., 19., 24., 20., 12., 10., 18., 11., 25., 31., 15., 32., 31., 27.,
+                            14., 8., 10., 2., 14., 17., 16., 23., 8., 15., 17., 22., 25., 25.,
+                            17., 11., 26., 19., 23., 20., 23., 14., 28., 15., 8., 3., 11., 11.,
+                            9., 18., 10., 14., 21., 7., 6., 11., 11., 16., 21., 22., 22., 19.,
+                            21., 19., 22., 33., 29., 16., 19., 16., 8., 5., 8., 7., 11., 6.,
+                            12., 6., 17., 14., 13., 13., 14., 24., 23., 27., 31., 17., 19., 30.,
+                            17., 28., 2., 10., 15., 11., 8., 3.));
+
+    graph->backward(ns);
+
+    ASSERT_THAT(p1.get_grad().to_vector(), ElementsAre(30, 30, 30, 30));
+
+  } catch (const std::exception &ex) {
+    FAIL() << "Failed and got this: " << std::endl << ex.what();
+  }
+  Graph::delete_global_graph();
+}
+
 TEST(OpsTest, Conv2dTest) {
   // this block limits the lifetime of all graph nodes
   Graph *graph = Graph::get_instanceof_global_graph();
@@ -545,6 +616,33 @@ TEST(OpsTest, Conv2dTest) {
               << v0.get_grad().to_string();
     ASSERT_THAT(p0.get_grad().to_vector(), ElementsAre(10., 18., 15., 27.))
               << p0.get_grad().to_string();
+
+    Variable vv = Variable({1, 1, 7, 7});
+    Parameter pp = Parameter({1, 1, 2, 2});
+
+    // test what if the shape can not be divided by kernel
+    vv.assign_value({{1, 1, 7, 7}, {19., 12., 8., 17., 6., 13., 2., 15., 3., 16., 5., 7., 15., 14.,
+                                    2., 10., 19., 7., 0., 15., 13., 19., 3., 13., 12., 18., 13., 18.,
+                                    9., 0., 18., 6., 12., 2., 9., 18., 0., 5., 9., 0., 18., 1.,
+                                    0., 1., 6., 4., 15., 17., 5.}});
+    pp.assign_value({{1, 1, 2, 2}, {13., 17., 10., 1.}});
+
+    auto vvpp = functional::Conv2D(&vv, &pp, {2, 2});
+    auto ss = functional::ReduceSum(&vvpp);
+
+    graph->zero_grad();
+    ss.forward();
+    graph->backward(ss);
+
+    ASSERT_EQ(vvpp.get_value_shape(), tensor::TensorShape({1, 1, 3, 3}));
+    ASSERT_EQ(ss.get_value().get_value(), 3791.);
+    ASSERT_THAT(vv.get_grad().to_vector(), ElementsAre(13., 17., 13., 17., 13., 17., 0., 10., 1., 10., 1., 10., 1., 0.,
+                                                       13., 17., 13., 17., 13., 17., 0., 10., 1., 10., 1., 10., 1., 0.,
+                                                       13., 17., 13., 17., 13., 17., 0., 10., 1., 10., 1., 10., 1., 0.,
+                                                       0., 0., 0., 0., 0., 0., 0.))
+              << vv.get_grad().to_string();
+    ASSERT_THAT(pp.get_grad().to_vector(), ElementsAre(93., 82., 111., 78.))
+              << pp.get_grad().to_string();
 
     Variable v1 = Variable({3, 4, 8, 10}); // [B, C, H, W]
     Parameter v2 = Parameter({6, 4, 2, 2}); // [c_out, c_in, kh, kw]

@@ -15,24 +15,22 @@ class Conv2D : public Node {
   Conv2D() : Node(NodeType::ADG_CONV2D_TYPE) {};
   Conv2D(Node *input_ptr,
          Parameter *kernel_ptr,
-         const std::vector<size_t> &strides,
+         const size_t &stride,
+         Graph *g = nullptr,
+         const std::string &name = "");
+  Conv2D(Node *input_ptr,
+         Parameter *kernel_ptr,
+         const std::array<size_t, 2> &strides,
          Graph *g = nullptr,
          const std::string &name = "");
   void do_forward() override;
   DTensor do_backward(Node *parent_ptr) override;
 
-  inline DTensor get_im2col() {
-    if (this != unique_ptr_) {
-      auto *real_ptr = dynamic_cast<Conv2D *>(unique_ptr_);
-      return real_ptr->col_image_;
-    }
-    return col_image_;
-  };
-
  private:
-  size_t out_c_, out_h_, out_w_;
+  size_t out_c_, out_h_, out_w_, residual_h_, residual_w_;
   DTensor col_image_, col_kernel_;
-  std::vector<size_t> strides_, kernel_shape_;
+  std::vector<size_t> kernel_shape_;
+  std::array<size_t, 2> strides_;
 
   DTensor im2col_hwc(const DTensor &input,
                      const size_t &kh,
@@ -46,6 +44,12 @@ class Conv2D : public Node {
                      const size_t &sw);
 
 };
+
+
+
+
+// functions
+
 }
 }
 

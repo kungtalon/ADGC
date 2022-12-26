@@ -7,12 +7,12 @@ namespace auto_diff {
 namespace optimizer {
 
 class GradientDescent : public Optimizer {
-public:
-  GradientDescent(){};
-  GradientDescent(const Node &target, const size_t &batch_size = 12,
+ public:
+  GradientDescent() {};
+  GradientDescent(const Node &target,
                   const double &learning_rate = 0.01, Graph *graph = nullptr);
 
-private:
+ private:
   void update(); // update the gradient to parameters
 };
 } // namespace optimizer

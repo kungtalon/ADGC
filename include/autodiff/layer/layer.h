@@ -17,18 +17,23 @@ class Layer {
 
   void freeze();
   std::vector<Parameter *> get_param_ptr_list() const;
+  void set_config(const std::string &key, const std::string &value);
+  std::string get_config(const std::string &key);
 
  protected:
   std::string layer_name_;
   Graph *graph_;
+  std::unordered_map<std::string, std::string> configs_;
   std::vector<Parameter *> params_ptr_list_;
 
   void add_param(Parameter *param_ptr);
+  virtual Node *use_activation(Node *input);
 };
 
 } // namespace layer
 } // namespace auto_diff
 
 #include "dense.h"
+#include "convolution.h"
 
 #endif

@@ -81,6 +81,12 @@ class Node {
     assert(parent->get_graph() == graph_);
     unique_ptr_->parents_.push_back(parent->unique_ptr_);
   }
+  inline bool is_requires_grad() {
+    return unique_ptr_->requires_grad_;
+  }
+  inline void set_requires_grad(bool requires_grad) {
+    unique_ptr_->requires_grad_ = requires_grad;
+  }
 
   friend void graph_reset_node_name(Node *node, const std::string &name,
                                     Graph *graph);
@@ -90,6 +96,7 @@ class Node {
   std::string name_;
   std::vector<Node *> parents_;
   std::vector<Node *> children_;
+  bool requires_grad_;
   DTensor value_;
   bool empty_value_;
   DTensor jacobi_;

@@ -33,6 +33,7 @@ struct NodeType {
 struct LayerType {
   static inline const std::string ADG_LAYER_TYPE = "L_layer";
   static inline const std::string ADG_LAYER_DENSE = "L_dense";
+  static inline const std::string ADG_LAYER_CONV2D = "L_conv2d";
   static inline const std::string ADG_LAYER_RELU = "L_relu";
   static inline const std::string ADG_LAYER_SIGMOID = "L_sigmoid";
   static inline const std::string ADG_LAYER_CROSS_ENTROPY_SOFTMAX = "L_cross_entropy_softmax";

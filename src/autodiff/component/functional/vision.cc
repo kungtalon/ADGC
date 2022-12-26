@@ -8,7 +8,13 @@ namespace functional {
 
 Conv2D::Conv2D(Node *input_ptr,
                Parameter *kernel_ptr,
-               const std::vector<size_t> &strides,
+               const size_t &stride,
+               Graph *g,
+               const std::string &name) : Conv2D(input_ptr, kernel_ptr, {stride, stride}, g, name) {}
+
+Conv2D::Conv2D(Node *input_ptr,
+               Parameter *kernel_ptr,
+               const std::array<size_t, 2> &strides,
                Graph *g,
                const std::string &name)
   : Node(NodeType::ADG_CONV2D_TYPE, {input_ptr, kernel_ptr}, name, g),
@@ -21,14 +27,8 @@ Conv2D::Conv2D(Node *input_ptr,
     throw adg_exception::OpsParentsNumException("Conv >> Conv: expect 2 parent nodes...");
   }
 
-  if (strides_.size() != 2) {
-    throw adg_exception::InvalidNodeArgumentError("Conv >> Conv: strides should have size of 2...");
-  }
-
-  for (size_t &stride : strides_) {
-    if (stride < 1) {
-      throw adg_exception::InvalidNodeArgumentError("Conv >> Conv: getting stride smaller than 1..");
-    }
+  if (strides_[0] < 1 || strides_[1] < 1) {
+    throw adg_exception::InvalidNodeArgumentError("Conv >> Conv: getting stride smaller than 1..");
   }
 
   auto image_shape = parents_[0]->get_value_shape();
@@ -38,7 +38,7 @@ Conv2D::Conv2D(Node *input_ptr,
   size_t in_c = image_shape[1];
   if (kernel_shape_[1] != in_c) {
     throw adg_exception::MismatchNodeValueShapeError(
-      "Conv >> Conv: different channel size for image and kernel! "
+      "Conv >> Conv: different channel size for kernel and image! "
         + std::to_string(kernel_shape_[1]) + " and " + std::to_string(in_c));
   }
 
@@ -49,6 +49,10 @@ Conv2D::Conv2D(Node *input_ptr,
   out_c_ = kernel_shape_[0];
   out_h_ = (h - kernel_shape_[2]) / strides[0] + 1;
   out_w_ = (w - kernel_shape_[3]) / strides[1] + 1;
+  // if h - kh cannot be divided by stride_h
+  // there are some elements discarded when convolution
+  residual_h_ = (h - kernel_shape_[2]) % strides[0];
+  residual_w_ = (w - kernel_shape_[3]) % strides[1];
 
   value_ = DTensor({parents_[0]->get_value_shape()[0], out_c_, out_h_, out_w_});
 }
@@ -73,10 +77,11 @@ DTensor Conv2D::do_backward(Node *parent_ptr) {
   // grad shape [b, cout, h, w]
   DTensor grad = get_grad().copy();
   size_t n_batch = grad.get_shape()[0];
+  DTensor result;
 
   if (parent_ptr == parents_[1]) {
     grad.reshape({n_batch, out_c_, out_h_ * out_w_}); // [B, cout, out_h * out_w]
-    DTensor result = grad.dot(col_image_).sum(0);  // [cout, kh*kw*cin]
+    result = grad.dot(col_image_).sum(0);  // [cout, kh*kw*cin]
     result.reshape({kernel_shape_[0], kernel_shape_[1], kernel_shape_[2], kernel_shape_[3]});
     return result;
   }
@@ -100,10 +105,16 @@ DTensor Conv2D::do_backward(Node *parent_ptr) {
                               kernel_shape_[3],
                               1,
                               1);  // shape: [B, h * w, cout * kh * kw]
-
-  DTensor result = im2col.dot(col_kernel_.t()); // [B, h * w, cin]
+  result = im2col.dot(col_kernel_.t()); // [B, h * w, cin]
   result = result.transpose(1, 2);
-  result.reshape(parent_ptr->get_value_shape());
+  if (residual_h_ || residual_w_) {
+    // (h - kh) was not divided by stride, the h and w is not restored yet
+    tensor::TensorShape target_shape = parent_ptr->get_value_shape();
+    result.reshape({target_shape[0], target_shape[1], target_shape[2] - residual_h_, target_shape[3] - residual_w_});
+    result = tensor::pad2d(result, {{0, residual_h_}, {0, residual_w_}});
+  } else {
+    result.reshape(parent_ptr->get_value_shape());
+  }
   return result;
 }
 
