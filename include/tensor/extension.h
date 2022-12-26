@@ -20,6 +20,14 @@ Tensor<dType> pad2d(const Tensor<dType> &src_tensor,
                     const dType &value = 0);
 
 template<typename dType>
+Tensor<dType> dilate2d(const Tensor<dType> &src_tensor,
+                       const std::array<size_t, 2> &gaps,
+                       const dType &value = 0);
+
+template<typename dType>
+void reverse(Tensor<dType> &ts, const size_t &axis);
+
+template<typename dType>
 static inline Tensor<dType> dot(const Tensor<dType> &lt,
                                 const Tensor<dType> &rt) {
   return lt.dot(rt);
