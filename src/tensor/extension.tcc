@@ -58,16 +58,18 @@ Tensor<dType> pad2d(const Tensor<dType> &src_tensor,
 template<typename dType>
 void reverse(Tensor<dType> &ts, const size_t &axis) {
   size_t size = ts.get_size();
+  size_t dim = ts.get_dim();
+  if (axis >= dim) {
+    throw adg_exception::AxisOutOfRangeError("reverse : reversed axis out of range ...");
+  }
 
-  auto dim = ts.get_dim();
   auto shape = ts.get_shape();
   auto strides = ts.get_strides();
-  auto tensor_iter = ts.get_iterator();
 
   if (axis == shape.size() - 1) {
     size_t index = 0;
     while (index < size) {
-      std::reverse(tensor_iter + index, tensor_iter + index + shape[dim - 1]);
+      std::reverse(ts.get_iterator() + index, ts.get_iterator() + index + shape[dim - 1]);
       index += shape[dim - 1];
     }
     return;
@@ -76,8 +78,8 @@ void reverse(Tensor<dType> &ts, const size_t &axis) {
   for (size_t index = 0; index < size; ++index) {
     if (ts.get_coordinate_at_axis(index, axis, strides) == 0) {
       for (int ix = 0; ix < shape[axis] / 2; ++ix) {
-        std::iter_swap(tensor_iter + index + ix * strides[axis],
-                       tensor_iter + index + (shape[axis] - ix - 1) * strides[axis]);
+        std::iter_swap(ts.get_iterator() + index + ix * strides[axis],
+                       ts.get_iterator() + index + (shape[axis] - ix - 1) * strides[axis]);
       }
     }
   }

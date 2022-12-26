@@ -34,18 +34,16 @@ class Conv2D : public Node {
   DTensor col_image_, col_kernel_;
   std::vector<size_t> strides_, kernel_shape_;
 
-  void im2col_hwc(const DTensor &input,
-                  DTensor &output,
-                  const size_t &kh,
-                  const size_t &kw,
-                  const size_t &sh,
-                  const size_t &sw);
-  void im2col_chw(const DTensor &input,
-                  DTensor &output,
-                  const size_t &kh,
-                  const size_t &kw,
-                  const size_t &sh,
-                  const size_t &sw);
+  DTensor im2col_hwc(const DTensor &input,
+                     const size_t &kh,
+                     const size_t &kw,
+                     const size_t &sh,
+                     const size_t &sw);
+  DTensor im2col_chw(const DTensor &input,
+                     const size_t &kh,
+                     const size_t &kw,
+                     const size_t &sh,
+                     const size_t &sw);
 
 };
 }

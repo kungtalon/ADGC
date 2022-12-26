@@ -32,17 +32,18 @@ Tensor<double> dilate2d(const Tensor<double> &src_tensor,
   double *dest_ptr = &*result.get_iterator();
   const double *src_ptr = src_tensor.get_tensor_const_ptr();
 
-  if (gaps[0] == 0) {
-    cblas_dcopy(src_tensor.get_size(), src_ptr, 1, dest_ptr, gaps[1] + 1);
-    return result;
+  size_t src_index = 0, dest_index = 0;
+
+  for (int ix = 0; ix < src_tensor.get_size() / src_ncol; ++ix) {
+    cblas_dcopy(src_ncol, src_ptr + src_index, 1, dest_ptr + dest_index, gaps[1] + 1);
+    src_index += src_ncol;
+    if ((ix + 1) % src_nrow != 0) {
+      dest_index += result_ncol * (gaps[0] + 1);
+    } else {
+      dest_index += result_ncol;
+    }
   }
 
-  size_t src_index = 0;
-  for (int ix = 0; ix < src_nrow; ++ix) {
-    cblas_dcopy(src_tensor.get_size(), src_ptr + src_index, 1, dest_ptr, gaps[1] + 1);
-    src_index += src_ncol;
-    dest_ptr += result_ncol * (gaps[0] + 1);
-  }
   return result;
 }
 

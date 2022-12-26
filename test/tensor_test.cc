@@ -590,13 +590,14 @@ TEST(AdgcTensorExtensionTest, DilateTest) {
   ASSERT_THAT(result2.to_vector(), ElementsAreArray(expect2))
             << "Result is : \n" << result2.to_string();
 
-  tensor::Tensor<float> result3 = tensor::dilate2d(tb, {0, 1});
+  tensor::Tensor<double> result3 = tensor::dilate2d(tb.to_double(), {0, 1});
 
-  std::vector<float> expect3 = {4, 0, 6, 0, 4, 0, 2, 8, 0, 8, 0, 7, 0, 9, 4, 0, 2, 0, 6, 0, 7, 6,
-                                0, 5, 0, 3, 0, 7, 9, 0, 3, 0, 3, 0, 6, 1, 0, 3, 0, 1, 0, 3, 3, 0,
-                                1, 0, 9, 0, 4, 9, 0, 2, 0, 9, 0, 9, 6, 0, 6, 0, 2, 0, 7};
+  std::vector<double> expect3 = {4, 0, 6, 0, 4, 0, 2, 8, 0, 8, 0, 7, 0, 9, 4, 0, 2, 0, 6, 0, 7, 6,
+                                 0, 5, 0, 3, 0, 7, 9, 0, 3, 0, 3, 0, 6, 1, 0, 3, 0, 1, 0, 3, 3, 0,
+                                 1, 0, 9, 0, 4, 9, 0, 2, 0, 9, 0, 9, 6, 0, 6, 0, 2, 0, 7};
   ASSERT_THAT(result3.to_vector(), ElementsAreArray(expect3))
             << "Result is : \n" << result3.to_string();
+
 }
 
 TEST(AdgcTensorExtensionTest, ReverseTest) {
@@ -615,6 +616,17 @@ TEST(AdgcTensorExtensionTest, ReverseTest) {
   std::vector<float> expect2 = {2, 4, 6, 4, 9, 7, 8, 8, 7, 6, 2, 4, 7, 3, 5, 6, 6, 3, 3, 9, 3, 1,
                                 3, 1, 4, 9, 1, 3, 9, 9, 2, 9, 7, 2, 6, 6};
   ASSERT_THAT(tb.to_vector(), ElementsAreArray(expect2))
+            << "Result is : \n" << tb.to_string();
+
+  tensor::Tensor<float> tc({6, 5}, {-6, 6, -7, 7, 1, 7, 2, 3, -3, -2, -1, -8, 1,
+                                    -2, -1, -3, 5, -8, -9, 3, -10, -5, 7, -1, -10, -1,
+                                    -4, -5, 4, 0});
+  tensor::reverse(tc, 1);
+
+  std::vector<float> expect3 = {1, 7, -7, 6, -6, -2, -3, 3, 2, 7, -1, -2, 1,
+                                -8, -1, 3, -9, -8, 5, -3, -10, -1, 7, -5, -10, 0,
+                                4, -5, -4, -1};
+  ASSERT_THAT(tc.to_vector(), ElementsAreArray(expect3))
             << "Result is : \n" << tb.to_string();
 }
 

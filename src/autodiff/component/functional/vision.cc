@@ -33,9 +33,9 @@ Conv2D::Conv2D(Node *input_ptr,
 
   auto image_shape = parents_[0]->get_value_shape();
   kernel_shape_ = parents_[1]->get_value_shape();
-  size_t h = image_shape[1];
-  size_t w = image_shape[2];
-  size_t in_c = image_shape[3];
+  size_t h = image_shape[2];
+  size_t w = image_shape[3];
+  size_t in_c = image_shape[1];
   if (kernel_shape_[1] != in_c) {
     throw adg_exception::MismatchNodeValueShapeError(
       "Conv >> Conv: different channel size for image and kernel! "
@@ -56,62 +56,62 @@ Conv2D::Conv2D(Node *input_ptr,
 void Conv2D::do_forward() {
   col_kernel_ = parents_[1]->get_value().copy();
   col_kernel_.reshape({kernel_shape_[0], kernel_shape_[1] * kernel_shape_[2] * kernel_shape_[3]});
-  // shape: [cout, kh * kw * cin]
+  // shape: [cout,  cin * kw * kh]
 
-  im2col(parents_[0]->get_value(),
-         col_image_,
-         kernel_shape_[2],
-         kernel_shape_[3],
-         strides_[0],
-         strides_[1]); // shape: [B * (h - kh) * (w - kw), kh * kw * cin]
+  col_image_ = im2col_chw(parents_[0]->get_value(),
+                          kernel_shape_[2],
+                          kernel_shape_[3],
+                          strides_[0],
+                          strides_[1]); // shape: [B, (h - kh) * (w - kw), cin * kh * kw]
 
-  value_ = col_image_.dot(col_kernel_.t()); // shape: [B * (h-kh)*(w-kw), c_out]
-  value_.reshape({parents_[0]->get_value_shape()[0], out_h_, out_w_, out_c_});
+  value_ = col_image_.dot(col_kernel_.t()); // shape: [B, (h-kh)*(w-kw), c_out]
+  value_ = value_.transpose(1, 2);
+  value_.reshape({parents_[0]->get_value_shape()[0], out_c_, out_h_, out_w_});
 }
 
 DTensor Conv2D::do_backward(Node *parent_ptr) {
-  // grad shape [b, h, w, cout]
+  // grad shape [b, cout, h, w]
   DTensor grad = get_grad().copy();
   size_t n_batch = grad.get_shape()[0];
 
   if (parent_ptr == parents_[1]) {
-    grad.reshape({n_batch * out_h_ * out_w_, out_c_}); // [b * h*w, cout]
-    return grad.t().dot(col_image_);  // [cout, kh*kw*cin]
+    grad.reshape({n_batch, out_c_, out_h_ * out_w_}); // [B, cout, out_h * out_w]
+    DTensor result = grad.dot(col_image_).sum(0);  // [cout, kh*kw*cin]
+    result.reshape({kernel_shape_[0], kernel_shape_[1], kernel_shape_[2], kernel_shape_[3]});
+    return result;
   }
 
-  grad.reshape({n_batch, out_h_ * out_w_, out_c_});
-  grad = grad.transpose(1, 2);
-  grad.reshape({n_batch, out_c_, out_h_, out_w_});
   // if parent is the image
   // dilate and pad the original
   auto transformed_grad = tensor::pad2d(
     tensor::dilate2d(grad, {strides_[0] - 1, strides_[1] - 1}),
-    {kernel_shape_[0] - 1, kernel_shape_[1] - 1});
+    {kernel_shape_[2] - 1, kernel_shape_[3] - 1});
 
-  transformed_grad.reshape({n_batch, out_c_, out_h_ * out_w_});
-  transformed_grad = transformed_grad.transpose(1, 2);
-  transformed_grad.reshape({n_batch, out_h_, out_w_, out_c_});
   // then, reverse each column of col_kernel
-  tensor::reverse(col_kernel_, 1);  // shape: [cout, kh * kw * cin]
+  col_kernel_ = parents_[1]->get_value().copy(); // [cout, cin, kh, kw]
+  col_kernel_ = col_kernel_.transpose(0, 1);  // [cin, cout, kh, w]
+  col_kernel_.reshape({kernel_shape_[1], kernel_shape_[0], kernel_shape_[2] * kernel_shape_[3]});  // [cin, cout, kh*kw]
+  tensor::reverse(col_kernel_, 2);  // shape: [cin, cout, kh * kw]
+  col_kernel_.reshape({kernel_shape_[1], kernel_shape_[0] * kernel_shape_[2] * kernel_shape_[3]});
 
   // do the convolution between grad and col_kernel
-  im2col_hwc(transformed_grad,
-             col_image_,
-             kernel_shape_[2],
-             kernel_shape_[3],
-             1,
-             1);  // shape: [B, ]
-  DTensor result = col_image_.dot(col_kernel_.t()); // [B * h * w, kh * kw * cout]
+  DTensor im2col = im2col_chw(transformed_grad,
+                              kernel_shape_[2],
+                              kernel_shape_[3],
+                              1,
+                              1);  // shape: [B, h * w, cout * kh * kw]
+
+  DTensor result = im2col.dot(col_kernel_.t()); // [B, h * w, cin]
+  result = result.transpose(1, 2);
   result.reshape(parent_ptr->get_value_shape());
   return result;
 }
 
-void Conv2D::im2col_hwc(const DTensor &input,
-                        DTensor &output,
-                        const size_t &kh,
-                        const size_t &kw,
-                        const size_t &sh,
-                        const size_t &sw) {
+DTensor Conv2D::im2col_hwc(const DTensor &input,
+                           const size_t &kh,
+                           const size_t &kw,
+                           const size_t &sh,
+                           const size_t &sw) {
   // input : [b, h, w, c]
   tensor::TensorShape shape = input.get_shape();
   std::vector<size_t> input_strides = input.get_strides();
@@ -148,16 +148,15 @@ void Conv2D::im2col_hwc(const DTensor &input,
     }
   }
 
-  output = DTensor({n_batchs * out_h_ * out_w_, kw * kh * n_channels},
-                   std::move(col_image_values));
+  return DTensor({n_batchs * out_h_ * out_w_, kw * kh * n_channels},
+                 std::move(col_image_values));
 }
 
-void Conv2D::im2col_chw(const DTensor &input,
-                        DTensor &output,
-                        const size_t &kh,
-                        const size_t &kw,
-                        const size_t &sh,
-                        const size_t &sw) {
+DTensor Conv2D::im2col_chw(const DTensor &input,
+                           const size_t &kh,
+                           const size_t &kw,
+                           const size_t &sh,
+                           const size_t &sw) {
   // input : [b, c, h, w]
   tensor::TensorShape shape = input.get_shape();
   std::vector<size_t> input_strides = input.get_strides();
@@ -166,37 +165,42 @@ void Conv2D::im2col_chw(const DTensor &input,
 
   size_t window_size = kh * kw;
 
-  auto col_image_values =
-    std::vector<double>(n_batchs * out_h_ * out_w_ * window_size * n_channels);
+  size_t out_h = (shape[2] - kh) / sh + 1;
+  size_t out_w = (shape[3] - kw) / sw + 1;
 
+  std::vector<double> col_image_vec = std::vector<double>(n_batchs * out_h * out_w * window_size * n_channels);
   const double *input_tensor_ptr = input.get_tensor_const_ptr();
-  double *col_image_ptr = &col_image_values[0];
+  double *col_image_ptr = &col_image_vec[0];
 
   size_t ib, ic, ih, iw, iih, iiw;
   size_t cur_src_index, in_window_index, cur_dest_index;
   size_t dest_stride = window_size * n_channels;
+  size_t dest_b_stride = dest_stride * out_h * out_w;
+  size_t max_dest_ind = 0;
   for (ib = 0; ib < shape[0]; ++ib) {
     for (ic = 0; ic < shape[1]; ++ic) {
-      cur_dest_index = ic * window_size;
+      cur_dest_index = ib * dest_b_stride + ic * window_size;
       cur_src_index = ib * input_strides[0] + ic * input_strides[1];
-      for (ih = 0; ih <= shape[2] - sh; ih += sh) {
-        for (iw = 0; iw <= shape[3] - sw; iw += sw) {
+      for (ih = 0; ih <= shape[2] - kh; ih += sh) {
+        for (iw = 0; iw <= shape[3] - kw; iw += sw) {
           in_window_index = 0;
           while (in_window_index < window_size) {
             iih = in_window_index / kw;
             iiw = in_window_index % kw;
             *(col_image_ptr + cur_dest_index + in_window_index) =
-              *(input_tensor_ptr + cur_src_index + (ih + iih) * input_strides[1] + (iw + iiw) * input_strides[2]);
+              *(input_tensor_ptr + cur_src_index + (ih + iih) * input_strides[2] + (iw + iiw) * input_strides[3]);
             ++in_window_index;
           }
           cur_dest_index += dest_stride;
+          max_dest_ind = std::max(max_dest_ind, cur_dest_index);
         }
       }
     }
   }
 
-  output = DTensor({n_batchs * out_h_ * out_w_, kw * kh * n_channels},
-                   std::move(col_image_values));
+  DTensor result = DTensor({n_batchs, out_h * out_w, kw * kh * n_channels},
+                           col_image_ptr);
+  return result;
 }
 
 }
