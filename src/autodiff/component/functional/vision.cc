@@ -15,7 +15,7 @@ Conv2D::Conv2D(Node *input_ptr,
     strides_(strides) {
   set_backward_version(1);
   // second being the kernel
-  // input : image features [B, H, W, Cin], kernel [Cout, Cin, Kh, Kw]
+  // input : image features [B, Cin, H, W], kernel [Cout, Cin, Kh, Kw]
   // if input.size() == 3: use bias of size : [Cout]
   if (parents_.size() != 2) {
     throw adg_exception::OpsParentsNumException("Conv >> Conv: expect 2 parent nodes...");
@@ -95,14 +95,14 @@ DTensor Conv2D::do_backward(Node *parent_ptr) {
   tensor::reverse(col_kernel_, 1);  // shape: [cout, kh * kw * cin]
 
   // do the convolution between grad and col_kernel
-  im2col(transformed_grad,
-         col_image_,
-         kernel_shape_[2],
-         kernel_shape_[3],
-         1,
-         1);  // shape: [B, ]
+  im2col_hwc(transformed_grad,
+             col_image_,
+             kernel_shape_[2],
+             kernel_shape_[3],
+             1,
+             1);  // shape: [B, ]
   DTensor result = col_image_.dot(col_kernel_.t()); // [B * h * w, kh * kw * cout]
-  result.reshape(parent_ptr->get_shap());
+  result.reshape(parent_ptr->get_value_shape());
   return result;
 }
 
@@ -178,18 +178,18 @@ void Conv2D::im2col_chw(const DTensor &input,
   for (ib = 0; ib < shape[0]; ++ib) {
     for (ic = 0; ic < shape[1]; ++ic) {
       cur_dest_index = ic * window_size;
+      cur_src_index = ib * input_strides[0] + ic * input_strides[1];
       for (ih = 0; ih <= shape[2] - sh; ih += sh) {
         for (iw = 0; iw <= shape[3] - sw; iw += sw) {
-          cur_src_index = ib * input_strides[0] + ic * input_strides[1] + ih * input_strides[2] + iw * input_strides[3];
           in_window_index = 0;
           while (in_window_index < window_size) {
             iih = in_window_index / kw;
             iiw = in_window_index % kw;
-            *(col_image_ptr + cur_dest_index) =
-              *(input_tensor_ptr + cur_src_index + iih * input_strides[1] + iiw * input_strides[2]);
+            *(col_image_ptr + cur_dest_index + in_window_index) =
+              *(input_tensor_ptr + cur_src_index + (ih + iih) * input_strides[1] + (iw + iiw) * input_strides[2]);
             ++in_window_index;
-            cur_dest_index += dest_stride;
           }
+          cur_dest_index += dest_stride;
         }
       }
     }
