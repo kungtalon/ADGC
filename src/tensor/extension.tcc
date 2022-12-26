@@ -9,6 +9,7 @@ Tensor<dType> pad2d(const Tensor<dType> &src_tensor,
   return pad2d(src_tensor, {{paddings[0], paddings[0]}, {paddings[1], paddings[1]}}, value);
 }
 
+// paddings order : {{top, bottom}, {left, right}}
 template<typename dType>
 Tensor<dType> pad2d(const Tensor<dType> &src_tensor,
                     const std::vector<std::pair<size_t, size_t>> &paddings,
@@ -52,6 +53,36 @@ Tensor<dType> pad2d(const Tensor<dType> &src_tensor,
 
   Tensor<dType> result(result_shape, result_values);
   return result;
+}
+
+template<typename dType>
+void reverse(Tensor<dType> &ts, const size_t &axis) {
+  size_t size = ts.get_size();
+  size_t dim = ts.get_dim();
+  if (axis >= dim) {
+    throw adg_exception::AxisOutOfRangeError("reverse : reversed axis out of range ...");
+  }
+
+  auto shape = ts.get_shape();
+  auto strides = ts.get_strides();
+
+  if (axis == shape.size() - 1) {
+    size_t index = 0;
+    while (index < size) {
+      std::reverse(ts.get_iterator() + index, ts.get_iterator() + index + shape[dim - 1]);
+      index += shape[dim - 1];
+    }
+    return;
+  }
+
+  for (size_t index = 0; index < size; ++index) {
+    if (ts.get_coordinate_at_axis(index, axis, strides) == 0) {
+      for (int ix = 0; ix < shape[axis] / 2; ++ix) {
+        std::iter_swap(ts.get_iterator() + index + ix * strides[axis],
+                       ts.get_iterator() + index + (shape[axis] - ix - 1) * strides[axis]);
+      }
+    }
+  }
 }
 
 }

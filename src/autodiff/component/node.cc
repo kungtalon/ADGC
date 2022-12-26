@@ -5,7 +5,7 @@ namespace auto_diff {
 Node::Node() : Node(NodeType::ADG_UNKNOWN_TYPE) {}
 
 Node::Node(const std::string &type, const std::string &name, Graph *graph)
-  : type_(type), empty_jacobi_(true), empty_value_(true), backward_version_(0) {
+  : type_(type), empty_jacobi_(true), empty_value_(true), backward_version_(0), requires_grad_(false) {
   value_ = tensor::EMPTY;
   jacobi_ = tensor::EMPTY;
   unique_ptr_ = this;
@@ -40,6 +40,10 @@ Node::Node(const std::string &type, const std::vector<Node *> &parents,
 
     parent_ptr->add_children(this); // register this node to all its parents
     add_parent(parent_ptr);
+
+    if (parent_ptr->get_type() == NodeType::ADG_PARAMETER_TYPE && parent_ptr->is_requires_grad()) {
+      requires_grad_ = true;
+    }
   }
   name_ =
     graph_->add_node(this, type_, name); // register this node into the graph

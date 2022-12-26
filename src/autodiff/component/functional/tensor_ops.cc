@@ -1,7 +1,7 @@
 //
 // Created by kungtalon on 2022/12/25.
 //
-#include "autodiff/component/functional/tensor_basic.h"
+#include "autodiff/component/functional/tensor_ops.h"
 
 namespace auto_diff {
 namespace functional {
@@ -45,42 +45,77 @@ DTensor Add::do_backward(Node *parent_ptr) {
   return jacobi_;
 }
 
-MatAddVec::MatAddVec(Node *parent1_ptr, Node *parent2_ptr, Graph *g,
+MatAddVec::MatAddVec(Node *parent1_ptr, Node *parent2_ptr, const size_t &axis, Graph *g,
                      const std::string &name)
   : Node(NodeType::ADG_MATADDVEC_TYPE, {parent1_ptr, parent2_ptr}, name, g) {
-  // accept one matrix and one vector with same size in the last dim
+  set_backward_version(1);
+  // accept one matrix and one vector with same size in the target axis of matrix
   tensor::TensorShape matrix_shape = parent1_ptr->get_value_shape();
   tensor::TensorShape vector_shape = parent2_ptr->get_value_shape();
   if (matrix_shape.size() < 2 || vector_shape.size() != 1) {
-    throw adg_exception::MismatchNodeValueShapeError("Add >> Add");
+    throw adg_exception::MismatchNodeValueShapeError(
+      "MatAddVec >> MatAddVec: expect a tensor at least 2 dim and a vector of 1 dim...");
   }
 
-  if (matrix_shape[matrix_shape.size() - 1] != vector_shape[0]) {
+  axis_ = axis == SIZE_MAX ? matrix_shape.size() - 1 : axis;
+  if (axis_ >= matrix_shape.size()) {
+    throw adg_exception::InvalidNodeArgumentError("MatAddVec >> MatAddVec: axis out of range...");
+  }
+
+  if (matrix_shape[axis_] != vector_shape[0]) {
     throw adg_exception::MismatchNodeValueShapeError(
-      "Add >> Add: Matrix and vector don't have same size in the last dimension...");
+      "MatAddVec >> MatAddVec: Matrix and vector don't have same size in the last dimension...");
   }
 
   value_ = DTensor(parents_[0]->get_value_shape());
-};
+}
 
 void MatAddVec::do_forward() {
   auto matrix_values = parents_[0]->get_value().to_vector();
   auto vector_values = parents_[1]->get_value().to_vector();
-  size_t repeat_times = matrix_values.size() / vector_values.size();
 
-  for (int ix = 0; ix < vector_values.size(); ++ix) {
-    cblas_daxpy(repeat_times, 1.0, &vector_values[ix], 0, &matrix_values[ix], vector_values.size());
+  size_t matrix_stride = parents_[0]->get_value().get_stride(axis_);
+
+  size_t matrix_index = 0, vector_index = 0;
+  while (matrix_index < matrix_values.size()) {
+    cblas_daxpy(matrix_stride,
+                1.0,
+                &vector_values[vector_index],
+                0,
+                &matrix_values[matrix_index],
+                1);
+    vector_index = (vector_index + 1) % vector_values.size();
+    matrix_index += matrix_stride;
   }
   value_ = DTensor(parents_[0]->get_value_shape(), matrix_values);
 }
 
 DTensor MatAddVec::do_backward(Node *parent_ptr) {
   if (parent_ptr == parents_[0]) {
-    return tensor::Eye(get_value_size());
+    return get_grad();
   }
 
-  size_t repeat_times = parents_[0]->get_value_size() / parents_[1]->get_value_size();
-  return DTensor::kron(tensor::Ones({1, repeat_times}), tensor::Eye(parents_[1]->get_value_size()));
+  // sum over the grads just like forward
+  DTensor result(parent_ptr->get_value_shape());
+  tensor::TensorIterator<double> result_iter = result.get_iterator();
+
+  size_t matrix_stride = parents_[0]->get_value().get_stride(axis_);
+  size_t matrix_size = parents_[0]->get_value_size();
+  const double *grad_values = get_grad().get_tensor_const_ptr();
+
+  size_t matrix_index = 0, vector_index = 0;
+  double const_one = 1;
+  while (matrix_index < matrix_size) {
+    *(result_iter + vector_index) += cblas_ddot(matrix_stride,
+                                                &const_one,
+                                                0,
+                                                &grad_values[matrix_index],
+                                                1);
+    vector_index = (vector_index + 1) % result.get_size();
+    matrix_index += matrix_stride;
+  }
+
+  return result;
 }
 
 VecDot::VecDot(Node *parent1_ptr, Node *parent2_ptr, Graph *g,

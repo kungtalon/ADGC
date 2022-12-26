@@ -1,4 +1,4 @@
-#include "autodiff/layer/layer.h"
+#include "autodiff/layer/dense.h"
 
 namespace auto_diff {
 
@@ -6,9 +6,8 @@ namespace layer {
 
 Dense::Dense(const size_t &input_channel, const size_t &output_channel,
              const std::string &activation, bool use_bias, Graph *graph)
-  : Layer(LayerType::ADG_LAYER_DENSE, graph), input_channel_(input_channel),
-    activation_(activation) {
-  Parameter *kernel_p = new Parameter({input_channel, output_channel},
+  : Layer(LayerType::ADG_LAYER_DENSE, graph), input_channel_(input_channel), output_channel_(output_channel) {
+  Parameter *kernel_p = new Parameter({input_channel_, output_channel_},
                                       layer_name_ + "_kernel", graph_);
   add_param(kernel_p);
 
@@ -16,9 +15,30 @@ Dense::Dense(const size_t &input_channel, const size_t &output_channel,
     Parameter *bias_p = new Parameter({1}, layer_name_ + "_bias", graph_);
     add_param(bias_p);
   }
+
+  set_config("activation", activation);
+
 }
 
 Node &Dense::operator()(const Node &input) {
+  check_input(input);
+
+  Node *input_ptr = Graph::get_ptr_of(input.get_full_name(), graph_);
+  Parameter weight = get_weight();
+  Node *output =
+    new functional::MatMul(input_ptr, &weight, graph_, layer_name_ + "_matmul");
+
+  if (params_ptr_list_.size() == 2) {
+    Parameter bias = get_bias();
+    output = new functional::Add(output, &bias);
+  }
+
+  output = use_activation(output);
+
+  return *output;
+}
+
+void Dense::check_input(const Node &input) {
   if (input.get_graph() != graph_) {
     throw adg_exception::MismatchRegisterdGraphError(
       "Dense layer " + layer_name_ +
@@ -32,29 +52,6 @@ Node &Dense::operator()(const Node &input) {
         std::to_string(input_channel_) + " ,got shape " +
         utils::vector_to_str(input_shape));
   }
-
-  Node *input_ptr = Graph::get_ptr_of(input.get_full_name(), graph_);
-  Parameter weight = get_weight();
-  Node *output =
-    new functional::MatMul(input_ptr, &weight, graph_, layer_name_ + "_matmul");
-
-  if (params_ptr_list_.size() == 2) {
-    Parameter bias = get_bias();
-    output = new functional::Add(output, &bias);
-  }
-
-  if (activation_ == "relu") {
-    output = new functional::ReLU(output, graph_, layer_name_ + "_relu");
-  } else if (activation_ == "sigmoid") {
-    output = new functional::Sigmoid(output, graph_, layer_name_ + "_sigmoid");
-  } else if (activation_ == "none") {
-    // do nothing
-  } else {
-    throw std::invalid_argument("Dense layer " + layer_name_ +
-      " receives invalid activation");
-  }
-
-  return *output;
 }
 
 Parameter &Dense::get_weight() {

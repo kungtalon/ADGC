@@ -1,8 +1,7 @@
 #ifndef ADGC_AUTODIFF_TENSOR_H_
 #define ADGC_AUTODIFF_TENSOR_H_
 
-#include <stdlib.h>
-
+#include <cstdlib>
 #include <algorithm>
 #include <chrono>
 #include <cstring>
@@ -11,6 +10,7 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <cassert>
 
 #include "exception/exception.h"
 #include "mapper.h"
@@ -91,9 +91,17 @@ class Tensor {
   Tensor<float> to_float() const;
   Tensor<double> to_double() const;
 
+  inline size_t get_shape(const size_t &axis) const {
+    assert(axis < dim_);
+    return shape_[axis];
+  };
   inline TensorShape get_shape() const { return shape_; };
   inline size_t get_size() const { return size_; };
   inline size_t get_dim() const { return dim_; };
+  inline size_t get_stride(const size_t &axis) {
+    assert(axis < dim_);
+    return strides_[axis];
+  };
   inline TensorShape get_strides() const { return strides_; };
   inline std::string to_string() const { return do_to_string(); };
   inline std::vector<dType> to_vector() const {
@@ -102,10 +110,15 @@ class Tensor {
   inline const dType *get_tensor_const_ptr() const {
     return &*tensor_->begin();
   };
+  inline TensorIterator<dType> get_iterator() {
+    return tensor_->begin();
+  }
 
   static Tensor<dType> kron(const Tensor<dType> &lt, const Tensor<dType> &rt);
   static Tensor<dType> div(const Tensor<dType> &lt, const Tensor<dType> &rt);
   static Tensor<dType> concat(const std::vector<Tensor<dType>> &tensors, const size_t &axis);
+  static size_t get_coordinate_at_axis(const size_t &ind, const size_t &axis,
+                                       const TensorShape &strides);
 
  protected:
   // store tensor as a vector, wrapped in shared_ptr for easy copy
@@ -123,8 +136,6 @@ class Tensor {
   const TensorIterator<dType> get_const_iterator(const TensorIndex &index) const;
   void slice_recursive_copy(const size_t &depth, const size_t &cur_axis, const TensorSlice &slice,
                             const dType *src_ptr, dType *dest_ptr, size_t &dest_index) const;
-  static size_t get_coordinate_at_axis(const size_t &ind, const size_t &axis,
-                                       const TensorShape &strides);
   static size_t get_index_after_transpose(const size_t &arr_ind,
                                           const size_t &axis_a,
                                           const size_t &axis_b,

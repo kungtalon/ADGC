@@ -8,7 +8,7 @@
 #include "functional/loss.h"
 #include "functional/reduction.h"
 #include "functional/manipulation.h"
-#include "functional/tensor_basic.h"
+#include "functional/tensor_ops.h"
 #include "functional/vision.h"
 
 #endif

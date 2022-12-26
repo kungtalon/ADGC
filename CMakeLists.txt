@@ -52,7 +52,7 @@ if (BLAS_FOUND)
 endif (BLAS_FOUND)
 
 
-file(GLOB TENSOR_LIB_FILES "include/tensor/*.h" "src/tensor/*cc")
+file(GLOB TENSOR_LIB_FILES "include/tensor/*.h" "src/tensor/*.cc" "src/tensor/*.tcc")
 add_library(tensor_lib ${TENSOR_LIB_FILES})
 set_target_properties(tensor_lib PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(tensor_lib

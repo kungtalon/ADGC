@@ -2,8 +2,8 @@
 // Created by kungtalon on 2022/12/25.
 //
 
-#ifndef ADGC_INCLUDE_AUTODIFF_COMPONENT_FUNCTIONAL_TENSOR_BASIC_H_
-#define ADGC_INCLUDE_AUTODIFF_COMPONENT_FUNCTIONAL_TENSOR_BASIC_H_
+#ifndef ADGC_INCLUDE_AUTODIFF_COMPONENT_FUNCTIONAL_TENSOR_OPS_H_
+#define ADGC_INCLUDE_AUTODIFF_COMPONENT_FUNCTIONAL_TENSOR_OPS_H_
 
 #include "autodiff/component/functional.h"
 
@@ -23,10 +23,13 @@ class Add : public Node {
 class MatAddVec : public Node {
  public:
   MatAddVec() : Node(NodeType::ADG_MATADDVEC_TYPE) {};
-  MatAddVec(Node *parent1_ptr, Node *parent2_ptr, Graph *g = nullptr,
+  MatAddVec(Node *parent1_ptr, Node *parent2_ptr, const size_t &axis = SIZE_MAX, Graph *g = nullptr,
             const std::string &name = "");
   void do_forward() override;
   DTensor do_backward(Node *parent_ptr) override;
+
+ private:
+  size_t axis_;
 };
 
 class VecDot : public Node {
@@ -91,4 +94,4 @@ MatSum &matsum(const Node &parent_1, const Node &parent_2, const Node &parent_3,
 
 }
 
-#endif //ADGC_INCLUDE_AUTODIFF_COMPONENT_FUNCTIONAL_TENSOR_BASIC_H_
+#endif //ADGC_INCLUDE_AUTODIFF_COMPONENT_FUNCTIONAL_TENSOR_OPS_H_

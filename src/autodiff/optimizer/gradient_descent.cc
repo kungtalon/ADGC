@@ -3,17 +3,13 @@
 namespace auto_diff {
 namespace optimizer {
 
-GradientDescent::GradientDescent(const Node &target, const size_t &batch_size,
+GradientDescent::GradientDescent(const Node &target,
                                  const double &learning_rate, Graph *graph)
-    : Optimizer(target, batch_size, learning_rate, graph) {}
+  : Optimizer(target, learning_rate, graph) {}
 
 void GradientDescent::update() {
-  NodeIteratorPair node_iterators = graph_->get_node_iterators();
-
-  for (auto node_iter = node_iterators.first;
-       node_iter != node_iterators.second; ++node_iter) {
-    Node *node_ptr = *node_iter;
-    if (is_trainable_param(node_ptr)) {
+  for (auto *node_ptr : trainable_params_list_) {
+    if (node_ptr->get_type() == NodeType::ADG_PARAMETER_TYPE) {
       DTensor grad = get_gradient(node_ptr);
 
       DTensor value = node_ptr->get_value(); // shallow copy of value tensor

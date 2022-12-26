@@ -7,16 +7,16 @@ namespace auto_diff {
 namespace optimizer {
 
 class Adam : public Optimizer {
-public:
-  Adam(){};
-  Adam(const Node &target, const size_t &batch_size = 12,
+ public:
+  Adam() {};
+  Adam(const Node &target,
        const double &learning_rate = 0.01, const double &beta1 = 0.9,
        const double &beta2 = 0.999, const double &weight_decay = 0,
        const double &epsilon = 1e-8, Graph *graph = nullptr);
 
   void reset_state();
 
-private:
+ private:
   double beta1_, beta2_, beta1_power_, beta2_power_, weight_decay_, epsilon_;
   std::unordered_map<std::string, DTensor> moments_table_;
 

@@ -8,12 +8,12 @@ namespace auto_diff {
 namespace layer {
 
 class Dense : public Layer {
-public:
-  Dense(){};
+ public:
+  Dense() {};
   Dense(const size_t &input_channel, const size_t &output_channel,
         const std::string &activation = "relu", bool use_bias = true,
         Graph *graph = nullptr);
-  ~Dense(){};
+  ~Dense() {};
 
   Parameter &get_weight();
   Parameter &get_bias();
@@ -21,9 +21,10 @@ public:
   void assign_weight(const DTensor &value);
   void assign_bias(const DTensor &value);
 
-private:
+ private:
   size_t input_channel_, output_channel_;
-  std::string activation_;
+
+  void check_input(const Node &input);
 };
 
 } // namespace layer

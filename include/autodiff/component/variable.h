@@ -9,7 +9,7 @@
 namespace auto_diff {
 
 class Variable : public Node {
-public:
+ public:
   Variable();
   Variable(const tensor::TensorShape &shape);
   Variable(const tensor::TensorShape &shape, Graph *graph);
@@ -21,29 +21,25 @@ public:
            const std::string &name = "", const bool &random_init = true,
            const bool &trainable = true, Graph *graph = nullptr);
 
-  inline void set_trainable(bool is_trainable) { trainable_ = is_trainable; };
-  inline bool is_trainable() { return trainable_; };
+  inline void set_trainable(bool is_trainable) { set_requires_grad(is_trainable); };
+  inline bool is_trainable() { return unique_ptr_->is_requires_grad(); };
 
-protected:
-  bool trainable_;
-
-  void do_forward() override{}; // do nothing
+ protected:
+  void do_forward() override {}; // do nothing
   DTensor do_backward(Node *parent) override;
 };
 
 class Parameter : public Node {
-public:
+ public:
   Parameter();
   Parameter(const tensor::TensorShape &shape, const std::string &name = "",
             Graph *graph = nullptr);
 
-  inline void set_trainable(bool is_trainable) { trainable_ = is_trainable; };
-  inline bool is_trainable() { return trainable_; };
+  inline void set_trainable(bool is_trainable) { unique_ptr_->set_requires_grad(is_trainable); };
+  inline bool is_trainable() { return unique_ptr_->is_requires_grad(); };
 
-protected:
-  bool trainable_;
-
-  void do_forward() override{}; // do nothing
+ protected:
+  void do_forward() override {}; // do nothing
   DTensor do_backward(Node *parent) override;
 };
 
