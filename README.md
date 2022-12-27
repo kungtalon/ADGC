@@ -107,7 +107,7 @@ Example output:
 
 Here are some software and packages used in this project:
 
-> cblas
+> mkl (w/ cblas)
 >
 > graphviz
 >
