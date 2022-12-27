@@ -88,4 +88,239 @@ Tensor<float> dilate2d(const Tensor<float> &src_tensor,
   return result;
 }
 
+template<>
+double squared_sum(const Tensor<double> &ts) {
+  return cblas_ddot(ts.get_size(), ts.get_tensor_const_ptr(), 1, ts.get_tensor_const_ptr(), 1);
+}
+
+template<>
+float squared_sum(const Tensor<float> &ts) {
+  return cblas_sdot(ts.get_size(), ts.get_tensor_const_ptr(), 1, ts.get_tensor_const_ptr(), 1);
+}
+
+template<>
+Tensor<float> sqrt(const Tensor<float> &ts) {
+  Tensor<float> result(ts.get_shape());
+  vsSqrt(ts.get_size(), ts.get_tensor_const_ptr(), &*result.get_iterator());
+  return result;
+}
+
+template<>
+Tensor<double> sqrt(const Tensor<double> &ts) {
+  Tensor<double> result(ts.get_shape());
+  vdSqrt(ts.get_size(), ts.get_tensor_const_ptr(), &*result.get_iterator());
+  return result;
+}
+
+template<>
+Tensor<float> add_vec(const Tensor<float> &lt,
+                      const Tensor<float> &rt,
+                      const size_t &axis) {
+  Tensor<float> vec, mat;
+  if (lt.get_dim() == 1) {
+    vec = lt;
+    mat = rt;
+  } else if (rt.get_dim() == 1) {
+    vec = rt;
+    mat = lt;
+  } else {
+    throw adg_exception::InvalidTensorShapeException("Tensor >> add_vec: expect one operand with dim 1...");
+  }
+
+  if (mat.get_shape(axis) != vec.get_size()) {
+    throw adg_exception::MismatchTensorShapeError(
+      "Tensor >> add_vec: expect two operands to have matched size in the axis...");
+  }
+
+  Tensor<float> result = mat.copy();
+
+  float *result_ptr = &*result.get_iterator();
+  const float *vector_ptr = vec.get_tensor_const_ptr();
+  size_t mat_stride = result.get_stride(axis);
+  size_t vec_size = vec.get_size();
+
+  size_t matrix_index = 0, vector_index = 0;
+  if (axis == mat.get_dim() - 1) {
+    while (matrix_index < mat.get_size()) {
+      vsAdd(vec_size, vector_ptr, result_ptr + matrix_index, result_ptr + matrix_index);
+      matrix_index += vec_size;
+    }
+  } else {
+    while (matrix_index < mat.get_size()) {
+      cblas_saxpy(mat_stride,
+                  1.0,
+                  vector_ptr + vector_index,
+                  0,
+                  result_ptr + matrix_index,
+                  1);
+      vector_index = (vector_index + 1) % vec_size;
+      matrix_index += mat_stride;
+    }
+  }
+  return result;
+}
+
+template<>
+Tensor<double> add_vec(const Tensor<double> &lt,
+                       const Tensor<double> &rt,
+                       const size_t &axis) {
+  Tensor<double> vec, mat;
+  if (lt.get_dim() == 1) {
+    vec = lt;
+    mat = rt;
+  } else if (rt.get_dim() == 1) {
+    vec = rt;
+    mat = lt;
+  } else {
+    throw adg_exception::InvalidTensorShapeException("Tensor >> add_vec: expect one operand with dim 1...");
+  }
+
+  if (mat.get_shape(axis) != vec.get_size()) {
+    throw adg_exception::MismatchTensorShapeError(
+      "Tensor >> add_vec: expect two operands to have matched size in the axis...");
+  }
+
+  Tensor<double> result = mat.copy();
+
+  double *result_ptr = &*result.get_iterator();
+  const double *vector_ptr = vec.get_tensor_const_ptr();
+  size_t mat_stride = result.get_stride(axis);
+  size_t vec_size = vec.get_size();
+
+  size_t matrix_index = 0, vector_index = 0;
+  if (axis == mat.get_dim() - 1) {
+    while (matrix_index < mat.get_size()) {
+      vdAdd(vec_size, vector_ptr, result_ptr + matrix_index, result_ptr + matrix_index);
+      matrix_index += vec_size;
+    }
+  } else {
+    while (matrix_index < mat.get_size()) {
+      cblas_daxpy(mat_stride,
+                  1.0,
+                  vector_ptr + vector_index,
+                  0,
+                  result_ptr + matrix_index,
+                  1);
+      vector_index = (vector_index + 1) % vec_size;
+      matrix_index += mat_stride;
+    }
+  }
+  return result;
+}
+
+template<>
+Tensor<float> square(const Tensor<float> &ts) {
+  Tensor<float> result(ts.get_shape());
+  vsSqr(ts.get_size(), ts.get_tensor_const_ptr(), &*result.get_iterator());
+  return result;
+}
+
+template<>
+Tensor<double> square(const Tensor<double> &ts) {
+  Tensor<double> result(ts.get_shape());
+  vdSqr(ts.get_size(), ts.get_tensor_const_ptr(), &*result.get_iterator());
+  return result;
+}
+
+template<>
+Tensor<float> pmul_vec(const Tensor<float> &lt,
+                       const Tensor<float> &rt,
+                       const size_t &axis) {
+  Tensor<float> vec, mat;
+  if (lt.get_dim() == 1) {
+    vec = lt;
+    mat = rt;
+  } else if (rt.get_dim() == 1) {
+    vec = rt;
+    mat = lt;
+  } else {
+    throw adg_exception::InvalidTensorShapeException("Tensor >> pmul_vec: expect one operand with dim 1...");
+  }
+
+  if (mat.get_shape(axis) != vec.get_size()) {
+    throw adg_exception::MismatchTensorShapeError(
+      "Tensor >> pmul_vec: expect two operands to have matched size in the axis...");
+  }
+
+  Tensor<float> result = mat.copy();
+
+  float *result_ptr = &*result.get_iterator();
+  const float *vector_ptr = vec.get_tensor_const_ptr();
+  size_t mat_stride = result.get_stride(axis);
+  size_t vec_size = vec.get_size();
+
+  size_t matrix_index = 0, vector_index = 0;
+  if (axis == mat.get_dim() - 1) {
+    while (matrix_index < mat.get_size()) {
+      vsMul(vec_size, vector_ptr, result_ptr + matrix_index, result_ptr + matrix_index);
+      matrix_index += vec_size;
+    }
+  } else {
+    float const_zero = 0;
+    while (matrix_index < mat.get_size()) {
+      cblas_saxpby(mat_stride,
+                   1.,
+                   &const_zero,
+                   0,
+                   *(vector_ptr + vector_index),
+                   result_ptr + matrix_index,
+                   1);
+      vector_index = (vector_index + 1) % vec_size;
+      matrix_index += mat_stride;
+    }
+  }
+  return result;
+}
+
+template<>
+Tensor<double> pmul_vec(const Tensor<double> &lt,
+                        const Tensor<double> &rt,
+                        const size_t &axis) {
+  Tensor<double> vec, mat;
+  if (lt.get_dim() == 1) {
+    vec = lt;
+    mat = rt;
+  } else if (rt.get_dim() == 1) {
+    vec = rt;
+    mat = lt;
+  } else {
+    throw adg_exception::InvalidTensorShapeException("Tensor >> pmul_vec: expect one operand with dim 1...");
+  }
+
+  if (mat.get_shape(axis) != vec.get_size()) {
+    throw adg_exception::MismatchTensorShapeError(
+      "Tensor >> pmul_vec: expect two operands to have matched size in the axis...");
+  }
+
+  Tensor<double> result = mat.copy();
+
+  double *result_ptr = &*result.get_iterator();
+  const double *vector_ptr = vec.get_tensor_const_ptr();
+  size_t mat_stride = result.get_stride(axis);
+  size_t vec_size = vec.get_size();
+
+  size_t matrix_index = 0, vector_index = 0;
+  if (axis == mat.get_dim() - 1) {
+    while (matrix_index < mat.get_size()) {
+      vdMul(vec_size, vector_ptr, result_ptr + matrix_index, result_ptr + matrix_index);
+      matrix_index += vec_size;
+    }
+  } else {
+    double const_zero = 0;
+    while (matrix_index < mat.get_size()) {
+      cblas_daxpby(mat_stride,
+                   1.,
+                   &const_zero,
+                   0,
+                   *(vector_ptr + vector_index),
+                   result_ptr + matrix_index,
+                   1);
+      vector_index = (vector_index + 1) % vec_size;
+      matrix_index += mat_stride;
+    }
+  }
+  return result;
+
+}
+
 }

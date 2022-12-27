@@ -11,6 +11,8 @@ option(USE_GRAPHVIZ "whether to use graphviz" ON)
 
 add_definitions(-DADGC_MULTI_THREADS_NUM_=3)
 
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/)
+
 if (${SKIP_TEST})
     message("-- [INFO] Skipped all tests...")
 endif ()
@@ -35,9 +37,25 @@ FetchContent_Declare(
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
+find_package(BLAS REQUIRED)
+if (BLAS_FOUND)
+    message("BLAS found.")
+endif (BLAS_FOUND)
+
+find_package(MKL REQUIRED)
+if (MKL_FOUND)
+    message("MKL found.")
+    include_directories(${MKL_INCLUDE_DIRS})
+endif (MKL_FOUND)
+
+
 file(GLOB UTILS_LIB_FILES "include/utils/*.h" "src/utils/*cc")
 add_library(utils_lib ${UTILS_LIB_FILES})
 set_target_properties(utils_lib PROPERTIES LINKER_LANGUAGE CXX)
+target_link_libraries(utils_lib
+        ${BLAS_LIBRARIES}
+        ${MKL_LIBRARIES})
+
 
 if (${USE_GRAPHVIZ})
     add_library(graph_utils_lib
@@ -46,17 +64,12 @@ if (${USE_GRAPHVIZ})
     set_target_properties(graph_utils_lib PROPERTIES LINKER_LANGUAGE CXX)
 endif ()
 
-find_package(BLAS REQUIRED)
-if (BLAS_FOUND)
-    message("BLAS found.")
-endif (BLAS_FOUND)
-
 
 file(GLOB TENSOR_LIB_FILES "include/tensor/*.h" "src/tensor/*.cc" "src/tensor/*.tcc")
 add_library(tensor_lib ${TENSOR_LIB_FILES})
 set_target_properties(tensor_lib PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(tensor_lib
-        ${BLAS_LIBRARIES})
+        utils_lib)
 
 add_library(graph_core_lib
         "include/autodiff/consts.h"
@@ -161,6 +174,18 @@ if (NOT ${SKIP_TEST})
             test/tensor_test.cc
     )
     target_link_libraries(tensor_test
+            tensor_lib
+            utils_lib
+            gtest
+            gtest_main
+            gmock
+            gmock_main
+            )
+    add_executable(
+            tensor_extension_test
+            test/tensor_extension_test.cc
+    )
+    target_link_libraries(tensor_extension_test
             tensor_lib
             utils_lib
             gtest

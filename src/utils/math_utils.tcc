@@ -92,18 +92,20 @@ inline void elementwise_multiply(const size_t &size, const double *mat_a,
                                  const double *mat_b, double *mat_c) {
   // memcpy(mat_c, mat_b, sizeof(double) * size);
   // cblas_ddot(size, mat_a, 1, mat_c, 1);
-  for (int ix = 0; ix < size; ++ix) {
-    mat_c[ix] = mat_a[ix] * mat_b[ix];
-  }
+//  for (int ix = 0; ix < size; ++ix) {
+//    mat_c[ix] = mat_a[ix] * mat_b[ix];
+//  }
+  vdMul(size, mat_a, mat_b, mat_c);
 }
 
 inline void elementwise_multiply(const size_t &size, const float *mat_a,
                                  const float *mat_b, float *mat_c) {
   // memcpy(mat_c, mat_b, sizeof(float) * size);
   // cblas_sdot(size, mat_a, 1, mat_c, 1);
-  for (int ix = 0; ix < size; ++ix) {
-    mat_c[ix] = mat_a[ix] * mat_b[ix];
-  }
+//  for (int ix = 0; ix < size; ++ix) {
+//    mat_c[ix] = mat_a[ix] * mat_b[ix];
+//  }
+  vsMul(size, mat_a, mat_b, mat_c);
 }
 
 inline void elementwise_multiply(const size_t &size, const int32_t *mat_a,
@@ -113,24 +115,26 @@ inline void elementwise_multiply(const size_t &size, const int32_t *mat_a,
 
 inline void elementwise_divide(const size_t &size, const double *mat_a,
                                const double *mat_b, double *mat_c) {
-  for (int ix = 0; ix < size; ++ix) {
-    if (mat_a[ix] == 0.) {
-      mat_c[ix] = 0;
-      continue;
-    }
-    mat_c[ix] = mat_a[ix] / mat_b[ix];
-  }
+//  for (int ix = 0; ix < size; ++ix) {
+//    if (mat_a[ix] == 0.) {
+//      mat_c[ix] = 0;
+//      continue;
+//    }
+//    mat_c[ix] = mat_a[ix] / mat_b[ix];
+//  }
+  vdDiv(size, mat_a, mat_b, mat_c);
 }
 
 inline void elementwise_divide(const size_t &size, const float *mat_a,
                                const float *mat_b, float *mat_c) {
-  for (int ix = 0; ix < size; ++ix) {
-    if (mat_a[ix] == 0.) {
-      mat_c[ix] = 0;
-      continue;
-    }
-    mat_c[ix] = mat_a[ix] / mat_b[ix];
-  }
+//  for (int ix = 0; ix < size; ++ix) {
+//    if (mat_a[ix] == 0.) {
+//      mat_c[ix] = 0;
+//      continue;
+//    }
+//    mat_c[ix] = mat_a[ix] / mat_b[ix];
+//  }
+  vsDiv(size, mat_a, mat_b, mat_c);
 }
 
 inline void elementwise_divide(const size_t &size, const int32_t *mat_a,
@@ -148,24 +152,34 @@ inline void elementwise_divide(const size_t &size, const int32_t *mat_a,
 inline void elementwise_add(const size_t &size, const double *mat_a,
                             const double *mat_b, double *mat_c,
                             bool subtract = false) {
+//  if (subtract) {
+//    cblas_dcopy(size, mat_a, 1, mat_c, 1);
+//    cblas_daxpy(size, -1., mat_b, 1, mat_c, 1);
+//  } else {
+//    cblas_dcopy(size, mat_b, 1, mat_c, 1);
+//    cblas_daxpy(size, 1., mat_a, 1, mat_c, 1);
+//  }
   if (subtract) {
-    cblas_dcopy(size, mat_a, 1, mat_c, 1);
-    cblas_daxpy(size, -1., mat_b, 1, mat_c, 1);
+    vdSub(size, mat_a, mat_b, mat_c);
   } else {
-    cblas_dcopy(size, mat_b, 1, mat_c, 1);
-    cblas_daxpy(size, 1., mat_a, 1, mat_c, 1);
+    vdAdd(size, mat_a, mat_b, mat_c);
   }
 }
 
 inline void elementwise_add(const size_t &size, const float *mat_a,
                             const float *mat_b, float *mat_c,
                             bool subtract = false) {
+//  if (subtract) {
+//    cblas_scopy(size, mat_a, 1, mat_c, 1);
+//    cblas_saxpy(size, -1., mat_b, 1, mat_c, 1);
+//  } else {
+//    cblas_scopy(size, mat_b, 1, mat_c, 1);
+//    cblas_saxpy(size, 1., mat_a, 1, mat_c, 1);
+//  }
   if (subtract) {
-    cblas_scopy(size, mat_a, 1, mat_c, 1);
-    cblas_saxpy(size, -1., mat_b, 1, mat_c, 1);
+    vsSub(size, mat_a, mat_b, mat_c);
   } else {
-    cblas_scopy(size, mat_b, 1, mat_c, 1);
-    cblas_saxpy(size, 1., mat_a, 1, mat_c, 1);
+    vsAdd(size, mat_a, mat_b, mat_c);
   }
 }
 

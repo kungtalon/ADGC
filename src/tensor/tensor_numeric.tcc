@@ -149,10 +149,33 @@ Tensor<dType> Tensor<dType>::multiply(const Tensor<dType> &bt) const {
 // multiply implements the element-wise multiplication
 template<typename dType>
 Tensor<dType> Tensor<dType>::multiply(const dType &multiplier) const {
-  Tensor<dType> result = Tensor(shape_, static_cast<dType>(multiplier));
+  Tensor<dType> result = Tensor(shape_, multiplier);
   utils::math::elementwise_multiply(size_, get_tensor_const_ptr(),
                                     result.get_tensor_const_ptr(),
                                     result.get_tensor_ptr());
+  return result;
+}
+
+template<typename dType>
+Tensor<dType> Tensor<dType>::div(const dType &denom) const {
+  Tensor<dType> result = Tensor(shape_, denom);
+  utils::math::elementwise_divide(size_, get_tensor_const_ptr(),
+                                  result.get_tensor_const_ptr(),
+                                  result.get_tensor_ptr());
+  return result;
+}
+
+template<typename dType>
+Tensor<dType> Tensor<dType>::div(const Tensor<dType> &bt) const {
+  if (shape_ != bt.shape_) {
+    throw adg_exception::MismatchTensorShapeError(
+      "Tensor >> div: MismatchTensorShapeError: get shape " +
+        utils::vector_to_str(shape_) + " and " +
+        utils::vector_to_str(bt.shape_));
+  }
+
+  Tensor<dType> result(shape_);
+  utils::math::elementwise_divide(size_, get_tensor_const_ptr(), bt.get_tensor_const_ptr(), result.get_tensor_ptr());
   return result;
 }
 
@@ -231,23 +254,6 @@ Tensor<dType> Tensor<dType>::kron(const Tensor<dType> &lt,
     lt.get_tensor_const_ptr(), rt.get_tensor_const_ptr(),
     result.get_tensor_ptr());
 
-  return result;
-}
-
-template<typename dType>
-Tensor<dType> Tensor<dType>::div(const Tensor<dType> &lt,
-                                 const Tensor<dType> &rt) {
-  if (lt.shape_ != rt.shape_) {
-    throw adg_exception::MismatchTensorShapeError(
-      "Tensor >> div: MismatchTensorShapeError: get shape " +
-        utils::vector_to_str(lt.shape_) + " and " +
-        utils::vector_to_str(rt.shape_));
-  }
-
-  Tensor<dType> result(lt.shape_);
-  utils::math::elementwise_divide(lt.size_, lt.get_tensor_const_ptr(),
-                                  rt.get_tensor_const_ptr(),
-                                  result.get_tensor_ptr());
   return result;
 }
 

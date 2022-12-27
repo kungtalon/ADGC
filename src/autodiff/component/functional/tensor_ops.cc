@@ -71,23 +71,24 @@ MatAddVec::MatAddVec(Node *parent1_ptr, Node *parent2_ptr, const size_t &axis, G
 }
 
 void MatAddVec::do_forward() {
-  auto matrix_values = parents_[0]->get_value().to_vector();
-  auto vector_values = parents_[1]->get_value().to_vector();
-
-  size_t matrix_stride = parents_[0]->get_value().get_stride(axis_);
-
-  size_t matrix_index = 0, vector_index = 0;
-  while (matrix_index < matrix_values.size()) {
-    cblas_daxpy(matrix_stride,
-                1.0,
-                &vector_values[vector_index],
-                0,
-                &matrix_values[matrix_index],
-                1);
-    vector_index = (vector_index + 1) % vector_values.size();
-    matrix_index += matrix_stride;
-  }
-  value_ = DTensor(parents_[0]->get_value_shape(), matrix_values);
+//  auto matrix_values = parents_[0]->get_value().to_vector();
+//  auto vector_values = parents_[1]->get_value().to_vector();
+//
+//  size_t matrix_stride = parents_[0]->get_value().get_stride(axis_);
+//
+//  size_t matrix_index = 0, vector_index = 0;
+//  while (matrix_index < matrix_values.size()) {
+//    cblas_daxpy(matrix_stride,
+//                1.0,
+//                &vector_values[vector_index],
+//                0,
+//                &matrix_values[matrix_index],
+//                1);
+//    vector_index = (vector_index + 1) % vector_values.size();
+//    matrix_index += matrix_stride;
+//  }
+//  value_ = DTensor(parents_[0]->get_value_shape(), matrix_values);
+  value_ = tensor::add_vec(parents_[0]->get_value(), parents_[1]->get_value(), axis_);
 }
 
 DTensor MatAddVec::do_backward(Node *parent_ptr) {

@@ -115,7 +115,10 @@ Node &Conv2D::operator()(const Node &input) {
 
   if (padding_ != std::array<size_t, 4>({0, 0, 0, 0})) {
     output_ptr = new functional::Pad2D(output_ptr,
-                                       {{padding_[0], padding_[1]}, {padding_[2], padding_[3]}});
+                                       {{padding_[0], padding_[1]}, {padding_[2], padding_[3]}},
+                                       0,
+                                       graph_,
+                                       layer_name_ + "_pad2d");
   }
 
   Parameter weight = get_weight();
@@ -124,7 +127,7 @@ Node &Conv2D::operator()(const Node &input) {
 
   if (params_ptr_list_.size() == 2) {
     Parameter bias = get_bias();
-    output_ptr = new functional::MatAddVec(output_ptr, &bias, 1);
+    output_ptr = new functional::MatAddVec(output_ptr, &bias, 1, graph_, layer_name_ + "_mataddvec");
   }
 
   output_ptr = use_activation(output_ptr);

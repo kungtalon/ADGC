@@ -35,5 +35,6 @@ class Layer {
 
 #include "dense.h"
 #include "convolution.h"
+#include "normalization.h"
 
 #endif
