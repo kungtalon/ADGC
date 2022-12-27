@@ -115,7 +115,10 @@ Node &Conv2D::operator()(const Node &input) {
 
   if (padding_ != std::array<size_t, 4>({0, 0, 0, 0})) {
     output_ptr = new functional::Pad2D(output_ptr,
-                                       {{padding_[0], padding_[1]}, {padding_[2], padding_[3]}});
+                                       {{padding_[0], padding_[1]}, {padding_[2], padding_[3]}},
+                                       0,
+                                       graph_,
+                                       layer_name_ + "_pad2d");
   }
 
   Parameter weight = get_weight();
