@@ -20,7 +20,7 @@ typedef std::vector<Node *>::iterator NodeIterator;
 typedef std::pair<NodeIterator, NodeIterator> NodeIteratorPair;
 
 class Graph {
-public:
+ public:
   Graph();
   Graph(const std::string &name);
   Graph(const Graph &other) = delete;
@@ -48,6 +48,9 @@ public:
   inline size_t counter_increment(const std::string &key) {
     return type_counter_.inc(key);
   };
+  inline void train() { stage_flag_ = GraphStageFlag::train; }
+  inline void eval() { stage_flag_ = GraphStageFlag::eval; };
+  inline GraphStageFlag stage() { return stage_flag_; };
 
   static Graph *get_instanceof_global_graph();
   static void clear_graph(Graph *graph = nullptr);
@@ -64,11 +67,13 @@ public:
   void visualize(const std::string &file_name);
 #endif
 
-private:
+ private:
   std::string graph_name_;
   std::vector<Node *> node_ptr_list_;
   std::unordered_map<std::string, Node *> node_ptr_dict_;
   utils::TypeCounter type_counter_;
+  GraphStageFlag stage_flag_;
+
 };
 
 } // namespace auto_diff

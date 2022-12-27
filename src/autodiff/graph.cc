@@ -4,7 +4,7 @@
 
 namespace auto_diff {
 
-Graph::Graph() {};
+Graph::Graph() : stage_flag_(GraphStageFlag::train) {};
 
 Graph::Graph(const std::string &name) : graph_name_(name) {}
 

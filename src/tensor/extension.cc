@@ -88,4 +88,34 @@ Tensor<float> dilate2d(const Tensor<float> &src_tensor,
   return result;
 }
 
+template<>
+double squared_sum(const Tensor<double> &ts) {
+  return cblas_ddot(ts.get_size(), ts.get_tensor_const_ptr(), 1, ts.get_tensor_const_ptr(), 1);
+}
+
+template<>
+float squared_sum(const Tensor<float> &ts) {
+  return cblas_sdot(ts.get_size(), ts.get_tensor_const_ptr(), 1, ts.get_tensor_const_ptr(), 1);
+}
+
+template<>
+Tensor<float> sqrt(const Tensor<float> &ts) {
+  Tensor<float> result(ts.get_shape());
+  vsSqrt(ts.get_size(), ts.get_tensor_const_ptr(), &*result.get_iterator());
+  return result;
+}
+
+template<>
+Tensor<double> sqrt(const Tensor<double> &ts) {
+  Tensor<double> result(ts.get_shape());
+  vdSqrt(ts.get_size(), ts.get_tensor_const_ptr(), &*result.get_iterator());
+  return result;
+}
+
+template<>
+Tensor<float> add_vec(const Tensor<float> &lt,
+                      const Tensor<float> &rt) {
+
+}
+
 }

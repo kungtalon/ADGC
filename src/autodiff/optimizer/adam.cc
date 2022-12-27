@@ -8,7 +8,7 @@ Adam::Adam(const Node &target,
            const double &epsilon, Graph *graph)
   : Optimizer(target, learning_rate, graph),
     weight_decay_(weight_decay), beta1_(beta1), beta2_(beta2),
-    beta1_power_(1.), beta2_power_(1.) {}
+    beta1_power_(1.), beta2_power_(1.), epsilon_(epsilon) {}
 
 void Adam::reset_state() {
   beta1_power_ = 1.;
@@ -63,11 +63,11 @@ DTensor Adam::update_moments(const std::string &node_name,
   // normalize the moving average moments
   first_moment = first_moment.multiply(1. / (1 - beta1_power_ * beta1_));
   second_moment = second_moment.multiply(1. / (1 - beta2_power_ * beta2_));
-  second_moment.map(
-    [this](double &val) { val = std::sqrt(val + this->epsilon_); });
+  second_moment += epsilon_;
+  second_moment = tensor::sqrt(second_moment);
 
   // get the self-adaptive gradients
-  return DTensor::div(first_moment, second_moment);
+  return tensor::div(first_moment, second_moment);
 }
 
 } // namespace optimizer

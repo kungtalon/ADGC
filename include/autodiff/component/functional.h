@@ -9,6 +9,7 @@
 #include "functional/reduction.h"
 #include "functional/manipulation.h"
 #include "functional/tensor_ops.h"
+#include "functional/normalization.h"
 #include "functional/vision.h"
 
 #endif

@@ -76,6 +76,8 @@ class Tensor {
   Tensor<dType> dot(const Tensor<dType> &bt) const;
   Tensor<dType> multiply(const dType &multiplier) const;
   Tensor<dType> multiply(const Tensor<dType> &bt) const;
+  Tensor<dType> div(const dType &denom) const;
+  Tensor<dType> div(const Tensor<dType> &bt) const;
   Tensor<dType> add(const Tensor<dType> &bt) const;
   Tensor<dType> add(const dType &number) const;
   Tensor<dType> sub(const Tensor<dType> &bt) const;
@@ -115,7 +117,6 @@ class Tensor {
   }
 
   static Tensor<dType> kron(const Tensor<dType> &lt, const Tensor<dType> &rt);
-  static Tensor<dType> div(const Tensor<dType> &lt, const Tensor<dType> &rt);
   static Tensor<dType> concat(const std::vector<Tensor<dType>> &tensors, const size_t &axis);
   static size_t get_coordinate_at_axis(const size_t &ind, const size_t &axis,
                                        const TensorShape &strides);
@@ -209,5 +210,6 @@ static const Tensor<double> EMPTY = {{1}};
 #include "tensor/tensor.tcc"
 #include "tensor/tensor_manip.tcc"
 #include "tensor/tensor_numeric.tcc"
+#include "tensor/extension.h"
 
 #endif

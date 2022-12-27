@@ -85,4 +85,22 @@ void reverse(Tensor<dType> &ts, const size_t &axis) {
   }
 }
 
+template<typename dType>
+Tensor<dType> div(const Tensor<dType>& lt, const Tensor<dType>&rt) {
+  if (lt.get_shape() != rt.get_shape()) {
+    throw adg_exception::MismatchTensorShapeError(
+      "Tensor >> div: MismatchTensorShapeError: get shape " +
+        utils::vector_to_str(lt.get_shape()) + " and " +
+        utils::vector_to_str(rt.get_shape()));
+  }
+
+  Tensor<dType> result(lt.get_shape());
+  dType *result_ptr = &*result.get_iterator();
+  utils::math::elementwise_divide(lt.get_size(), lt.get_tensor_const_ptr(),
+                                  rt.get_tensor_const_ptr(),
+                                  result_ptr);
+  return result;
+}
+
+
 }
