@@ -114,8 +114,82 @@ Tensor<double> sqrt(const Tensor<double> &ts) {
 
 template<>
 Tensor<float> add_vec(const Tensor<float> &lt,
-                      const Tensor<float> &rt) {
+                      const Tensor<float> &rt,
+                      const size_t &axis) {
+  Tensor<float> vec, mat;
+  if (lt.get_dim() == 1) {
+    vec = lt;
+    mat = rt;
+  } else if (rt.get_dim() == 1) {
+    vec = rt;
+    mat = lt;
+  } else {
+    throw adg_exception::InvalidTensorShapeException("Tensor >> add_vec: expect one operand with dim 1...");
+  }
 
+  if (mat.get_shape(axis) != vec.get_size()) {
+    throw adg_exception::MismatchTensorShapeError(
+      "Tensor >> add_vec: expect two operands to have matched size in the axis...");
+  }
+
+  Tensor<float> result = mat.copy();
+
+  const float *vector_ptr = vec.get_tensor_const_ptr();
+  size_t mat_stride = result.get_stride(axis);
+  size_t vec_size = vec.get_size();
+
+  size_t matrix_index = 0, vector_index = 0;
+  while (matrix_index < mat.get_size()) {
+    cblas_saxpy(mat_stride,
+                1.0,
+                vector_ptr + vector_index,
+                0,
+                &*(result.get_iterator() + matrix_index),
+                1);
+    vector_index = (vector_index + 1) % vec_size;
+    matrix_index += mat_stride;
+  }
+  return result;
+}
+
+template<>
+Tensor<double> add_vec(const Tensor<double> &lt,
+                       const Tensor<double> &rt,
+                       const size_t &axis) {
+  Tensor<double> vec, mat;
+  if (lt.get_dim() == 1) {
+    vec = lt;
+    mat = rt;
+  } else if (rt.get_dim() == 1) {
+    vec = rt;
+    mat = lt;
+  } else {
+    throw adg_exception::InvalidTensorShapeException("Tensor >> add_vec: expect one operand with dim 1...");
+  }
+
+  if (mat.get_shape(axis) != vec.get_size()) {
+    throw adg_exception::MismatchTensorShapeError(
+      "Tensor >> add_vec: expect two operands to have matched size in the axis...");
+  }
+
+  Tensor<double> result = mat.copy();
+
+  const double *vector_ptr = vec.get_tensor_const_ptr();
+  size_t mat_stride = result.get_stride(axis);
+  size_t vec_size = vec.get_size();
+
+  size_t matrix_index = 0, vector_index = 0;
+  while (matrix_index < mat.get_size()) {
+    cblas_daxpy(mat_stride,
+                1.0,
+                vector_ptr + vector_index,
+                0,
+                &*(result.get_iterator() + matrix_index),
+                1);
+    vector_index = (vector_index + 1) % vec_size;
+    matrix_index += mat_stride;
+  }
+  return result;
 }
 
 }

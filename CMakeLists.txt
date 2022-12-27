@@ -181,6 +181,18 @@ if (NOT ${SKIP_TEST})
             gmock
             gmock_main
             )
+    add_executable(
+            tensor_extension_test
+            test/tensor_extension_test.cc
+    )
+    target_link_libraries(tensor_extension_test
+            tensor_lib
+            utils_lib
+            gtest
+            gtest_main
+            gmock
+            gmock_main
+            )
 
     if (${USE_GRAPHVIZ})
         add_executable(
