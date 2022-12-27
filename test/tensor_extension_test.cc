@@ -116,6 +116,33 @@ TEST(AdgcTensorExtensionTest, AddVecTest) {
                                             16, 5, 9, 14, 16, 9, 19, 9, 14));
 }
 
+TEST(AdgcTensorExtensionTest, PmulVecTest) {
+  std::vector<double> fa = {9, 13, 16, 11, 14, 4, 17, 18, 5, 4, 5, 12,
+                            8, 2, 5, 15, 10, 9, 5, 4, 12, 6, 15, 5,
+                            9, 17, 8, 2, 17, 17, 12, 18, 13, 4, 19, 2,
+                            7, 4, 16, 19, 9, 19, 2, 15, 6, 15, 13, 11,
+                            13, 14, 5, 13, 2, 6, 11, 13, 6, 16, 6, 11};
+  tensor::Tensor<double> ta({3, 4, 5}, fa);
+
+  tensor::Tensor<double> tb({5}, {5, 4, 3, 2, 1});
+
+  auto res = tensor::pmul_vec(ta, tb, 2);
+
+  ASSERT_THAT(res.to_vector(), ElementsAre(45, 52, 48, 22, 14, 20, 68, 54, 10, 4, 25, 48, 24, 4, 5, 75, 40,
+                                           27, 10, 4, 60, 24, 45, 10, 9, 85, 32, 6, 34, 17, 60, 72, 39, 8,
+                                           19, 10, 28, 12, 32, 19, 45, 76, 6, 30, 6, 75, 52, 33, 26, 14, 25,
+                                           52, 6, 12, 11, 65, 24, 48, 12, 11));
+
+  tensor::Tensor<double> tc({3}, {1, 2, 3});
+
+  auto res2 = tensor::pmul_vec(ta, tc, 0);
+
+  ASSERT_THAT(res2.to_vector(), ElementsAre(9, 13, 16, 11, 14, 4, 17, 18, 5, 4, 5, 12, 8, 2, 5, 15, 10,
+                                            9, 5, 4, 24, 12, 30, 10, 18, 34, 16, 4, 34, 34, 24, 36, 26, 8,
+                                            38, 4, 14, 8, 32, 38, 27, 57, 6, 45, 18, 45, 39, 33, 39, 42, 15,
+                                            39, 6, 18, 33, 39, 18, 48, 18, 33));
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

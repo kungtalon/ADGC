@@ -34,9 +34,17 @@ template<typename dType>
 Tensor<dType> sqrt(const Tensor<dType> &ts);
 
 template<typename dType>
+Tensor<dType> square(const Tensor<dType> &ts);
+
+template<typename dType>
 Tensor<dType> add_vec(const Tensor<dType> &lt,
                       const Tensor<dType> &rt,
                       const size_t &axis);
+
+template<typename dType>
+Tensor<dType> pmul_vec(const Tensor<dType> &lt,
+                       const Tensor<dType> &rt,
+                       const size_t &axis);
 
 template<typename dType>
 Tensor<dType> dot(const Tensor<dType> &lt,

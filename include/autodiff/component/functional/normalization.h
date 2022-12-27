@@ -23,8 +23,13 @@ class BatchNorm2D : public Node {
   void do_forward() override;
   DTensor do_backward(Node *parent_ptr) override;
 
+  DTensor get_moving_mean();
+  DTensor get_moving_var();
+
  private:
+  double size_bhw_;
   DTensor moving_mean_, moving_var_;  // shape: [C]
+  std::vector<DTensor> cached_tensors_;
   double epsilon_, momentum_;
 };
 
