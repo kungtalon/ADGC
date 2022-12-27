@@ -124,7 +124,7 @@ Node &Conv2D::operator()(const Node &input) {
 
   if (params_ptr_list_.size() == 2) {
     Parameter bias = get_bias();
-    output_ptr = new functional::MatAddVec(output_ptr, &bias, 1, graph_, layer_name_ + "_conv2d");
+    output_ptr = new functional::MatAddVec(output_ptr, &bias, 1, graph_, layer_name_ + "_mataddvec");
   }
 
   output_ptr = use_activation(output_ptr);
