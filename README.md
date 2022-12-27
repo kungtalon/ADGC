@@ -25,8 +25,12 @@ This part contains all elements with regard to building an automatic differentia
 - Functional: activation functions and loss functions
 
 These are not nodes but important to building and training the model:
-- Layer: some common layers built on top of the above nodes, like fully connected layer
-- Optimizer: encapsulations of gradient-based learning algorithms such as Gradient Descent, Adam...
+- Layer: some common layers built on top of the above nodes, currently including:
+  - Fully connected layer
+  - Conv2d layer
+- Optimizer: encapsulations of gradient-based learning algorithms, currently including:
+  - Gradient Descent
+  - Adam
 
 ### Forward and Backward
 Each node of the graph needs to implement the logics of `do_forward()` and `do_backward(Node* parent_ptr)`, the first one computes its forward value and the other computes the nodes' jacobian matrix with regard to one of its parent nodes.
