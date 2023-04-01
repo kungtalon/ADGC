@@ -8,12 +8,19 @@
 using namespace testing;
 using namespace auto_diff;
 
-#define MNIST_DATA_PATH "/home/kungtalon/projects/automatic_differentiation_graph_cpp/testdata/test.csv"
+#define TEST_FILE_NAME "test.csv"
 #define BATCH_SIZE 3
+
+std::string mnist_test_file_path;
 
 TEST(DataSetTest, CsvDataSetTest) {
   try {
-    auto data_set = data::CsvDataset(MNIST_DATA_PATH, 0, BATCH_SIZE);
+    mnist_test_file_path = mnist_test_file_path + "/" TEST_FILE_NAME;
+
+    EXPECT_TRUE(std::filesystem::exists(mnist_test_file_path))
+        << "Path not found: " << mnist_test_file_path;
+
+    auto data_set = data::CsvDataset(mnist_test_file_path, 0, BATCH_SIZE);
 
     EXPECT_EQ(data_set.get_label_count(), 10);
     EXPECT_EQ(data_set.get_data_count(), 2000);
@@ -59,16 +66,14 @@ TEST(DataSetTest, CsvDataSetTest) {
     }
 
     EXPECT_EQ(index, 667);
-  } catch (
-    const std::exception &ex
-  ) {
-    FAIL()
-        << "Failed and got this: " << std::endl << ex.
-          what();
+  } catch (const std::exception &ex) {
+    FAIL() << "Failed and got this: " << std::endl << ex.what();
   }
 }
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
+  assert(argc == 2);
+  mnist_test_file_path = argv[1];
   return RUN_ALL_TESTS();
 }
