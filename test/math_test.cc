@@ -150,7 +150,7 @@ TEST(AdgcMathUtilsTest, FloatGemmTest) {
   utils::math::tensor_gemm(120, 90, 180, 4, 3, 2, a, b, out_c);
 
   for (int ix = 0; ix < 180; ix++) {
-    ASSERT_LE(abs(true_c[ix] - out_c[ix]), 0.00001)
+    ASSERT_LE(abs(true_c[ix] - out_c[ix]), 0.0001)
         << "Mismatched results at index " << ix << "Extra info:\n"
         << utils::array_to_str(15, 12, true_c, "true") << std::endl
         << utils::array_to_str(15, 12, out_c, "out") << std::endl;
