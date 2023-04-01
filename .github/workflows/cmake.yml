@@ -27,9 +27,9 @@ jobs:
         echo "deb https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
         sudo apt-get update
         
-    - name: Install Intel MKL
+    - name: Install Required Packages
       timeout-minutes: 5
-      run: sudo apt-get install intel-mkl
+      run: sudo apt-get install intel-mkl graphviz 
     
     - name: Checkout Project
       uses: actions/checkout@v3
